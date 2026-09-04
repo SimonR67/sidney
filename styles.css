@@ -1,0 +1,102 @@
+/* Mordor — black and orange. */
+
+:root {
+  --ink: #0a0a0a;          /* dominant background */
+  --ink-raised: #121212;   /* nav band, sits just above the page */
+  --ember: #ff7a18;        /* primary orange accent */
+  --ember-bright: #ffa34d; /* lighter orange for large display text */
+  --ash: #c9c9c9;          /* neutral body text */
+  --edge: #2a2a2a;         /* hairline borders */
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--ink);
+}
+
+body {
+  margin: 0;
+  background-color: var(--ink);
+  color: var(--ash);
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+}
+
+/* Navigation bar */
+
+.site-nav {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 1rem clamp(1rem, 4vw, 2rem);
+  background-color: var(--ink-raised);
+  border-bottom: 1px solid var(--edge);
+}
+
+.site-nav__brand {
+  color: var(--ember);
+  font-size: 1.5rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+
+.site-nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem clamp(1rem, 3vw, 1.75rem);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__links a {
+  color: var(--ember-bright);
+  font-size: 0.95rem;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.site-nav__links a:hover,
+.site-nav__links a:focus {
+  color: var(--ember);
+  text-decoration: underline;
+}
+
+/* Hero */
+
+.hero {
+  background-color: var(--ink);
+  border-bottom: 1px solid var(--edge);
+  padding: clamp(3rem, 10vw, 6rem) clamp(1rem, 4vw, 2rem);
+}
+
+.hero__inner {
+  margin: 0 auto;
+  max-width: 60rem;
+}
+
+.hero__title {
+  margin: 0;
+  color: var(--ember);
+  font-size: clamp(2.75rem, 11vw, 6rem);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  line-height: 1.05;
+  overflow-wrap: break-word;
+  text-transform: uppercase;
+}
+
+.hero__tagline {
+  margin: 1.25rem 0 0;
+  max-width: 40rem;
+  color: var(--ash);
+  font-size: clamp(1rem, 3.5vw, 1.25rem);
+}
