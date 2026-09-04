@@ -140,6 +140,42 @@ main {
   background-color: var(--ember-bright);
 }
 
+/* Interior pages: About and Contact, laid out like the hero but headed smaller. */
+
+.page {
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--navy);
+  padding: clamp(3rem, 10vw, 6rem) clamp(1rem, 4vw, 2rem);
+}
+
+.page__inner {
+  width: 100%;
+  max-width: 60rem;
+  text-align: center;
+}
+
+.page__title {
+  margin: 0;
+  color: var(--ember-bright);
+  font-size: clamp(1.75rem, 6vw, 3rem);
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  overflow-wrap: break-word;
+}
+
+/* Page imagery: never wider than the column it sits in, aspect ratio intact. */
+
+.page-image {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 2rem auto 0;
+}
+
 /* Narrow viewports (~375px): stack the nav and tighten the hero. */
 
 @media (max-width: 600px) {
@@ -154,7 +190,8 @@ main {
     gap: 0.5rem 1.25rem;
   }
 
-  .hero {
+  .hero,
+  .page {
     padding: 3rem 1rem;
   }
 
@@ -168,7 +205,8 @@ main {
 /* Wide viewports (~1200px+): let the hero breathe. */
 
 @media (min-width: 1200px) {
-  .hero {
+  .hero,
+  .page {
     padding: 7rem 2rem;
   }
 }

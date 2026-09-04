@@ -117,17 +117,18 @@ describe('Task 2: navigation bar', () => {
     assert.ok(brand.href.startsWith('#'), `brand link should be a placeholder, got ${brand.href}`)
   })
 
-  it('offers Home / About / Contact placeholder links that all target a fragment', async () => {
+  it('offers Home / About / Contact links, each pointing at its own page', async () => {
     const links = await page.evaluate(`
       return [...document.querySelectorAll('.site-nav__links a')].map((a) => ({
         text: a.textContent.trim(),
         href: a.getAttribute('href'),
       }))
     `)
-    assert.deepEqual(links.map((l) => l.text), ['Home', 'About', 'Contact'])
-    for (const link of links) {
-      assert.ok(link.href.startsWith('#'), `${link.text} should be a placeholder link, got ${link.href}`)
-    }
+    assert.deepEqual(links, [
+      { text: 'Home', href: 'index.html' },
+      { text: 'About', href: 'about.html' },
+      { text: 'Contact', href: 'contact.html' },
+    ])
   })
 
   it('lays the nav out horizontally with the brand left of the links', async () => {
@@ -157,11 +158,13 @@ describe('Task 2: navigation bar', () => {
     assert.ok(nav.width >= nav.innerWidth - 0.5, 'nav bar should span the full page width')
   })
 
-  it('clicking every nav link keeps the page on index.html and throws nothing', async () => {
+  // The nav links now lead to their own pages; that walk is covered end to end
+  // below. Here: the links that stay on this page must not move it.
+  it('clicking the on-page links keeps the page on index.html and throws nothing', async () => {
     await page.reload()
     const result = await page.evaluate(`
       const before = location.pathname;
-      for (const a of document.querySelectorAll('nav a')) a.click();
+      for (const a of document.querySelectorAll('nav a[href^="#"]')) a.click();
       return { before, after: location.pathname, title: document.title };
     `)
     assert.equal(result.after, result.before)
@@ -653,10 +656,12 @@ describe('Task 8: works with JavaScript disabled', () => {
         'page should make no off-origin requests',
       )
 
-      // Click every placeholder link in turn and re-check after each one.
-      const links = await fresh.evaluate("return document.querySelectorAll('a').length")
+      // Click every link that stays on this page in turn and re-check after
+      // each one. The nav links lead to their own pages and are walked
+      // end to end further down.
+      const links = await fresh.evaluate(`return document.querySelectorAll('a[href^="#"]').length`)
       for (let i = 0; i < links; i++) {
-        await fresh.evaluate(`document.querySelectorAll('a')[${i}].click(); return null;`)
+        await fresh.evaluate(`document.querySelectorAll('a[href^="#"]')[${i}].click(); return null;`)
         assert.deepEqual(fresh.pageErrors, [], `error after clicking link ${i}`)
         assert.deepEqual(fresh.consoleMessages, [], `console output after clicking link ${i}`)
       }
@@ -1123,6 +1128,17 @@ const checkoutBase = async (commit) => {
   return { dir, url: pathToFileURL(join(dir, 'index.html')).href }
 }
 
+/**
+ * True once a later change has edited the markup this spot-check was written
+ * against — the layout comparison below only means anything while the two
+ * renders share their markup.
+ */
+const markupChangedSinceBase = async () => {
+  const commit = await baseCommit()
+  if (!commit) return false
+  return (await git('show', `${commit}:index.html`)) !== (await readSource(repoRoot, 'index.html'))
+}
+
 describe('Palette task 9: before/after spot-check', () => {
   let previous
   let baseDir
@@ -1146,6 +1162,9 @@ describe('Palette task 9: before/after spot-check', () => {
   for (const width of [1280, 375]) {
     it(`shows only colour differences at ${width}px — no layout, type or content shift`, async (t) => {
       if (!previous) return t.skip('base branch not available locally; cannot render the previous version')
+      if (await markupChangedSinceBase()) {
+        return t.skip('superseded: index.html has gained page imagery and page links since the palette swap')
+      }
       await previous.setViewport(width, 800)
       await page.setViewport(width, 800)
       await page.reload()
@@ -1238,10 +1257,388 @@ describe('Test plan: end-to-end walkthrough', () => {
     })
   }
 
-  it('introduces no extra pages, scripts or build tooling', async () => {
+  it('introduces no scripts or build tooling', async () => {
     const { readdir } = await import('node:fs/promises')
     const root = (await readdir(repoRoot)).filter((name) => !name.startsWith('.'))
-    // Only the two site files plus the test harness, specs and the palette notes.
-    assert.deepEqual(root.sort(), ['docs', 'index.html', 'package.json', 'specs', 'styles.css', 'tests'])
+    // The three pages, their images and the stylesheet, plus the test harness,
+    // specs and docs. Nothing that has to be compiled or generated.
+    assert.deepEqual(root.sort(), [
+      'about.html',
+      'contact.html',
+      'docs',
+      'images',
+      'index.html',
+      'package.json',
+      'specs',
+      'styles.css',
+      'tests',
+    ])
+  })
+})
+
+const SITE_NOTES = join('docs', 'site-structure-notes.md')
+
+/** The three pages this job adds, with the image each one shows. */
+const PAGES = [
+  {
+    label: 'Home',
+    file: 'index.html',
+    image: 'File1767.jpg',
+    driveId: '1oyhTHrmOxstMLB2effg1rHVcPlnWwWBh',
+  },
+  {
+    label: 'About',
+    file: 'about.html',
+    image: 'City_Eclipse.jpeg',
+    driveId: '1uHmN3zpaBs5KNzmMiyaHf-8qK_vjiAFU',
+  },
+  {
+    label: 'Contact',
+    file: 'contact.html',
+    image: 'Orion18032022-for-lightroom.jpg',
+    driveId: '1F1ZgT2L17IGYOh5ujqQWksdvQZdwNJXQ',
+  },
+]
+
+describe('Pages task 1: site architecture findings', () => {
+  it('records the architecture type, the page files and any duplicate sections found', async () => {
+    const notes = await readSource(repoRoot, SITE_NOTES)
+    assert.match(notes, /^## Architecture$/m, `${SITE_NOTES} should carry an "## Architecture" section`)
+    assert.match(notes, /^## Page and nav files$/m, `${SITE_NOTES} should carry a "## Page and nav files" section`)
+    assert.match(notes, /^## Duplicate pages$/m, `${SITE_NOTES} should carry a "## Duplicate pages" section`)
+    assert.match(notes, /static multi-page/i, 'the architecture finding should name the site type')
+    for (const file of ['index.html', 'about.html', 'contact.html', 'styles.css']) {
+      assert.ok(notes.includes(file), `${SITE_NOTES} should record where ${file} lives`)
+    }
+  })
+})
+
+/** One static server for the multi-page tests below: the site as it is deployed. */
+let site
+
+before(async () => {
+  site = await serveStatic(repoRoot)
+})
+
+after(async () => {
+  await site?.close()
+})
+
+/** The attributes of the first `<img>` in `html` whose `src` is `src`, or null. */
+const imgWithSrc = (html, src) => {
+  for (const [tag] of html.matchAll(/<img\b[^>]*>/g)) {
+    const attrs = Object.fromEntries(
+      [...tag.matchAll(/([a-zA-Z-]+)="([^"]*)"/g)].map((m) => [m[1], m[2]]),
+    )
+    if (attrs.src === src) return attrs
+  }
+  return null
+}
+
+describe('Pages task 2: image assets', () => {
+  for (const { image, driveId } of PAGES) {
+    it(`ships images/${image} as a real, non-empty JPEG`, async () => {
+      let bytes
+      try {
+        bytes = await readFile(join(repoRoot, 'images', image))
+      } catch {
+        assert.fail(
+          `images/${image} is missing: it could not be downloaded from Google Drive id ${driveId} ` +
+            '(the file is not publicly shared and this environment has no Drive credentials). ' +
+            'See images/README.md — no placeholder has been substituted.',
+        )
+      }
+      assert.ok(bytes.length > 1024, `images/${image} is only ${bytes.length} bytes — the download did not produce an image`)
+      assert.equal(
+        bytes.subarray(0, 3).toString('hex'),
+        'ffd8ff',
+        `images/${image} is not JPEG data — a Drive sign-in/error page was saved instead of the image`,
+      )
+    })
+  }
+})
+
+// Tasks 3-5: one page per nav item, each independently reachable and each
+// carrying its own image. `/` is the Home route; the other two are files.
+const ROUTES = { 'index.html': '/', 'about.html': '/about.html', 'contact.html': '/contact.html' }
+
+PAGES.forEach(({ label, file, image }, index) => {
+  describe(`Pages task ${index + 3}: ${label} page`, () => {
+    it(`serves the ${label} page at ${ROUTES[file]} with a 200`, async () => {
+      const response = await fetch(`${site.origin}${ROUTES[file]}`)
+      assert.equal(response.status, 200, `${ROUTES[file]} should be reachable on its own`)
+      const html = await response.text()
+      assert.match(html, /<!DOCTYPE html>/i, `${file} should be a complete HTML document`)
+    })
+
+    it(`shows ${image} with descriptive alt text`, async () => {
+      const html = await (await fetch(`${site.origin}${ROUTES[file]}`)).text()
+      const img = imgWithSrc(html, `images/${image}`)
+      assert.ok(img, `${file} should carry an <img src="images/${image}">`)
+      assert.ok(img.alt?.trim().length >= 10, `the ${label} image needs a descriptive alt attribute, got "${img.alt}"`)
+    })
+
+    it(`shows only its own image, not another page's`, async () => {
+      const html = await (await fetch(`${site.origin}${ROUTES[file]}`)).text()
+      const others = PAGES.filter((p) => p.image !== image).map((p) => p.image)
+      for (const other of others) {
+        assert.equal(imgWithSrc(html, `images/${other}`), null, `${file} should not also show ${other}`)
+      }
+      assert.equal((html.match(/<img\b/g) ?? []).length, 1, `${file} should show exactly one image`)
+    })
+  })
+})
+
+const NAV_LINKS = [
+  { text: 'Home', href: 'index.html' },
+  { text: 'About', href: 'about.html' },
+  { text: 'Contact', href: 'contact.html' },
+]
+
+describe('Pages task 6: navigation menu', () => {
+  for (const { label, file } of PAGES) {
+    it(`renders exactly the three menu links on the ${label} page`, async () => {
+      const rendered = await openPage(`${site.origin}${ROUTES[file]}`)
+      try {
+        const nav = await rendered.evaluate(`
+          return {
+            links: [...document.querySelectorAll('.site-nav__links a')].map((a) => ({
+              text: a.textContent.trim(),
+              href: a.getAttribute('href'),
+            })),
+            anchorsInNav: document.querySelectorAll('nav a').length,
+            navs: document.querySelectorAll('nav').length,
+          }
+        `)
+        assert.deepEqual(nav.links, NAV_LINKS, `the ${label} nav should list Home, About and Contact once each`)
+        assert.equal(nav.navs, 1, 'each page should carry a single nav')
+        assert.equal(nav.anchorsInNav, NAV_LINKS.length + 1, 'the nav should hold the three links plus the brand')
+      } finally {
+        await rendered.close()
+      }
+    })
+  }
+})
+
+describe('Pages task 7: routing', () => {
+  it('resolves every nav link on every page to a served page, never a 404', async () => {
+    for (const { label, file } of PAGES) {
+      const base = `${site.origin}${ROUTES[file]}`
+      const html = await (await fetch(base)).text()
+      const hrefs = [...html.matchAll(/<a[^>]*href="([^"]+)"/g)]
+        .map((m) => m[1])
+        .filter((href) => !href.startsWith('#'))
+      assert.deepEqual(hrefs, NAV_LINKS.map((link) => link.href), `unexpected off-page links on ${label}`)
+      for (const href of hrefs) {
+        const response = await fetch(new URL(href, base))
+        assert.equal(response.status, 200, `${label} → ${href} should resolve, not 404`)
+        assert.match(response.headers.get('content-type'), /text\/html/, `${href} should be served as HTML`)
+      }
+    }
+  })
+
+  it('needs no routing configuration: every route is a file served from the repo root', async () => {
+    const { access } = await import('node:fs/promises')
+    for (const { file } of PAGES) {
+      await access(join(repoRoot, file))
+    }
+    // A static site with no build step has nothing to register; anything below
+    // would be a rewrite layer that could drift from the files on disk.
+    for (const config of ['.htaccess', 'routes.js', 'next.config.js', 'vercel.json', 'netlify.toml']) {
+      await assert.rejects(access(join(repoRoot, config)), `${config} exists — routing would need registering there too`)
+    }
+    assert.equal((await fetch(`${site.origin}/nope.html`)).status, 404, 'the server should still 404 on unknown paths')
+  })
+})
+
+describe('Pages task 8: responsive page images', () => {
+  it('declares the responsive rule in plain CSS', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    const rule = css.match(/\.page-image\s*\{([^}]*)\}/)
+    assert.ok(rule, 'styles.css should carry a .page-image rule')
+    assert.match(rule[1], /max-width:\s*100%/, '.page-image should be capped at the width of its container')
+    assert.match(rule[1], /height:\s*auto/, '.page-image should keep its aspect ratio')
+  })
+
+  for (const { label, file } of PAGES) {
+    for (const width of [1280, 375]) {
+      it(`keeps the ${label} image inside a ${width}px viewport`, async () => {
+        const rendered = await openPage(`${site.origin}${ROUTES[file]}`, { width, height: 800 })
+        try {
+          const layout = await rendered.evaluate(`
+            const img = document.querySelector('.page-image');
+            const rect = img.getBoundingClientRect();
+            const style = getComputedStyle(img);
+            return {
+              maxWidth: style.maxWidth,
+              left: rect.left,
+              right: rect.right,
+              innerWidth: window.innerWidth,
+              scrollWidth: document.documentElement.scrollWidth,
+              parentWidth: img.parentElement.getBoundingClientRect().width,
+            }
+          `)
+          assert.equal(layout.maxWidth, '100%', `the ${label} image should cap at its container's width`)
+          assert.ok(layout.left >= 0, `the ${label} image starts off-screen at ${layout.left}`)
+          assert.ok(
+            layout.right <= layout.innerWidth + 0.5,
+            `the ${label} image runs past the viewport (${layout.right} > ${layout.innerWidth})`,
+          )
+          assert.ok(
+            layout.right - layout.left <= layout.parentWidth + 0.5,
+            `the ${label} image is wider than its container`,
+          )
+          assert.ok(
+            layout.scrollWidth <= layout.innerWidth,
+            `the ${label} page overflows horizontally at ${width}px (${layout.scrollWidth} > ${layout.innerWidth})`,
+          )
+        } finally {
+          await rendered.close()
+        }
+      })
+    }
+  }
+})
+
+const ACTIVE_NAV_PATTERN = /aria-current|is-active|nav__link--active|\.active\b/
+
+describe('Pages task 9: active nav styling', () => {
+  it('is not applicable — the site had no active-nav pattern to extend', async (t) => {
+    const commit = await baseCommit()
+    if (!commit) return t.skip('base branch not available locally; cannot read the pre-change site')
+    for (const file of STYLING_SOURCES) {
+      const before = await git('show', `${commit}:${file}`)
+      assert.equal(
+        ACTIVE_NAV_PATTERN.test(before),
+        false,
+        `${file} already marked the current nav item — the pattern should then have been extended, not skipped`,
+      )
+    }
+    const notes = await readSource(repoRoot, SITE_NOTES)
+    assert.match(notes, /^## Active nav styling$/m, `${SITE_NOTES} should record the finding`)
+    assert.match(notes, /not applicable/i, 'the finding should say the task does not apply')
+    t.skip('no pre-existing active-nav pattern to extend')
+  })
+})
+
+describe('Pages task 10: one canonical page per section', () => {
+  it('keeps exactly one page file per nav item, with no leftovers', async () => {
+    const { readdir } = await import('node:fs/promises')
+    const onDisk = (await readdir(repoRoot)).filter((name) => name.endsWith('.html')).sort()
+    assert.deepEqual(onDisk, ['about.html', 'contact.html', 'index.html'])
+  })
+
+  it('had nothing to consolidate — the site was a single page before this change', async (t) => {
+    const commit = await baseCommit()
+    if (!commit) return t.skip('base branch not available locally; cannot list the pre-change pages')
+    const tracked = (await git('ls-tree', '-r', '--name-only', commit))
+      .split('\n')
+      .filter((name) => name.endsWith('.html'))
+    assert.deepEqual(tracked, ['index.html'], 'the pre-change site should have held a single page')
+    const notes = await readSource(repoRoot, SITE_NOTES)
+    assert.match(notes, /^## Duplicate pages$/m, `${SITE_NOTES} should record the finding`)
+    assert.match(notes, /none found/i, 'the finding should say no duplicates existed')
+  })
+})
+
+/** Everything a visitor should be able to tell about the page they are on. */
+const VISITOR_STATE = `
+  const img = document.querySelector('.page-image');
+  return {
+    path: location.pathname,
+    title: document.title,
+    heading: document.querySelector('h1').textContent.trim(),
+    image: img?.getAttribute('src') ?? null,
+    alt: img?.getAttribute('alt') ?? null,
+    images: document.querySelectorAll('img').length,
+    loaded: !!img && img.complete && img.naturalWidth > 0,
+    overflow: document.documentElement.scrollWidth > window.innerWidth,
+  };
+`
+
+/** Clicks the nav link labelled `label` and waits for `expectedPath` to finish loading. */
+const clickNav = async (visitor, label, expectedPath) => {
+  await visitor.evaluate(`
+    const label = ${JSON.stringify(label)};
+    const link = [...document.querySelectorAll('.site-nav__links a')].find((a) => a.textContent.trim() === label);
+    if (!link) throw new Error('no nav link labelled ' + label);
+    link.click();
+    return null;
+  `)
+  for (let i = 0; i < 100; i++) {
+    try {
+      const state = await visitor.evaluate('return { path: location.pathname, ready: document.readyState }')
+      if (state.path === expectedPath && state.ready === 'complete') return
+    } catch {
+      // The execution context goes away mid-navigation; try again.
+    }
+    await new Promise((resolve) => setTimeout(resolve, 50))
+  }
+  assert.fail(`clicking "${label}" never landed on ${expectedPath}`)
+}
+
+const WALK = [
+  { label: 'About', path: '/about.html', heading: 'About', title: 'About — BetaMax', image: 'images/City_Eclipse.jpeg' },
+  { label: 'Contact', path: '/contact.html', heading: 'Contact', title: 'Contact — BetaMax', image: 'images/Orion18032022-for-lightroom.jpg' },
+  { label: 'Home', path: '/index.html', heading: 'BetaMax', title: 'BetaMax', image: 'images/File1767.jpg' },
+]
+
+describe('Pages test plan: end-to-end walk of the three pages', () => {
+  for (const width of [1280, 375]) {
+    it(`walks Home → About → Contact → Home at ${width}px, one distinct page per click`, async () => {
+      const visitor = await openPage(`${site.origin}/`, { width, height: 800 })
+      try {
+        const home = await visitor.evaluate(VISITOR_STATE)
+        assert.equal(home.path, '/', 'the walk should start on the Home route')
+        assert.equal(home.image, 'images/File1767.jpg')
+        assert.equal(home.images, 1, 'Home should show its own image and no other')
+        assert.equal(home.overflow, false, `Home overflows horizontally at ${width}px`)
+
+        for (const step of WALK) {
+          await clickNav(visitor, step.label, step.path)
+          const state = await visitor.evaluate(VISITOR_STATE)
+          assert.equal(state.path, step.path, `"${step.label}" should lead to its own URL`)
+          assert.equal(state.title, step.title)
+          assert.equal(state.heading, step.heading, `${step.label} should show only its own content`)
+          assert.equal(state.image, step.image, `${step.label} should show only its own image`)
+          assert.ok(state.alt.trim().length >= 10, `${step.label}'s image needs descriptive alt text`)
+          assert.equal(state.images, 1, `${step.label} should show exactly one image`)
+          assert.equal(state.overflow, false, `${step.label} overflows horizontally at ${width}px`)
+        }
+        assert.deepEqual(visitor.pageErrors, [], 'the walk should raise no page errors')
+      } finally {
+        await visitor.close()
+      }
+    })
+  }
+
+  it('loads all three images, with no broken image and no failed request', async () => {
+    for (const { label, file, image } of PAGES) {
+      const visitor = await openPage(`${site.origin}${ROUTES[file]}`)
+      try {
+        const state = await visitor.evaluate(VISITOR_STATE)
+        assert.equal(state.image, `images/${image}`)
+        assert.ok(state.loaded, `the ${label} image (images/${image}) did not load — see images/README.md`)
+        assert.deepEqual(visitor.failedRequests, [], `${file} made a request that failed`)
+        assert.deepEqual(visitor.consoleMessages, [], `${file} logged console output`)
+      } finally {
+        await visitor.close()
+      }
+    }
+  })
+
+  it('never 404s: every page and image the site references is served', async () => {
+    for (const { file } of PAGES) {
+      const base = `${site.origin}${ROUTES[file]}`
+      const html = await (await fetch(base)).text()
+      const targets = [...html.matchAll(/(?:href|src)="([^"#][^"]*)"/g)]
+        .map((m) => m[1])
+        .filter((target) => !target.startsWith('data:'))
+      assert.ok(targets.length > 0)
+      for (const target of targets) {
+        const response = await fetch(new URL(target, base))
+        assert.equal(response.status, 200, `${file} references ${target}, which is not served`)
+      }
+    }
   })
 })
