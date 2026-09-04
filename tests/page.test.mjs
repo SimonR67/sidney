@@ -6,8 +6,7 @@ import { join } from 'node:path'
 import {
   contrastRatio,
   isBlueTinted,
-  isDarkGreen,
-  isGreenTinted,
+  isDarkBlue,
   isOrange,
   openPage,
   parseColor,
@@ -218,36 +217,36 @@ describe('Task 3: hero section', () => {
   })
 })
 
-describe('Task 4: dark green and orange colour scheme', () => {
-  it('paints the page background dark green', async () => {
+describe('Task 4: dark blue and orange colour scheme', () => {
+  it('paints the page background dark blue', async () => {
     const { 'background-color': body } = await page.evaluate(computed('body', ['background-color']))
-    assert.ok(isDarkGreen(parseColor(body)), `body background should be dark green, got ${body}`)
+    assert.ok(isDarkBlue(parseColor(body)), `body background should be dark blue, got ${body}`)
   })
 
-  it('paints the nav bar dark green with orange branding', async () => {
+  it('paints the nav bar dark blue with orange branding', async () => {
     const header = await page.evaluate(computed('.site-header', ['background-color']))
     const brand = await page.evaluate(computed('.site-nav__brand', ['color']))
     assert.ok(
-      isDarkGreen(parseColor(header['background-color'])),
-      `nav bar background should be dark green, got ${header['background-color']}`,
+      isDarkBlue(parseColor(header['background-color'])),
+      `nav bar background should be dark blue, got ${header['background-color']}`,
     )
     assert.ok(isOrange(parseColor(brand.color)), `nav brand should be orange, got ${brand.color}`)
   })
 
-  it('paints the hero dark green with an orange title', async () => {
+  it('paints the hero dark blue with an orange title', async () => {
     const hero = await page.evaluate(computed('section.hero', ['background-color']))
     const title = await page.evaluate(computed('h1', ['color']))
     assert.ok(
-      isDarkGreen(parseColor(hero['background-color'])),
-      `hero background should be dark green, got ${hero['background-color']}`,
+      isDarkBlue(parseColor(hero['background-color'])),
+      `hero background should be dark blue, got ${hero['background-color']}`,
     )
     assert.ok(isOrange(parseColor(title.color)), `h1 should be orange, got ${title.color}`)
   })
 
-  it('gives the call to action an orange fill with dark green text', async () => {
+  it('gives the call to action an orange fill with dark blue text', async () => {
     const cta = await page.evaluate(computed('.hero__cta', ['background-color', 'color']))
     assert.ok(isOrange(parseColor(cta['background-color'])), `CTA fill should be orange, got ${cta['background-color']}`)
-    assert.ok(isDarkGreen(parseColor(cta.color)), `CTA label should be dark green, got ${cta.color}`)
+    assert.ok(isDarkBlue(parseColor(cta.color)), `CTA label should be dark blue, got ${cta.color}`)
     assert.ok(
       contrastRatio(parseColor(cta.color), parseColor(cta['background-color'])) >= 4.5,
       'CTA label should stay legible on its orange fill',
@@ -275,7 +274,7 @@ describe('Task 4: dark green and orange colour scheme', () => {
     }
   })
 
-  it('uses no dominant colour outside the dark green / orange scheme', async () => {
+  it('uses no dominant colour outside the dark blue / orange scheme', async () => {
     const used = await page.evaluate(`
       const seen = new Set();
       for (const el of document.querySelectorAll('body, body *')) {
@@ -294,11 +293,11 @@ describe('Task 4: dark green and orange colour scheme', () => {
     const offPalette = used.filter((value) => {
       const color = parseColor(value)
       if (color.a === 0) return false
-      // Greys/blacks/whites are neutral supporting tones; anything tinted must read as green or orange.
+      // Greys/blacks/whites are neutral supporting tones; anything tinted must read as blue or orange.
       const neutral = Math.max(color.r, color.g, color.b) - Math.min(color.r, color.g, color.b) < 24
-      return !(neutral || isGreenTinted(color) || isOrange(color))
+      return !(neutral || isBlueTinted(color) || isOrange(color))
     })
-    assert.deepEqual(offPalette, [], 'only greens, oranges and neutral greys should appear')
+    assert.deepEqual(offPalette, [], 'only blues, oranges and neutral greys should appear')
   })
 })
 
@@ -881,6 +880,128 @@ describe('Palette task 3: sign-off list of greens left alone', () => {
   })
 })
 
+/** The `--token: #hex` pairs declared in the stylesheet's `:root` block. */
+const rootTokens = (css) => {
+  const root = css.match(/:root\s*\{([^}]*)\}/)
+  assert.ok(root, 'styles.css should declare its palette in a :root block')
+  return new Map(
+    [...root[1].matchAll(/(--[a-z-]+)\s*:\s*(#[0-9a-fA-F]{3,6})/g)].map((m) => [m[1], m[2].toLowerCase()]),
+  )
+}
+
+/** The green-named custom properties the site used to ship, per the audit's Renamed rows. */
+const legacyTokens = (notes) => [
+  ...new Set(
+    tableUnder(notes, 'Audit inventory')
+      .filter((row) => row.disposition === 'Renamed')
+      .flatMap((row) => [...row.role.matchAll(/`(--[a-z-]+)`/g)].map((m) => m[1])),
+  ),
+]
+
+/** Everything that could still name one of them — docs and specs record history on purpose. */
+const CODE_FILES = ['styles.css', 'index.html', 'package.json', 'tests/browser.mjs', 'tests/page.test.mjs', 'tests/palette.mjs']
+
+describe('Palette task 4: theme variables renamed off green', () => {
+  it('declares each renamed token with its palette value', async () => {
+    const notes = await readNotes(repoRoot)
+    const palette = new Map(
+      tableUnder(notes, 'Palette').map((row) => [row.token.replace(/`/g, ''), row.hex.replace(/`/g, '')]),
+    )
+    const renamed = new Set(
+      tableUnder(notes, 'Audit inventory')
+        .filter((row) => row.disposition === 'Renamed')
+        .map((row) => row['new value'].replace(/`/g, '')),
+    )
+    assert.ok(renamed.size > 0, 'the audit should have turned up green-named tokens to rename')
+    const declared = rootTokens(await readSource(repoRoot, 'styles.css'))
+    for (const token of renamed) {
+      assert.equal(declared.get(token), palette.get(token), `:root should declare ${token} as ${palette.get(token)}`)
+    }
+  })
+
+  it('has no reference to the old green token names anywhere in the code', async () => {
+    const stale = legacyTokens(await readNotes(repoRoot))
+    assert.ok(stale.length > 0, 'the audit should name the tokens that were renamed')
+    for (const file of CODE_FILES) {
+      const text = await readSource(repoRoot, file)
+      for (const token of stale) {
+        assert.ok(!text.includes(token), `${file} still references the old token ${token}`)
+      }
+    }
+  })
+
+  it('resolves every var() reference to a declared custom property', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    const declared = new Set([...css.matchAll(/^\s*(--[a-z-]+)\s*:/gm)].map((m) => m[1]))
+    const used = [...css.matchAll(/var\(\s*(--[a-z-]+)/g)].map((m) => m[1])
+    const dangling = [...new Set(used)].filter((name) => !declared.has(name))
+    assert.deepEqual(dangling, [], 'every var() should point at a token declared in :root')
+    const unused = [...declared].filter((name) => !used.includes(name))
+    assert.deepEqual(unused, [], 'every declared token should still be used by a rule')
+  })
+})
+
+describe('Palette task 5: no green left in the stylesheet', () => {
+  it('declares exactly the tokens the palette table defines', async () => {
+    const declared = [...rootTokens(await readSource(repoRoot, 'styles.css'))]
+    const palette = tableUnder(await readNotes(repoRoot), 'Palette')
+      .map((row) => [row.token.replace(/`/g, ''), row.hex.replace(/`/g, '')])
+    assert.deepEqual(
+      declared.sort(),
+      palette.sort(),
+      'the :root tokens should match docs/palette-notes.md exactly, name and value',
+    )
+  })
+
+  it('matches no green pattern at all', async () => {
+    const hits = greenOccurrences(await readSource(repoRoot, 'styles.css'))
+    assert.deepEqual(hits, [], `styles.css still carries green: ${JSON.stringify(hits)}`)
+  })
+
+  it('hard-codes no colour outside the palette', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    const palette = new Set(
+      tableUnder(await readNotes(repoRoot), 'Palette').map((row) => row.hex.replace(/`/g, '')),
+    )
+    const strays = hexLiterals(css).filter((hex) => !palette.has(hex))
+    assert.deepEqual(strays, [], 'every hex in styles.css should come from the documented palette')
+  })
+})
+
+describe('Palette task 6: no green left in the markup', () => {
+  it('matches no green pattern at all', async () => {
+    const hits = greenOccurrences(await readSource(repoRoot, 'index.html'))
+    assert.deepEqual(hits, [], `index.html still carries green: ${JSON.stringify(hits)}`)
+  })
+
+  it('draws every colour in the markup, inline styles included, from the palette', async () => {
+    const html = await readSource(repoRoot, 'index.html')
+    const palette = new Set(
+      tableUnder(await readNotes(repoRoot), 'Palette').map((row) => row.hex.replace(/`/g, '')),
+    )
+    const strays = hexLiterals(html).filter((hex) => !palette.has(hex))
+    assert.deepEqual(strays, [], 'every hex in index.html should come from the documented palette')
+    for (const [, declarations] of html.matchAll(/\sstyle="([^"]*)"/g)) {
+      assert.deepEqual(greenOccurrences(declarations), [], `inline style "${declarations}" still carries green`)
+    }
+  })
+
+  it('renders a favicon whose colours match the page it labels', async () => {
+    const href = await page.evaluate(`return document.querySelector('link[rel="icon"]')?.getAttribute('href') ?? ''`)
+    const icon = decodeURIComponent(href)
+    assert.match(icon, /^data:image\/svg\+xml,/, 'the favicon should stay an inline SVG data URI')
+    const bodyBg = await page.evaluate("return getComputedStyle(document.body).backgroundColor")
+    const [background, accent] = hexLiterals(icon)
+    assert.ok(isDarkBlue(hexToRgb(background)), `favicon background should be dark blue, got ${background}`)
+    assert.ok(isOrange(hexToRgb(accent)), `favicon accent should stay orange, got ${accent}`)
+    assert.deepEqual(
+      hexToRgb(background),
+      parseColor(bodyBg),
+      'the favicon background should be the same blue as the page background',
+    )
+  })
+})
+
 describe('Test plan: end-to-end walkthrough', () => {
   after(async () => {
     await page.setViewport(1280, 800)
@@ -918,7 +1039,7 @@ describe('Test plan: end-to-end walkthrough', () => {
         state.biggest.size > state.runnerUp.size * 2,
         `h1 (${state.biggest.size}px) should be at least twice the next largest text (${state.runnerUp.size}px)`,
       )
-      assert.ok(isDarkGreen(parseColor(state.bodyBg)))
+      assert.ok(isDarkBlue(parseColor(state.bodyBg)))
       assert.ok(isOrange(parseColor(state.h1Color)))
       assert.ok(contrastRatio(parseColor(state.h1Color), parseColor(state.bodyBg)) >= 4.5)
       assert.equal(state.overflow, false)

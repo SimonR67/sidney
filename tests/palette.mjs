@@ -29,6 +29,7 @@ export function hexToRgb(hex) {
     r: parseInt(full.slice(0, 2), 16),
     g: parseInt(full.slice(2, 4), 16),
     b: parseInt(full.slice(4, 6), 16),
+    a: 1,
   }
 }
 
