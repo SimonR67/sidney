@@ -281,6 +281,21 @@ export function isGreenTinted({ r, g, b }) {
   return g >= r && g >= b && g - Math.min(r, b) >= 8
 }
 
+/** True for a dark blue: dim overall, with blue clearly the dominant channel. */
+export function isDarkBlue(color) {
+  return (
+    relativeLuminance(color) < 0.12 &&
+    color.a > 0.9 &&
+    color.b > color.r + 12 &&
+    color.b > color.g + 12
+  )
+}
+
+/** True for any blue-leaning tone, light or dark (used for neutral text tinted blue). */
+export function isBlueTinted({ r, g, b }) {
+  return b >= r && b >= g && b - Math.min(r, g) >= 8
+}
+
 /** True for an orange hue: red dominant, mid green, minimal blue. */
 export function isOrange({ r, g, b }) {
   return r > 180 && g > 60 && g < 190 && b < 90 && r - g > 50 && g - b > 20

@@ -3,7 +3,27 @@ import assert from 'node:assert/strict'
 import { pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { contrastRatio, isDarkGreen, isGreenTinted, isOrange, openPage, parseColor, serveStatic } from './browser.mjs'
+import {
+  contrastRatio,
+  isBlueTinted,
+  isDarkGreen,
+  isGreenTinted,
+  isOrange,
+  openPage,
+  parseColor,
+  serveStatic,
+} from './browser.mjs'
+import {
+  PALETTE_NOTES,
+  STYLING_SOURCES,
+  greenOccurrences,
+  hexLiterals,
+  hexToRgb,
+  isGreenish,
+  readNotes,
+  readSource,
+  tableUnder,
+} from './palette.mjs'
 
 const computed = (selector, props) => `
   const el = document.querySelector(${JSON.stringify(selector)});
@@ -727,6 +747,137 @@ describe('Task 9: semantic and validity pass', () => {
       assert.ok(level <= previous + 1, `heading level jumped from h${previous} to h${level}`)
       return level
     }, 1)
+  })
+})
+
+describe('Palette task 1: green audit inventory', () => {
+  it('documents every green occurrence with its file, line and structural role', async () => {
+    const notes = await readNotes(repoRoot)
+    const rows = tableUnder(notes, 'Audit inventory')
+    assert.ok(rows, `${PALETTE_NOTES} should carry an "## Audit inventory" table`)
+    assert.ok(rows.length > 0, 'the audit inventory should list at least one green occurrence')
+
+    for (const row of rows) {
+      assert.ok(
+        STYLING_SOURCES.includes(row.file),
+        `audit row points at "${row.file}", which is not one of ${STYLING_SOURCES.join(', ')}`,
+      )
+      assert.match(row.line, /^\d+$/, `audit row for ${row.file} should record a line number`)
+      assert.ok(row.role.length > 0, `audit row ${row.file}:${row.line} should record a structural role`)
+      assert.ok(
+        row['original value'].length > 0,
+        `audit row ${row.file}:${row.line} should record the original green value`,
+      )
+    }
+  })
+
+  it('records a green original value for every inventoried occurrence', async () => {
+    const notes = await readNotes(repoRoot)
+    for (const row of tableUnder(notes, 'Audit inventory') ?? []) {
+      const original = row['original value'].replace(/`/g, '')
+      const green = greenOccurrences(original)
+      assert.ok(
+        green.length > 0,
+        `audit row ${row.file}:${row.line} records "${original}", which no green pattern matches`,
+      )
+    }
+  })
+
+  it('leaves no green in the styling sources that the inventory has not accounted for', async () => {
+    const notes = await readNotes(repoRoot)
+    const inventoried = new Set(
+      (tableUnder(notes, 'Audit inventory') ?? []).map((row) => `${row.file}:${row['original value'].replace(/`/g, '')}`),
+    )
+    for (const file of STYLING_SOURCES) {
+      const remaining = greenOccurrences(await readSource(repoRoot, file))
+        .filter((hit) => !inventoried.has(`${file}:${hit.value}`))
+      assert.deepEqual(
+        remaining,
+        [],
+        `${file} carries green not listed in ${PALETTE_NOTES}: ${JSON.stringify(remaining)}`,
+      )
+    }
+  })
+})
+
+describe('Palette task 2: the orange/blue palette', () => {
+  it('names a token, a hex value and a role for every palette entry', async () => {
+    const rows = tableUnder(await readNotes(repoRoot), 'Palette')
+    assert.ok(rows, `${PALETTE_NOTES} should carry a "## Palette" table`)
+    for (const row of rows) {
+      assert.match(row.token, /^`--[a-z-]+`$/, `palette token "${row.token}" should be a CSS custom property`)
+      assert.match(row.hex, /^`#[0-9a-f]{6}`$/, `palette entry ${row.token} should give a 6-digit hex, got ${row.hex}`)
+      assert.ok(row.role.length > 0, `palette entry ${row.token} should describe its structural role`)
+    }
+  })
+
+  it('holds only oranges and blues — no green survives in the palette', async () => {
+    const rows = tableUnder(await readNotes(repoRoot), 'Palette')
+    for (const row of rows) {
+      const rgb = hexToRgb(row.hex.replace(/`/g, ''))
+      assert.equal(isGreenish(rgb), false, `palette entry ${row.token} (${row.hex}) is still green`)
+      assert.ok(
+        isBlueTinted(rgb) || isOrange(rgb),
+        `palette entry ${row.token} (${row.hex}) is neither blue nor orange`,
+      )
+    }
+    const families = rows.map((row) => row.family.toLowerCase())
+    assert.ok(families.includes('blue'), 'the palette should define at least one blue')
+    assert.ok(families.includes('orange'), 'the palette should define at least one orange')
+  })
+
+  it('maps a palette hex onto every green colour value found in the audit', async () => {
+    const notes = await readNotes(repoRoot)
+    const palette = new Set(tableUnder(notes, 'Palette').map((row) => row.hex.replace(/`/g, '')))
+    const audited = tableUnder(notes, 'Audit inventory')
+      .filter((row) => /^`(#|%23)/.test(row['original value']))
+    assert.ok(audited.length > 0, 'the audit should have turned up green colour values')
+    for (const row of audited) {
+      const replacement = row['new value'].replace(/`/g, '').replace(/^%23/, '#').toLowerCase()
+      assert.ok(
+        palette.has(replacement),
+        `${row.file}:${row.line} maps to ${replacement}, which the palette table does not define`,
+      )
+    }
+  })
+})
+
+const DISPOSITIONS = ['Replaced', 'Renamed', 'Skipped']
+
+describe('Palette task 3: sign-off list of greens left alone', () => {
+  it('gives every audited green a disposition', async () => {
+    for (const row of tableUnder(await readNotes(repoRoot), 'Audit inventory')) {
+      assert.ok(
+        DISPOSITIONS.includes(row.disposition),
+        `${row.file}:${row.line} has disposition "${row.disposition}", expected one of ${DISPOSITIONS.join('/')}`,
+      )
+    }
+  })
+
+  it('justifies every flagged category, including the ones found to be empty', async () => {
+    const rows = tableUnder(await readNotes(repoRoot), 'Flagged')
+    assert.ok(rows, `${PALETTE_NOTES} should carry a "## Flagged" sign-off table`)
+    assert.ok(rows.length > 0, 'the sign-off list should enumerate the edge-case categories that were checked')
+    for (const row of rows) {
+      assert.ok(row.item.length > 0, 'every flagged row should name what was checked')
+      assert.ok(row.location.length > 0, `flagged row "${row.item}" should say where`)
+      assert.ok(
+        ['None present', 'Left unchanged'].includes(row.status),
+        `flagged row "${row.item}" has status "${row.status}"`,
+      )
+      assert.ok(row.reason.length > 20, `flagged row "${row.item}" needs a real justification, got "${row.reason}"`)
+    }
+  })
+
+  it('backs every skipped audit entry with a flagged-list justification', async () => {
+    const notes = await readNotes(repoRoot)
+    const flagged = tableUnder(notes, 'Flagged')
+    for (const row of tableUnder(notes, 'Audit inventory').filter((r) => r.disposition === 'Skipped')) {
+      assert.ok(
+        flagged.some((f) => f.location.includes(row.file)),
+        `${row.file}:${row.line} is skipped but the sign-off list does not cover ${row.file}`,
+      )
+    }
   })
 })
 
