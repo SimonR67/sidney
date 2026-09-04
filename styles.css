@@ -1,12 +1,12 @@
-/* Alpha Centuri — dark blue and orange. */
+/* BetaMax — dark green and orange. */
 
 :root {
-  --space: #061024;         /* dominant page background */
-  --space-raised: #0b1a36;  /* nav band, sits just above the page */
-  --ember: #ff7a18;         /* primary orange accent */
-  --ember-bright: #ffa34d;  /* brightest orange, reserved for the hero title */
-  --starlight: #cdd9ec;     /* neutral body text, faintly blue */
-  --edge: #1c3157;          /* hairline borders */
+  --forest: #071c0e;         /* dominant page background */
+  --forest-raised: #0d2e18;  /* nav band, sits just above the page */
+  --ember: #ff7a18;          /* primary orange accent */
+  --ember-bright: #ffa34d;   /* brightest orange: hero title and hover states */
+  --leaf: #cfe6d5;           /* neutral body text, faintly green */
+  --edge: #1c5733;           /* hairline borders */
 }
 
 * {
@@ -14,7 +14,7 @@
 }
 
 html {
-  background-color: var(--space);
+  background-color: var(--forest);
 }
 
 /* Column layout so the hero can absorb whatever height the nav bar leaves. */
@@ -23,8 +23,8 @@ body {
   flex-direction: column;
   min-height: 100vh;
   margin: 0;
-  background-color: var(--space);
-  color: var(--starlight);
+  background-color: var(--forest);
+  color: var(--leaf);
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
 }
@@ -37,7 +37,7 @@ main {
 /* Navigation bar */
 
 .site-header {
-  background-color: var(--space-raised);
+  background-color: var(--forest-raised);
   border-bottom: 1px solid var(--edge);
 }
 
@@ -52,11 +52,15 @@ main {
 
 .site-nav__brand {
   color: var(--ember);
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   font-weight: 700;
   letter-spacing: 0.12em;
-  text-transform: uppercase;
   text-decoration: none;
+}
+
+.site-nav__brand:hover,
+.site-nav__brand:focus {
+  color: var(--ember-bright);
 }
 
 .site-nav__links {
@@ -89,7 +93,7 @@ main {
   flex: 1;
   align-items: center;
   justify-content: center;
-  background-color: var(--space);
+  background-color: var(--forest);
   padding: clamp(3rem, 10vw, 6rem) clamp(1rem, 4vw, 2rem);
 }
 
@@ -105,16 +109,15 @@ main {
   color: var(--ember-bright);
   font-size: clamp(2.75rem, 11vw, 6rem);
   font-weight: 800;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   line-height: 1.05;
   overflow-wrap: break-word;
-  text-transform: uppercase;
 }
 
 .hero__tagline {
   margin: 1.25rem auto 0;
   max-width: 40rem;
-  color: var(--starlight);
+  color: var(--leaf);
   font-size: clamp(1rem, 3.5vw, 1.25rem);
 }
 
@@ -124,7 +127,7 @@ main {
   padding: 0.75rem 1.75rem;
   border-radius: 2px;
   background-color: var(--ember);
-  color: var(--space);
+  color: var(--forest);
   font-size: 1rem;
   font-weight: 700;
   letter-spacing: 0.08em;

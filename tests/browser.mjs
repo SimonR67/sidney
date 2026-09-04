@@ -101,7 +101,7 @@ class Session {
  * recorded on `page.consoleMessages` / `page.pageErrors`.
  */
 export async function openPage(url, { width = 1280, height = 800 } = {}) {
-  const profileDir = await mkdtemp(join(tmpdir(), 'alpha-centuri-chrome-'))
+  const profileDir = await mkdtemp(join(tmpdir(), 'betamax-chrome-'))
   const chrome = spawn(chromeBinary(), [
     '--headless=new',
     '--no-sandbox',
@@ -152,6 +152,16 @@ export async function openPage(url, { width = 1280, height = 800 } = {}) {
   await session.send('Log.enable')
   await session.send('Network.enable')
   await session.send('Page.enable')
+  await session.send('DOM.enable')
+  await session.send('CSS.enable')
+
+  // Node ids handed out by DOM.getDocument, valid until the next navigation.
+  let rootNodeId = null
+  const nodeIds = new Map()
+  const forgetNodes = () => {
+    rootNodeId = null
+    nodeIds.clear()
+  }
 
   const page = {
     consoleMessages,
@@ -170,6 +180,25 @@ export async function openPage(url, { width = 1280, height = 800 } = {}) {
     async blockUrls(patterns) {
       await session.send('Network.setBlockedURLs', { urls: patterns })
     },
+    /**
+     * Forces pseudo-classes (e.g. `['hover']`, `['focus']`) on the first element
+     * matching `selector`, exactly as devtools' "force element state" does.
+     * Pass an empty array to clear them again.
+     */
+    async forcePseudoState(selector, forcedPseudoClasses) {
+      // Each DOM.getDocument mints a fresh set of node ids and the forced state
+      // is keyed by node id, so one lookup per page load is cached and reused —
+      // otherwise clearing a state would target a different id than set it.
+      if (nodeIds.has(selector)) {
+        await session.send('CSS.forcePseudoState', { nodeId: nodeIds.get(selector), forcedPseudoClasses })
+        return
+      }
+      if (rootNodeId === null) rootNodeId = (await session.send('DOM.getDocument', { depth: -1 })).root.nodeId
+      const { nodeId } = await session.send('DOM.querySelector', { nodeId: rootNodeId, selector })
+      if (!nodeId) throw new Error(`no element matches ${selector}`)
+      nodeIds.set(selector, nodeId)
+      await session.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses })
+    },
     /** Turns page script execution off/on, mirroring the browser's "disable JavaScript" setting. */
     async setScriptExecution(enabled) {
       await session.send('Emulation.setScriptExecutionDisabled', { value: !enabled })
@@ -178,6 +207,7 @@ export async function openPage(url, { width = 1280, height = 800 } = {}) {
       const loaded = new Promise((resolve) => session.on('Page.loadEventFired', resolve))
       await session.send('Page.navigate', { url: target })
       await loaded
+      forgetNodes()
       // Give late stylesheet/font work a chance to settle.
       await sleep(150)
     },
@@ -185,6 +215,7 @@ export async function openPage(url, { width = 1280, height = 800 } = {}) {
       const loaded = new Promise((resolve) => session.on('Page.loadEventFired', resolve))
       await session.send('Page.reload', { ignoreCache: true })
       await loaded
+      forgetNodes()
       await sleep(150)
     },
     /** Evaluates `expression` in the page and returns the JSON-serialised result. */
@@ -235,19 +266,19 @@ export function contrastRatio(fg, bg) {
   return (light + 0.05) / (dark + 0.05)
 }
 
-/** True for a dark blue: dim overall, with blue clearly the dominant channel. */
-export function isDarkBlue(color) {
+/** True for a dark green: dim overall, with green clearly the dominant channel. */
+export function isDarkGreen(color) {
   return (
     relativeLuminance(color) < 0.12 &&
     color.a > 0.9 &&
-    color.b > color.r + 12 &&
-    color.b > color.g + 12
+    color.g > color.r + 12 &&
+    color.g > color.b + 12
   )
 }
 
-/** True for any blue-leaning tone, light or dark (used for neutral text tinted blue). */
-export function isBlueTinted({ r, g, b }) {
-  return b >= g && g >= r && b - r >= 8
+/** True for any green-leaning tone, light or dark (used for neutral text tinted green). */
+export function isGreenTinted({ r, g, b }) {
+  return g >= r && g >= b && g - Math.min(r, b) >= 8
 }
 
 /** True for an orange hue: red dominant, mid green, minimal blue. */
