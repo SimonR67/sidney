@@ -58,10 +58,30 @@ Contrast, measured against the background each colour actually sits on:
 | `--ember` nav links and brand | `--navy-raised` | 5.3:1 |
 | `--navy` CTA label | `--ember` fill | 6.6:1 |
 
-Files checked and found to hold no colour values at all: `package.json` (no theme keys),
-`.github/workflows/claude-code-build.yml`, `tests/*`. There is no SCSS/LESS, no theme
-config file (`theme.config.json`, `_config.yml` or equivalent) and no checked-in build
-output directory.
+Files checked and found to hold no colour values at all: `package.json` (no theme keys)
+and `.github/workflows/claude-code-build.yml`. There is no SCSS/LESS, no theme config
+file (`theme.config.json`, `_config.yml` or equivalent) and no checked-in build output
+directory.
+
+The test harness is not styling, so it is not inventoried above, but it did assert the
+old scheme: `tests/browser.mjs` swaps its `isDarkGreen`/`isGreenTinted` colour predicates
+for `isDarkBlue`/`isBlueTinted`, and `tests/palette.mjs` is new — it holds the green
+scanner that now guards every styling source against a regression.
+
+## Rebuild and verification
+
+There is no build step: `npm test` is the only script, there are no dependencies and no
+`_site/`, `dist/`, `build/`, `out/` or `public/` directory is checked in, so the two
+source files *are* the deployed output. `npm test` serves them over HTTP and asserts the
+bytes on the wire match the bytes on disk.
+
+The before/after check is automated rather than eyeballed. `npm test` renders the
+pre-change site (reconstructed from the merge-base commit into a temp directory) and the
+current one in the same headless Chrome at 1280px and 375px, then diffs a per-element
+snapshot of geometry, box model, typography and text content. That snapshot is required
+to be identical; only the colour snapshot may differ, and it must differ. Every element
+carrying text is also re-checked for at least 4.5:1 contrast against the colour it now
+sits on.
 
 ## Flagged — left unchanged, for reviewer sign-off
 

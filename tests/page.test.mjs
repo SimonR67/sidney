@@ -880,6 +880,16 @@ describe('Palette task 3: sign-off list of greens left alone', () => {
   })
 })
 
+/** Every JSON/YAML config in the repo — anywhere a theme key or colour value could hide. */
+const configFiles = async () => {
+  const { readdir } = await import('node:fs/promises')
+  const skip = /^(\.git|node_modules|specs|docs)\//
+  return (await readdir(repoRoot, { recursive: true }))
+    .map((name) => name.split('\\').join('/'))
+    .filter((name) => /\.(json|ya?ml|toml|ini)$/.test(name) && !skip.test(name))
+    .sort()
+}
+
 /** The `--token: #hex` pairs declared in the stylesheet's `:root` block. */
 const rootTokens = (css) => {
   const root = css.match(/:root\s*\{([^}]*)\}/)
@@ -1002,6 +1012,186 @@ describe('Palette task 6: no green left in the markup', () => {
   })
 })
 
+describe('Palette task 7: theme and config files', () => {
+  it('carries no green key or value in any JSON/YAML config', async () => {
+    const configs = await configFiles()
+    assert.ok(configs.length > 0, 'the repo should have at least one config file to check')
+    for (const file of configs) {
+      const hits = greenOccurrences(await readSource(repoRoot, file))
+      assert.deepEqual(hits, [], `${file} still carries green: ${JSON.stringify(hits)}`)
+    }
+  })
+
+  it('leaves every JSON config parseable', async () => {
+    for (const file of (await configFiles()).filter((name) => name.endsWith('.json'))) {
+      const text = await readSource(repoRoot, file)
+      assert.doesNotThrow(() => JSON.parse(text), `${file} should still be valid JSON`)
+    }
+  })
+})
+
+describe('Palette task 8: served output reflects the new palette', () => {
+  it('has no build step and no checked-in output directory to regenerate', async () => {
+    const { access } = await import('node:fs/promises')
+    const manifest = JSON.parse(await readSource(repoRoot, 'package.json'))
+    assert.deepEqual(Object.keys(manifest.scripts), ['test'], 'the site ships with no build script')
+    assert.equal(manifest.dependencies, undefined)
+    assert.equal(manifest.devDependencies, undefined)
+    for (const dir of ['_site', 'dist', 'build', 'out', 'public']) {
+      await assert.rejects(
+        access(join(repoRoot, dir)),
+        `${dir}/ exists — built output would need regenerating alongside the source`,
+      )
+    }
+  })
+
+  it('serves the two source files byte for byte, palette and all', async () => {
+    const server = await serveStatic(repoRoot)
+    try {
+      for (const file of STYLING_SOURCES) {
+        const served = await (await fetch(`${server.origin}/${file}`)).text()
+        assert.equal(served, await readSource(repoRoot, file), `${file} should be served exactly as written`)
+        assert.deepEqual(greenOccurrences(served), [], `the served ${file} still carries green`)
+      }
+      const css = await (await fetch(`${server.origin}/styles.css`)).text()
+      for (const row of tableUnder(await readNotes(repoRoot), 'Palette')) {
+        assert.ok(css.includes(row.hex.replace(/`/g, '')), `served CSS should carry ${row.token}`)
+      }
+    } finally {
+      await server.close()
+    }
+  })
+})
+
+/** Everything about an element except its colours: geometry, box model, type, content. */
+const LAYOUT_SNAPSHOT = `
+  const round = (n) => Math.round(n * 100) / 100;
+  return {
+    title: document.title,
+    text: document.body.textContent.replace(/\\s+/g, ' ').trim(),
+    elements: [...document.querySelectorAll('body, body *')].map((el) => {
+      const r = el.getBoundingClientRect();
+      const s = getComputedStyle(el);
+      const box = (prefix, sides) => sides.map((side) => s.getPropertyValue(prefix + side));
+      return {
+        tag: el.tagName,
+        className: el.className,
+        own: [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join(' ').trim(),
+        rect: [round(r.x), round(r.y), round(r.width), round(r.height)],
+        layout: [s.display, s.position, s.flexDirection, s.flexWrap, s.justifyContent, s.alignItems, s.flex, s.gap],
+        margin: box('margin-', ['top', 'right', 'bottom', 'left']),
+        padding: box('padding-', ['top', 'right', 'bottom', 'left']),
+        borderWidth: box('border-', ['top-width', 'right-width', 'bottom-width', 'left-width']),
+        type: [s.fontFamily, s.fontSize, s.fontWeight, s.lineHeight, s.letterSpacing, s.textTransform, s.textDecorationLine],
+        misc: [s.borderRadius, s.overflowWrap, s.textAlign, s.minHeight, s.maxWidth, s.boxSizing],
+      };
+    }),
+  };
+`
+
+/** Just the colours, so the two renders can be shown to actually differ. */
+const COLOUR_SNAPSHOT = `
+  return [...document.querySelectorAll('body, body *')]
+    .map((el) => { const s = getComputedStyle(el); return [s.color, s.backgroundColor, s.borderBottomColor].join('|') });
+`
+
+const git = async (...args) => {
+  const { execFile } = await import('node:child_process')
+  const { promisify } = await import('node:util')
+  const { stdout } = await promisify(execFile)('git', args, { cwd: repoRoot, maxBuffer: 1 << 22 })
+  return stdout
+}
+
+/** The commit this branch forked from, or null when the base branch is not available locally. */
+const baseCommit = async () => {
+  for (const ref of ['main', 'origin/main']) {
+    try {
+      return (await git('merge-base', 'HEAD', ref)).trim()
+    } catch {}
+  }
+  return null
+}
+
+/** Checks the pre-change site out into a temp directory and returns its file:// URL. */
+const checkoutBase = async (commit) => {
+  const { mkdtemp, writeFile } = await import('node:fs/promises')
+  const { tmpdir } = await import('node:os')
+  const dir = await mkdtemp(join(tmpdir(), 'betamax-before-'))
+  for (const file of STYLING_SOURCES) {
+    await writeFile(join(dir, file), await git('show', `${commit}:${file}`))
+  }
+  return { dir, url: pathToFileURL(join(dir, 'index.html')).href }
+}
+
+describe('Palette task 9: before/after spot-check', () => {
+  let previous
+  let baseDir
+
+  before(async () => {
+    const commit = await baseCommit()
+    if (!commit) return
+    const checkout = await checkoutBase(commit)
+    baseDir = checkout.dir
+    previous = await openPage(checkout.url)
+  })
+
+  after(async () => {
+    await previous?.close()
+    if (baseDir) {
+      const { rm } = await import('node:fs/promises')
+      await rm(baseDir, { recursive: true, force: true })
+    }
+  })
+
+  for (const width of [1280, 375]) {
+    it(`shows only colour differences at ${width}px — no layout, type or content shift`, async (t) => {
+      if (!previous) return t.skip('base branch not available locally; cannot render the previous version')
+      await previous.setViewport(width, 800)
+      await page.setViewport(width, 800)
+      await page.reload()
+      assert.deepEqual(await page.evaluate(LAYOUT_SNAPSHOT), await previous.evaluate(LAYOUT_SNAPSHOT))
+      await page.setViewport(1280, 800)
+    })
+  }
+
+  it('does repaint the page — the two renders differ in colour and only in colour', async (t) => {
+    if (!previous) return t.skip('base branch not available locally; cannot render the previous version')
+    const [now, then] = [await page.evaluate(COLOUR_SNAPSHOT), await previous.evaluate(COLOUR_SNAPSHOT)]
+    assert.notDeepEqual(now, then, 'the palette swap should have changed the rendered colours')
+    const greens = then.join('|').split('|').map(parseColor).filter(isGreenish)
+    assert.ok(greens.length > 0, 'the previous version should have rendered green')
+    assert.deepEqual(
+      now.join('|').split('|').map(parseColor).filter(isGreenish),
+      [],
+      'nothing on the page should still render green',
+    )
+  })
+
+  it('keeps every line of text readable on the colours it now sits on', async () => {
+    const samples = await page.evaluate(`
+      const backdrop = (el) => {
+        for (let node = el; node; node = node.parentElement) {
+          const bg = getComputedStyle(node).backgroundColor;
+          if (!/^rgba\\(.*,\\s*0\\)$/.test(bg)) return bg;
+        }
+        return 'rgb(255, 255, 255)';
+      };
+      return [...document.querySelectorAll('body, body *')]
+        .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
+        .map((el) => ({
+          text: el.textContent.trim().slice(0, 24),
+          color: getComputedStyle(el).color,
+          bg: backdrop(el),
+        }));
+    `)
+    assert.ok(samples.length > 0)
+    for (const sample of samples) {
+      const ratio = contrastRatio(parseColor(sample.color), parseColor(sample.bg))
+      assert.ok(ratio >= 4.5, `"${sample.text}" reads at ${ratio.toFixed(2)}:1 against ${sample.bg}`)
+    }
+  })
+})
+
 describe('Test plan: end-to-end walkthrough', () => {
   after(async () => {
     await page.setViewport(1280, 800)
@@ -1051,7 +1241,7 @@ describe('Test plan: end-to-end walkthrough', () => {
   it('introduces no extra pages, scripts or build tooling', async () => {
     const { readdir } = await import('node:fs/promises')
     const root = (await readdir(repoRoot)).filter((name) => !name.startsWith('.'))
-    // Only the two site files plus the pre-existing test harness and specs.
-    assert.deepEqual(root.sort(), ['index.html', 'package.json', 'specs', 'styles.css', 'tests'])
+    // Only the two site files plus the test harness, specs and the palette notes.
+    assert.deepEqual(root.sort(), ['docs', 'index.html', 'package.json', 'specs', 'styles.css', 'tests'])
   })
 })
