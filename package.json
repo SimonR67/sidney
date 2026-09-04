@@ -1,0 +1,8 @@
+{
+  "name": "mordor",
+  "private": true,
+  "description": "Static Mordor home page — hero section and navigation bar, no build step.",
+  "scripts": {
+    "test": "node --test tests/page.test.mjs"
+  }
+}
