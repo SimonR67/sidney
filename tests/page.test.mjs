@@ -3,7 +3,26 @@ import assert from 'node:assert/strict'
 import { pathToFileURL } from 'node:url'
 import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { contrastRatio, isDarkGreen, isGreenTinted, isOrange, openPage, parseColor, serveStatic } from './browser.mjs'
+import {
+  contrastRatio,
+  isBlueTinted,
+  isDarkBlue,
+  isOrange,
+  openPage,
+  parseColor,
+  serveStatic,
+} from './browser.mjs'
+import {
+  PALETTE_NOTES,
+  STYLING_SOURCES,
+  greenOccurrences,
+  hexLiterals,
+  hexToRgb,
+  isGreenish,
+  readNotes,
+  readSource,
+  tableUnder,
+} from './palette.mjs'
 
 const computed = (selector, props) => `
   const el = document.querySelector(${JSON.stringify(selector)});
@@ -198,36 +217,36 @@ describe('Task 3: hero section', () => {
   })
 })
 
-describe('Task 4: dark green and orange colour scheme', () => {
-  it('paints the page background dark green', async () => {
+describe('Task 4: dark blue and orange colour scheme', () => {
+  it('paints the page background dark blue', async () => {
     const { 'background-color': body } = await page.evaluate(computed('body', ['background-color']))
-    assert.ok(isDarkGreen(parseColor(body)), `body background should be dark green, got ${body}`)
+    assert.ok(isDarkBlue(parseColor(body)), `body background should be dark blue, got ${body}`)
   })
 
-  it('paints the nav bar dark green with orange branding', async () => {
+  it('paints the nav bar dark blue with orange branding', async () => {
     const header = await page.evaluate(computed('.site-header', ['background-color']))
     const brand = await page.evaluate(computed('.site-nav__brand', ['color']))
     assert.ok(
-      isDarkGreen(parseColor(header['background-color'])),
-      `nav bar background should be dark green, got ${header['background-color']}`,
+      isDarkBlue(parseColor(header['background-color'])),
+      `nav bar background should be dark blue, got ${header['background-color']}`,
     )
     assert.ok(isOrange(parseColor(brand.color)), `nav brand should be orange, got ${brand.color}`)
   })
 
-  it('paints the hero dark green with an orange title', async () => {
+  it('paints the hero dark blue with an orange title', async () => {
     const hero = await page.evaluate(computed('section.hero', ['background-color']))
     const title = await page.evaluate(computed('h1', ['color']))
     assert.ok(
-      isDarkGreen(parseColor(hero['background-color'])),
-      `hero background should be dark green, got ${hero['background-color']}`,
+      isDarkBlue(parseColor(hero['background-color'])),
+      `hero background should be dark blue, got ${hero['background-color']}`,
     )
     assert.ok(isOrange(parseColor(title.color)), `h1 should be orange, got ${title.color}`)
   })
 
-  it('gives the call to action an orange fill with dark green text', async () => {
+  it('gives the call to action an orange fill with dark blue text', async () => {
     const cta = await page.evaluate(computed('.hero__cta', ['background-color', 'color']))
     assert.ok(isOrange(parseColor(cta['background-color'])), `CTA fill should be orange, got ${cta['background-color']}`)
-    assert.ok(isDarkGreen(parseColor(cta.color)), `CTA label should be dark green, got ${cta.color}`)
+    assert.ok(isDarkBlue(parseColor(cta.color)), `CTA label should be dark blue, got ${cta.color}`)
     assert.ok(
       contrastRatio(parseColor(cta.color), parseColor(cta['background-color'])) >= 4.5,
       'CTA label should stay legible on its orange fill',
@@ -255,7 +274,7 @@ describe('Task 4: dark green and orange colour scheme', () => {
     }
   })
 
-  it('uses no dominant colour outside the dark green / orange scheme', async () => {
+  it('uses no dominant colour outside the dark blue / orange scheme', async () => {
     const used = await page.evaluate(`
       const seen = new Set();
       for (const el of document.querySelectorAll('body, body *')) {
@@ -274,11 +293,11 @@ describe('Task 4: dark green and orange colour scheme', () => {
     const offPalette = used.filter((value) => {
       const color = parseColor(value)
       if (color.a === 0) return false
-      // Greys/blacks/whites are neutral supporting tones; anything tinted must read as green or orange.
+      // Greys/blacks/whites are neutral supporting tones; anything tinted must read as blue or orange.
       const neutral = Math.max(color.r, color.g, color.b) - Math.min(color.r, color.g, color.b) < 24
-      return !(neutral || isGreenTinted(color) || isOrange(color))
+      return !(neutral || isBlueTinted(color) || isOrange(color))
     })
-    assert.deepEqual(offPalette, [], 'only greens, oranges and neutral greys should appear')
+    assert.deepEqual(offPalette, [], 'only blues, oranges and neutral greys should appear')
   })
 })
 
@@ -730,6 +749,449 @@ describe('Task 9: semantic and validity pass', () => {
   })
 })
 
+describe('Palette task 1: green audit inventory', () => {
+  it('documents every green occurrence with its file, line and structural role', async () => {
+    const notes = await readNotes(repoRoot)
+    const rows = tableUnder(notes, 'Audit inventory')
+    assert.ok(rows, `${PALETTE_NOTES} should carry an "## Audit inventory" table`)
+    assert.ok(rows.length > 0, 'the audit inventory should list at least one green occurrence')
+
+    for (const row of rows) {
+      assert.ok(
+        STYLING_SOURCES.includes(row.file),
+        `audit row points at "${row.file}", which is not one of ${STYLING_SOURCES.join(', ')}`,
+      )
+      assert.match(row.line, /^\d+$/, `audit row for ${row.file} should record a line number`)
+      assert.ok(row.role.length > 0, `audit row ${row.file}:${row.line} should record a structural role`)
+      assert.ok(
+        row['original value'].length > 0,
+        `audit row ${row.file}:${row.line} should record the original green value`,
+      )
+    }
+  })
+
+  it('records a green original value for every inventoried occurrence', async () => {
+    const notes = await readNotes(repoRoot)
+    for (const row of tableUnder(notes, 'Audit inventory') ?? []) {
+      const original = row['original value'].replace(/`/g, '')
+      const green = greenOccurrences(original)
+      assert.ok(
+        green.length > 0,
+        `audit row ${row.file}:${row.line} records "${original}", which no green pattern matches`,
+      )
+    }
+  })
+
+  it('leaves no green in the styling sources that the inventory has not accounted for', async () => {
+    const notes = await readNotes(repoRoot)
+    const inventoried = new Set(
+      (tableUnder(notes, 'Audit inventory') ?? []).map((row) => `${row.file}:${row['original value'].replace(/`/g, '')}`),
+    )
+    for (const file of STYLING_SOURCES) {
+      const remaining = greenOccurrences(await readSource(repoRoot, file))
+        .filter((hit) => !inventoried.has(`${file}:${hit.value}`))
+      assert.deepEqual(
+        remaining,
+        [],
+        `${file} carries green not listed in ${PALETTE_NOTES}: ${JSON.stringify(remaining)}`,
+      )
+    }
+  })
+})
+
+describe('Palette task 2: the orange/blue palette', () => {
+  it('names a token, a hex value and a role for every palette entry', async () => {
+    const rows = tableUnder(await readNotes(repoRoot), 'Palette')
+    assert.ok(rows, `${PALETTE_NOTES} should carry a "## Palette" table`)
+    for (const row of rows) {
+      assert.match(row.token, /^`--[a-z-]+`$/, `palette token "${row.token}" should be a CSS custom property`)
+      assert.match(row.hex, /^`#[0-9a-f]{6}`$/, `palette entry ${row.token} should give a 6-digit hex, got ${row.hex}`)
+      assert.ok(row.role.length > 0, `palette entry ${row.token} should describe its structural role`)
+    }
+  })
+
+  it('holds only oranges and blues — no green survives in the palette', async () => {
+    const rows = tableUnder(await readNotes(repoRoot), 'Palette')
+    for (const row of rows) {
+      const rgb = hexToRgb(row.hex.replace(/`/g, ''))
+      assert.equal(isGreenish(rgb), false, `palette entry ${row.token} (${row.hex}) is still green`)
+      assert.ok(
+        isBlueTinted(rgb) || isOrange(rgb),
+        `palette entry ${row.token} (${row.hex}) is neither blue nor orange`,
+      )
+    }
+    const families = rows.map((row) => row.family.toLowerCase())
+    assert.ok(families.includes('blue'), 'the palette should define at least one blue')
+    assert.ok(families.includes('orange'), 'the palette should define at least one orange')
+  })
+
+  it('maps a palette hex onto every green colour value found in the audit', async () => {
+    const notes = await readNotes(repoRoot)
+    const palette = new Set(tableUnder(notes, 'Palette').map((row) => row.hex.replace(/`/g, '')))
+    const audited = tableUnder(notes, 'Audit inventory')
+      .filter((row) => /^`(#|%23)/.test(row['original value']))
+    assert.ok(audited.length > 0, 'the audit should have turned up green colour values')
+    for (const row of audited) {
+      const replacement = row['new value'].replace(/`/g, '').replace(/^%23/, '#').toLowerCase()
+      assert.ok(
+        palette.has(replacement),
+        `${row.file}:${row.line} maps to ${replacement}, which the palette table does not define`,
+      )
+    }
+  })
+})
+
+const DISPOSITIONS = ['Replaced', 'Renamed', 'Skipped']
+
+describe('Palette task 3: sign-off list of greens left alone', () => {
+  it('gives every audited green a disposition', async () => {
+    for (const row of tableUnder(await readNotes(repoRoot), 'Audit inventory')) {
+      assert.ok(
+        DISPOSITIONS.includes(row.disposition),
+        `${row.file}:${row.line} has disposition "${row.disposition}", expected one of ${DISPOSITIONS.join('/')}`,
+      )
+    }
+  })
+
+  it('justifies every flagged category, including the ones found to be empty', async () => {
+    const rows = tableUnder(await readNotes(repoRoot), 'Flagged')
+    assert.ok(rows, `${PALETTE_NOTES} should carry a "## Flagged" sign-off table`)
+    assert.ok(rows.length > 0, 'the sign-off list should enumerate the edge-case categories that were checked')
+    for (const row of rows) {
+      assert.ok(row.item.length > 0, 'every flagged row should name what was checked')
+      assert.ok(row.location.length > 0, `flagged row "${row.item}" should say where`)
+      assert.ok(
+        ['None present', 'Left unchanged'].includes(row.status),
+        `flagged row "${row.item}" has status "${row.status}"`,
+      )
+      assert.ok(row.reason.length > 20, `flagged row "${row.item}" needs a real justification, got "${row.reason}"`)
+    }
+  })
+
+  it('backs every skipped audit entry with a flagged-list justification', async () => {
+    const notes = await readNotes(repoRoot)
+    const flagged = tableUnder(notes, 'Flagged')
+    for (const row of tableUnder(notes, 'Audit inventory').filter((r) => r.disposition === 'Skipped')) {
+      assert.ok(
+        flagged.some((f) => f.location.includes(row.file)),
+        `${row.file}:${row.line} is skipped but the sign-off list does not cover ${row.file}`,
+      )
+    }
+  })
+})
+
+/** Every JSON/YAML config in the repo — anywhere a theme key or colour value could hide. */
+const configFiles = async () => {
+  const { readdir } = await import('node:fs/promises')
+  const skip = /^(\.git|node_modules|specs|docs)\//
+  return (await readdir(repoRoot, { recursive: true }))
+    .map((name) => name.split('\\').join('/'))
+    .filter((name) => /\.(json|ya?ml|toml|ini)$/.test(name) && !skip.test(name))
+    .sort()
+}
+
+/** The `--token: #hex` pairs declared in the stylesheet's `:root` block. */
+const rootTokens = (css) => {
+  const root = css.match(/:root\s*\{([^}]*)\}/)
+  assert.ok(root, 'styles.css should declare its palette in a :root block')
+  return new Map(
+    [...root[1].matchAll(/(--[a-z-]+)\s*:\s*(#[0-9a-fA-F]{3,6})/g)].map((m) => [m[1], m[2].toLowerCase()]),
+  )
+}
+
+/** The green-named custom properties the site used to ship, per the audit's Renamed rows. */
+const legacyTokens = (notes) => [
+  ...new Set(
+    tableUnder(notes, 'Audit inventory')
+      .filter((row) => row.disposition === 'Renamed')
+      .flatMap((row) => [...row.role.matchAll(/`(--[a-z-]+)`/g)].map((m) => m[1])),
+  ),
+]
+
+/** Everything that could still name one of them — docs and specs record history on purpose. */
+const CODE_FILES = ['styles.css', 'index.html', 'package.json', 'tests/browser.mjs', 'tests/page.test.mjs', 'tests/palette.mjs']
+
+describe('Palette task 4: theme variables renamed off green', () => {
+  it('declares each renamed token with its palette value', async () => {
+    const notes = await readNotes(repoRoot)
+    const palette = new Map(
+      tableUnder(notes, 'Palette').map((row) => [row.token.replace(/`/g, ''), row.hex.replace(/`/g, '')]),
+    )
+    const renamed = new Set(
+      tableUnder(notes, 'Audit inventory')
+        .filter((row) => row.disposition === 'Renamed')
+        .map((row) => row['new value'].replace(/`/g, '')),
+    )
+    assert.ok(renamed.size > 0, 'the audit should have turned up green-named tokens to rename')
+    const declared = rootTokens(await readSource(repoRoot, 'styles.css'))
+    for (const token of renamed) {
+      assert.equal(declared.get(token), palette.get(token), `:root should declare ${token} as ${palette.get(token)}`)
+    }
+  })
+
+  it('has no reference to the old green token names anywhere in the code', async () => {
+    const stale = legacyTokens(await readNotes(repoRoot))
+    assert.ok(stale.length > 0, 'the audit should name the tokens that were renamed')
+    for (const file of CODE_FILES) {
+      const text = await readSource(repoRoot, file)
+      for (const token of stale) {
+        assert.ok(!text.includes(token), `${file} still references the old token ${token}`)
+      }
+    }
+  })
+
+  it('resolves every var() reference to a declared custom property', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    const declared = new Set([...css.matchAll(/^\s*(--[a-z-]+)\s*:/gm)].map((m) => m[1]))
+    const used = [...css.matchAll(/var\(\s*(--[a-z-]+)/g)].map((m) => m[1])
+    const dangling = [...new Set(used)].filter((name) => !declared.has(name))
+    assert.deepEqual(dangling, [], 'every var() should point at a token declared in :root')
+    const unused = [...declared].filter((name) => !used.includes(name))
+    assert.deepEqual(unused, [], 'every declared token should still be used by a rule')
+  })
+})
+
+describe('Palette task 5: no green left in the stylesheet', () => {
+  it('declares exactly the tokens the palette table defines', async () => {
+    const declared = [...rootTokens(await readSource(repoRoot, 'styles.css'))]
+    const palette = tableUnder(await readNotes(repoRoot), 'Palette')
+      .map((row) => [row.token.replace(/`/g, ''), row.hex.replace(/`/g, '')])
+    assert.deepEqual(
+      declared.sort(),
+      palette.sort(),
+      'the :root tokens should match docs/palette-notes.md exactly, name and value',
+    )
+  })
+
+  it('matches no green pattern at all', async () => {
+    const hits = greenOccurrences(await readSource(repoRoot, 'styles.css'))
+    assert.deepEqual(hits, [], `styles.css still carries green: ${JSON.stringify(hits)}`)
+  })
+
+  it('hard-codes no colour outside the palette', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    const palette = new Set(
+      tableUnder(await readNotes(repoRoot), 'Palette').map((row) => row.hex.replace(/`/g, '')),
+    )
+    const strays = hexLiterals(css).filter((hex) => !palette.has(hex))
+    assert.deepEqual(strays, [], 'every hex in styles.css should come from the documented palette')
+  })
+})
+
+describe('Palette task 6: no green left in the markup', () => {
+  it('matches no green pattern at all', async () => {
+    const hits = greenOccurrences(await readSource(repoRoot, 'index.html'))
+    assert.deepEqual(hits, [], `index.html still carries green: ${JSON.stringify(hits)}`)
+  })
+
+  it('draws every colour in the markup, inline styles included, from the palette', async () => {
+    const html = await readSource(repoRoot, 'index.html')
+    const palette = new Set(
+      tableUnder(await readNotes(repoRoot), 'Palette').map((row) => row.hex.replace(/`/g, '')),
+    )
+    const strays = hexLiterals(html).filter((hex) => !palette.has(hex))
+    assert.deepEqual(strays, [], 'every hex in index.html should come from the documented palette')
+    for (const [, declarations] of html.matchAll(/\sstyle="([^"]*)"/g)) {
+      assert.deepEqual(greenOccurrences(declarations), [], `inline style "${declarations}" still carries green`)
+    }
+  })
+
+  it('renders a favicon whose colours match the page it labels', async () => {
+    const href = await page.evaluate(`return document.querySelector('link[rel="icon"]')?.getAttribute('href') ?? ''`)
+    const icon = decodeURIComponent(href)
+    assert.match(icon, /^data:image\/svg\+xml,/, 'the favicon should stay an inline SVG data URI')
+    const bodyBg = await page.evaluate("return getComputedStyle(document.body).backgroundColor")
+    const [background, accent] = hexLiterals(icon)
+    assert.ok(isDarkBlue(hexToRgb(background)), `favicon background should be dark blue, got ${background}`)
+    assert.ok(isOrange(hexToRgb(accent)), `favicon accent should stay orange, got ${accent}`)
+    assert.deepEqual(
+      hexToRgb(background),
+      parseColor(bodyBg),
+      'the favicon background should be the same blue as the page background',
+    )
+  })
+})
+
+describe('Palette task 7: theme and config files', () => {
+  it('carries no green key or value in any JSON/YAML config', async () => {
+    const configs = await configFiles()
+    assert.ok(configs.length > 0, 'the repo should have at least one config file to check')
+    for (const file of configs) {
+      const hits = greenOccurrences(await readSource(repoRoot, file))
+      assert.deepEqual(hits, [], `${file} still carries green: ${JSON.stringify(hits)}`)
+    }
+  })
+
+  it('leaves every JSON config parseable', async () => {
+    for (const file of (await configFiles()).filter((name) => name.endsWith('.json'))) {
+      const text = await readSource(repoRoot, file)
+      assert.doesNotThrow(() => JSON.parse(text), `${file} should still be valid JSON`)
+    }
+  })
+})
+
+describe('Palette task 8: served output reflects the new palette', () => {
+  it('has no build step and no checked-in output directory to regenerate', async () => {
+    const { access } = await import('node:fs/promises')
+    const manifest = JSON.parse(await readSource(repoRoot, 'package.json'))
+    assert.deepEqual(Object.keys(manifest.scripts), ['test'], 'the site ships with no build script')
+    assert.equal(manifest.dependencies, undefined)
+    assert.equal(manifest.devDependencies, undefined)
+    for (const dir of ['_site', 'dist', 'build', 'out', 'public']) {
+      await assert.rejects(
+        access(join(repoRoot, dir)),
+        `${dir}/ exists — built output would need regenerating alongside the source`,
+      )
+    }
+  })
+
+  it('serves the two source files byte for byte, palette and all', async () => {
+    const server = await serveStatic(repoRoot)
+    try {
+      for (const file of STYLING_SOURCES) {
+        const served = await (await fetch(`${server.origin}/${file}`)).text()
+        assert.equal(served, await readSource(repoRoot, file), `${file} should be served exactly as written`)
+        assert.deepEqual(greenOccurrences(served), [], `the served ${file} still carries green`)
+      }
+      const css = await (await fetch(`${server.origin}/styles.css`)).text()
+      for (const row of tableUnder(await readNotes(repoRoot), 'Palette')) {
+        assert.ok(css.includes(row.hex.replace(/`/g, '')), `served CSS should carry ${row.token}`)
+      }
+    } finally {
+      await server.close()
+    }
+  })
+})
+
+/** Everything about an element except its colours: geometry, box model, type, content. */
+const LAYOUT_SNAPSHOT = `
+  const round = (n) => Math.round(n * 100) / 100;
+  return {
+    title: document.title,
+    text: document.body.textContent.replace(/\\s+/g, ' ').trim(),
+    elements: [...document.querySelectorAll('body, body *')].map((el) => {
+      const r = el.getBoundingClientRect();
+      const s = getComputedStyle(el);
+      const box = (prefix, sides) => sides.map((side) => s.getPropertyValue(prefix + side));
+      return {
+        tag: el.tagName,
+        className: el.className,
+        own: [...el.childNodes].filter((n) => n.nodeType === 3).map((n) => n.textContent.trim()).join(' ').trim(),
+        rect: [round(r.x), round(r.y), round(r.width), round(r.height)],
+        layout: [s.display, s.position, s.flexDirection, s.flexWrap, s.justifyContent, s.alignItems, s.flex, s.gap],
+        margin: box('margin-', ['top', 'right', 'bottom', 'left']),
+        padding: box('padding-', ['top', 'right', 'bottom', 'left']),
+        borderWidth: box('border-', ['top-width', 'right-width', 'bottom-width', 'left-width']),
+        type: [s.fontFamily, s.fontSize, s.fontWeight, s.lineHeight, s.letterSpacing, s.textTransform, s.textDecorationLine],
+        misc: [s.borderRadius, s.overflowWrap, s.textAlign, s.minHeight, s.maxWidth, s.boxSizing],
+      };
+    }),
+  };
+`
+
+/** Just the colours, so the two renders can be shown to actually differ. */
+const COLOUR_SNAPSHOT = `
+  return [...document.querySelectorAll('body, body *')]
+    .map((el) => { const s = getComputedStyle(el); return [s.color, s.backgroundColor, s.borderBottomColor].join('|') });
+`
+
+const git = async (...args) => {
+  const { execFile } = await import('node:child_process')
+  const { promisify } = await import('node:util')
+  const { stdout } = await promisify(execFile)('git', args, { cwd: repoRoot, maxBuffer: 1 << 22 })
+  return stdout
+}
+
+/** The commit this branch forked from, or null when the base branch is not available locally. */
+const baseCommit = async () => {
+  for (const ref of ['main', 'origin/main']) {
+    try {
+      return (await git('merge-base', 'HEAD', ref)).trim()
+    } catch {}
+  }
+  return null
+}
+
+/** Checks the pre-change site out into a temp directory and returns its file:// URL. */
+const checkoutBase = async (commit) => {
+  const { mkdtemp, writeFile } = await import('node:fs/promises')
+  const { tmpdir } = await import('node:os')
+  const dir = await mkdtemp(join(tmpdir(), 'betamax-before-'))
+  for (const file of STYLING_SOURCES) {
+    await writeFile(join(dir, file), await git('show', `${commit}:${file}`))
+  }
+  return { dir, url: pathToFileURL(join(dir, 'index.html')).href }
+}
+
+describe('Palette task 9: before/after spot-check', () => {
+  let previous
+  let baseDir
+
+  before(async () => {
+    const commit = await baseCommit()
+    if (!commit) return
+    const checkout = await checkoutBase(commit)
+    baseDir = checkout.dir
+    previous = await openPage(checkout.url)
+  })
+
+  after(async () => {
+    await previous?.close()
+    if (baseDir) {
+      const { rm } = await import('node:fs/promises')
+      await rm(baseDir, { recursive: true, force: true })
+    }
+  })
+
+  for (const width of [1280, 375]) {
+    it(`shows only colour differences at ${width}px — no layout, type or content shift`, async (t) => {
+      if (!previous) return t.skip('base branch not available locally; cannot render the previous version')
+      await previous.setViewport(width, 800)
+      await page.setViewport(width, 800)
+      await page.reload()
+      assert.deepEqual(await page.evaluate(LAYOUT_SNAPSHOT), await previous.evaluate(LAYOUT_SNAPSHOT))
+      await page.setViewport(1280, 800)
+    })
+  }
+
+  it('does repaint the page — the two renders differ in colour and only in colour', async (t) => {
+    if (!previous) return t.skip('base branch not available locally; cannot render the previous version')
+    const [now, then] = [await page.evaluate(COLOUR_SNAPSHOT), await previous.evaluate(COLOUR_SNAPSHOT)]
+    assert.notDeepEqual(now, then, 'the palette swap should have changed the rendered colours')
+    const greens = then.join('|').split('|').map(parseColor).filter(isGreenish)
+    assert.ok(greens.length > 0, 'the previous version should have rendered green')
+    assert.deepEqual(
+      now.join('|').split('|').map(parseColor).filter(isGreenish),
+      [],
+      'nothing on the page should still render green',
+    )
+  })
+
+  it('keeps every line of text readable on the colours it now sits on', async () => {
+    const samples = await page.evaluate(`
+      const backdrop = (el) => {
+        for (let node = el; node; node = node.parentElement) {
+          const bg = getComputedStyle(node).backgroundColor;
+          if (!/^rgba\\(.*,\\s*0\\)$/.test(bg)) return bg;
+        }
+        return 'rgb(255, 255, 255)';
+      };
+      return [...document.querySelectorAll('body, body *')]
+        .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
+        .map((el) => ({
+          text: el.textContent.trim().slice(0, 24),
+          color: getComputedStyle(el).color,
+          bg: backdrop(el),
+        }));
+    `)
+    assert.ok(samples.length > 0)
+    for (const sample of samples) {
+      const ratio = contrastRatio(parseColor(sample.color), parseColor(sample.bg))
+      assert.ok(ratio >= 4.5, `"${sample.text}" reads at ${ratio.toFixed(2)}:1 against ${sample.bg}`)
+    }
+  })
+})
+
 describe('Test plan: end-to-end walkthrough', () => {
   after(async () => {
     await page.setViewport(1280, 800)
@@ -767,7 +1229,7 @@ describe('Test plan: end-to-end walkthrough', () => {
         state.biggest.size > state.runnerUp.size * 2,
         `h1 (${state.biggest.size}px) should be at least twice the next largest text (${state.runnerUp.size}px)`,
       )
-      assert.ok(isDarkGreen(parseColor(state.bodyBg)))
+      assert.ok(isDarkBlue(parseColor(state.bodyBg)))
       assert.ok(isOrange(parseColor(state.h1Color)))
       assert.ok(contrastRatio(parseColor(state.h1Color), parseColor(state.bodyBg)) >= 4.5)
       assert.equal(state.overflow, false)
@@ -779,7 +1241,7 @@ describe('Test plan: end-to-end walkthrough', () => {
   it('introduces no extra pages, scripts or build tooling', async () => {
     const { readdir } = await import('node:fs/promises')
     const root = (await readdir(repoRoot)).filter((name) => !name.startsWith('.'))
-    // Only the two site files plus the pre-existing test harness and specs.
-    assert.deepEqual(root.sort(), ['index.html', 'package.json', 'specs', 'styles.css', 'tests'])
+    // Only the two site files plus the test harness, specs and the palette notes.
+    assert.deepEqual(root.sort(), ['docs', 'index.html', 'package.json', 'specs', 'styles.css', 'tests'])
   })
 })

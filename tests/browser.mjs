@@ -266,19 +266,19 @@ export function contrastRatio(fg, bg) {
   return (light + 0.05) / (dark + 0.05)
 }
 
-/** True for a dark green: dim overall, with green clearly the dominant channel. */
-export function isDarkGreen(color) {
+/** True for a dark blue: dim overall, with blue clearly the dominant channel. */
+export function isDarkBlue(color) {
   return (
     relativeLuminance(color) < 0.12 &&
     color.a > 0.9 &&
-    color.g > color.r + 12 &&
-    color.g > color.b + 12
+    color.b > color.r + 12 &&
+    color.b > color.g + 12
   )
 }
 
-/** True for any green-leaning tone, light or dark (used for neutral text tinted green). */
-export function isGreenTinted({ r, g, b }) {
-  return g >= r && g >= b && g - Math.min(r, b) >= 8
+/** True for any blue-leaning tone, light or dark (used for neutral text tinted blue). */
+export function isBlueTinted({ r, g, b }) {
+  return b >= r && b >= g && b - Math.min(r, g) >= 8
 }
 
 /** True for an orange hue: red dominant, mid green, minimal blue. */
