@@ -1,0 +1,54 @@
+name: Dev Manager - Build from Approved Plan
+
+on:
+  workflow_dispatch:
+    inputs:
+      job_id:
+        description: 'The dev_jobs row id'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+  pull-requests: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Run Claude Code
+        uses: anthropics/claude-code-action@8251c103ac8c1d761882c86aba1412c7f583c844 # v1.0.213
+        with:
+          anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+          claude_args: |
+            --allowedTools "Bash,Edit,Write,Read,Glob,Grep"
+            --permission-mode acceptEdits
+          prompt: |
+            Read the approved implementation plan at specs/${{ github.event.inputs.job_id }}/plan.md.
+
+            Implement the plan exactly as written — do not reinterpret or expand scope beyond what the plan specifies. Follow the numbered tasks in order, writing a failing test for each before implementing it, per the plan's own instructions.
+
+            Create a new branch named dev/${{ github.event.inputs.job_id }}, commit your changes there, push the branch, and open a pull request against main. Title the PR using the plan's title. In the PR description, reference the plan file path and briefly summarize what was implemented.
+
+      - name: Find PR URL
+        id: find_pr
+        run: |
+          PR_URL=$(gh pr list --head "dev/${{ github.event.inputs.job_id }}" --json url --jq '.[0].url')
+          echo "pr_url=$PR_URL" >> "$GITHUB_OUTPUT"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Notify n8n of completion
+        if: always()
+        run: |
+          curl -X POST "https://simonraitt.app.n8n.cloud/webhook/dev-build-complete" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "job_id": "${{ github.event.inputs.job_id }}",
+              "pr_url": "${{ steps.find_pr.outputs.pr_url }}",
+              "status": "${{ job.status }}"
+            }'
