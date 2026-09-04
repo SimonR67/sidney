@@ -1,7 +1,7 @@
 {
-  "name": "alpha-centuri",
+  "name": "betamax",
   "private": true,
-  "description": "Static Alpha Centuri home page — hero section and navigation bar, no build step.",
+  "description": "Static BetaMax home page — hero section and navigation bar, no build step.",
   "scripts": {
     "test": "node --test tests/page.test.mjs"
   }
