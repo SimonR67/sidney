@@ -1,12 +1,12 @@
-/* Mordor — black and orange. */
+/* Alpha Centuri — dark blue and orange. */
 
 :root {
-  --ink: #0a0a0a;          /* dominant background */
-  --ink-raised: #121212;   /* nav band, sits just above the page */
-  --ember: #ff7a18;        /* primary orange accent */
-  --ember-bright: #ffa34d; /* lighter orange for large display text */
-  --ash: #c9c9c9;          /* neutral body text */
-  --edge: #2a2a2a;         /* hairline borders */
+  --space: #061024;         /* dominant page background */
+  --space-raised: #0b1a36;  /* nav band, sits just above the page */
+  --ember: #ff7a18;         /* primary orange accent */
+  --ember-bright: #ffa34d;  /* brightest orange, reserved for the hero title */
+  --starlight: #cdd9ec;     /* neutral body text, faintly blue */
+  --edge: #1c3157;          /* hairline borders */
 }
 
 * {
@@ -14,18 +14,32 @@
 }
 
 html {
-  background-color: var(--ink);
+  background-color: var(--space);
 }
 
+/* Column layout so the hero can absorb whatever height the nav bar leaves. */
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
   margin: 0;
-  background-color: var(--ink);
-  color: var(--ash);
+  background-color: var(--space);
+  color: var(--starlight);
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
 }
 
+main {
+  display: flex;
+  flex: 1;
+}
+
 /* Navigation bar */
+
+.site-header {
+  background-color: var(--space-raised);
+  border-bottom: 1px solid var(--edge);
+}
 
 .site-nav {
   display: flex;
@@ -34,8 +48,6 @@ body {
   justify-content: space-between;
   gap: 0.75rem 1rem;
   padding: 1rem clamp(1rem, 4vw, 2rem);
-  background-color: var(--ink-raised);
-  border-bottom: 1px solid var(--edge);
 }
 
 .site-nav__brand {
@@ -57,7 +69,7 @@ body {
 }
 
 .site-nav__links a {
-  color: var(--ember-bright);
+  color: var(--ember);
   font-size: 0.95rem;
   letter-spacing: 0.08em;
   text-decoration: none;
@@ -66,26 +78,31 @@ body {
 
 .site-nav__links a:hover,
 .site-nav__links a:focus {
-  color: var(--ember);
+  color: var(--ember-bright);
   text-decoration: underline;
 }
 
 /* Hero */
 
 .hero {
-  background-color: var(--ink);
-  border-bottom: 1px solid var(--edge);
+  display: flex;
+  flex: 1;
+  align-items: center;
+  justify-content: center;
+  background-color: var(--space);
   padding: clamp(3rem, 10vw, 6rem) clamp(1rem, 4vw, 2rem);
 }
 
 .hero__inner {
-  margin: 0 auto;
+  width: 100%;
   max-width: 60rem;
+  text-align: center;
 }
 
+/* The focal point of the page: the largest, highest-contrast text there is. */
 .hero__title {
   margin: 0;
-  color: var(--ember);
+  color: var(--ember-bright);
   font-size: clamp(2.75rem, 11vw, 6rem);
   font-weight: 800;
   letter-spacing: 0.06em;
@@ -95,8 +112,60 @@ body {
 }
 
 .hero__tagline {
-  margin: 1.25rem 0 0;
+  margin: 1.25rem auto 0;
   max-width: 40rem;
-  color: var(--ash);
+  color: var(--starlight);
   font-size: clamp(1rem, 3.5vw, 1.25rem);
+}
+
+.hero__cta {
+  display: inline-block;
+  margin-top: 2rem;
+  padding: 0.75rem 1.75rem;
+  border-radius: 2px;
+  background-color: var(--ember);
+  color: var(--space);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.hero__cta:hover,
+.hero__cta:focus {
+  background-color: var(--ember-bright);
+}
+
+/* Narrow viewports (~375px): stack the nav and tighten the hero. */
+
+@media (max-width: 600px) {
+  .site-nav {
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.75rem;
+  }
+
+  .site-nav__links {
+    justify-content: center;
+    gap: 0.5rem 1.25rem;
+  }
+
+  .hero {
+    padding: 3rem 1rem;
+  }
+
+  .hero__cta {
+    display: block;
+    margin-top: 1.75rem;
+    padding: 0.75rem 1rem;
+  }
+}
+
+/* Wide viewports (~1200px+): let the hero breathe. */
+
+@media (min-width: 1200px) {
+  .hero {
+    padding: 7rem 2rem;
+  }
 }

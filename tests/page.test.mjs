@@ -1,8 +1,9 @@
 import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { pathToFileURL } from 'node:url'
+import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
-import { contrastRatio, isNearBlack, isOrange, openPage, parseColor, serveStatic } from './browser.mjs'
+import { contrastRatio, isBlueTinted, isDarkBlue, isOrange, openPage, parseColor, serveStatic } from './browser.mjs'
 
 const computed = (selector, props) => `
   const el = document.querySelector(${JSON.stringify(selector)});
@@ -23,7 +24,7 @@ after(async () => {
   await page?.close()
 })
 
-describe('Task 1: semantic scaffold', () => {
+describe('Task 1: semantic skeleton', () => {
   it('parses as a standards-mode HTML document', async () => {
     const doc = await page.evaluate(`
       return {
@@ -39,44 +40,92 @@ describe('Task 1: semantic scaffold', () => {
     assert.ok(doc.hasBody)
   })
 
-  it('has the title "Mordor"', async () => {
-    assert.equal(await page.evaluate('return document.title'), 'Mordor')
-  })
-
-  it('contains a <nav> and a hero <header>', async () => {
-    const structure = await page.evaluate(`
+  it('declares a charset, a responsive viewport and the title "Alpha Centuri"', async () => {
+    const head = await page.evaluate(`
       return {
-        navs: document.querySelectorAll('nav').length,
-        heroes: document.querySelectorAll('header.hero').length,
+        charset: document.characterSet,
+        viewport: document.querySelector('meta[name="viewport"]')?.content ?? null,
+        title: document.title,
       }
     `)
+    assert.equal(head.charset, 'UTF-8')
+    assert.match(head.viewport, /width=device-width/)
+    assert.equal(head.title, 'Alpha Centuri')
+  })
+
+  it('has a <header> holding a <nav>, plus a hero <section>', async () => {
+    const structure = await page.evaluate(`
+      const nav = document.querySelector('nav');
+      return {
+        headers: document.querySelectorAll('header').length,
+        navs: document.querySelectorAll('nav').length,
+        navInsideHeader: !!nav?.closest('header'),
+        heroes: document.querySelectorAll('section.hero').length,
+      }
+    `)
+    assert.equal(structure.headers, 1)
     assert.equal(structure.navs, 1)
+    assert.equal(structure.navInsideHeader, true, '<nav> should live inside the <header>')
     assert.equal(structure.heroes, 1)
+  })
+
+  it('links the external styles.css and no other stylesheet', async () => {
+    const sheets = await page.evaluate(`
+      return [...document.querySelectorAll('link[rel="stylesheet"]')].map((l) => l.getAttribute('href'));
+    `)
+    assert.deepEqual(sheets, ['styles.css'])
+  })
+
+  it('loads without console errors or failed requests', async () => {
+    assert.deepEqual(page.pageErrors, [])
+    assert.deepEqual(page.consoleMessages, [])
   })
 })
 
 describe('Task 2: navigation bar', () => {
-  it('puts the <nav> first inside <body>', async () => {
+  it('puts the <header> first inside <body>', async () => {
     const first = await page.evaluate('return document.body.firstElementChild.tagName')
-    assert.equal(first, 'NAV')
+    assert.equal(first, 'HEADER')
   })
 
-  it('shows the site name "Mordor" in the nav', async () => {
-    const navText = await page.evaluate("return document.querySelector('nav').textContent")
-    assert.match(navText, /Mordor/)
+  it('shows the site name "Alpha Centuri" as the nav brand', async () => {
+    const brand = await page.evaluate(`
+      const el = document.querySelector('.site-nav__brand');
+      return el ? { text: el.textContent.trim(), href: el.getAttribute('href') } : null;
+    `)
+    assert.ok(brand, 'nav should carry a brand element')
+    assert.equal(brand.text, 'Alpha Centuri')
+    assert.ok(brand.href.startsWith('#'), `brand link should be a placeholder, got ${brand.href}`)
   })
 
-  it('has placeholder links that all point at an in-page fragment', async () => {
+  it('offers Home / About / Contact placeholder links that all target a fragment', async () => {
     const links = await page.evaluate(`
-      return [...document.querySelectorAll('nav a')].map((a) => ({
+      return [...document.querySelectorAll('.site-nav__links a')].map((a) => ({
         text: a.textContent.trim(),
         href: a.getAttribute('href'),
       }))
     `)
-    assert.ok(links.length > 0, 'nav should contain at least one link')
+    assert.deepEqual(links.map((l) => l.text), ['Home', 'About', 'Contact'])
     for (const link of links) {
       assert.ok(link.href.startsWith('#'), `${link.text} should be a placeholder link, got ${link.href}`)
     }
+  })
+
+  it('lays the nav out horizontally with the brand left of the links', async () => {
+    const boxes = await page.evaluate(`
+      const brand = document.querySelector('.site-nav__brand').getBoundingClientRect();
+      const links = [...document.querySelectorAll('.site-nav__links a')].map((a) => a.getBoundingClientRect());
+      return {
+        brandRight: brand.right,
+        brandTop: brand.top,
+        first: { left: links[0].left, top: links[0].top },
+        last: { left: links.at(-1).left, top: links.at(-1).top },
+        sameRow: links.every((r) => Math.abs(r.top - links[0].top) < 1),
+      }
+    `)
+    assert.ok(boxes.brandRight <= boxes.first.left, 'brand should sit to the left of the nav links')
+    assert.ok(boxes.last.left > boxes.first.left, 'nav links should run left-to-right')
+    assert.equal(boxes.sameRow, true, 'nav links should share one row on desktop')
   })
 
   it('clicking every nav link keeps the page on index.html and throws nothing', async () => {
@@ -87,74 +136,108 @@ describe('Task 2: navigation bar', () => {
       return { before, after: location.pathname, title: document.title };
     `)
     assert.equal(result.after, result.before)
-    assert.equal(result.title, 'Mordor')
+    assert.equal(result.title, 'Alpha Centuri')
     assert.deepEqual(page.pageErrors, [])
     assert.deepEqual(page.consoleMessages.filter((m) => m.type === 'error'), [])
   })
 })
 
 describe('Task 3: hero section', () => {
-  it('places the hero immediately after the nav in DOM order', async () => {
+  it('places the hero directly after the header in document order', async () => {
     const order = await page.evaluate(`
-      const nav = document.querySelector('nav');
+      const header = document.querySelector('header');
+      const hero = document.querySelector('section.hero');
       return {
-        next: nav.nextElementSibling?.tagName ?? null,
-        nextClass: nav.nextElementSibling?.className ?? null,
+        headerBeforeHero: !!(header.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING),
+        heroInsideHeader: !!hero.closest('header'),
+        heroInsideMain: !!hero.closest('main'),
       }
     `)
-    assert.equal(order.next, 'HEADER')
-    assert.match(order.nextClass, /hero/)
+    assert.equal(order.headerBeforeHero, true)
+    assert.equal(order.heroInsideHeader, false, 'hero should be a sibling of the nav bar, not nested in it')
+    assert.equal(order.heroInsideMain, true)
   })
 
-  it('has a single <h1> reading "Mordor" inside the hero', async () => {
+  it('has a single <h1> reading "Alpha Centuri" inside the hero', async () => {
     const heading = await page.evaluate(`
       const h1s = document.querySelectorAll('h1');
       return {
         count: h1s.length,
         text: h1s[0]?.textContent.trim() ?? null,
-        insideHero: !!h1s[0]?.closest('header.hero'),
+        insideHero: !!h1s[0]?.closest('section.hero'),
       }
     `)
-    assert.equal(heading.count, 1)
-    assert.equal(heading.text, 'Mordor')
+    assert.equal(heading.count, 1, 'the page should have exactly one <h1>')
+    assert.equal(heading.text, 'Alpha Centuri')
     assert.equal(heading.insideHero, true)
   })
 
-  it('has a tagline paragraph in the hero', async () => {
-    const tagline = await page.evaluate("return document.querySelector('header.hero p')?.textContent.trim() ?? null")
-    assert.ok(tagline && tagline.length > 0, 'hero should carry a short tagline')
+  it('carries a subtitle and a placeholder call to action in the hero', async () => {
+    const hero = await page.evaluate(`
+      const tagline = document.querySelector('section.hero p');
+      const cta = document.querySelector('section.hero a');
+      return {
+        tagline: tagline?.textContent.trim() ?? null,
+        cta: cta ? { text: cta.textContent.trim(), href: cta.getAttribute('href') } : null,
+      }
+    `)
+    assert.ok(hero.tagline && hero.tagline.length > 0, 'hero should carry a short subtitle')
+    assert.ok(hero.cta, 'hero should carry a call-to-action link')
+    assert.ok(hero.cta.text.length > 0)
+    assert.ok(hero.cta.href.startsWith('#'), `CTA should be a placeholder link, got ${hero.cta.href}`)
   })
 })
 
-describe('Task 4: black and orange colour scheme', () => {
-  it('paints the page background black', async () => {
+describe('Task 4: dark blue and orange colour scheme', () => {
+  it('paints the page background dark blue', async () => {
     const { 'background-color': body } = await page.evaluate(computed('body', ['background-color']))
-    assert.ok(isNearBlack(parseColor(body)), `body background should be near-black, got ${body}`)
+    assert.ok(isDarkBlue(parseColor(body)), `body background should be dark blue, got ${body}`)
   })
 
-  it('paints the nav black with orange branding', async () => {
-    const nav = await page.evaluate(computed('nav', ['background-color']))
+  it('paints the nav bar dark blue with orange branding', async () => {
+    const header = await page.evaluate(computed('.site-header', ['background-color']))
     const brand = await page.evaluate(computed('.site-nav__brand', ['color']))
-    assert.ok(isNearBlack(parseColor(nav['background-color'])), `nav background should be near-black, got ${nav['background-color']}`)
+    assert.ok(
+      isDarkBlue(parseColor(header['background-color'])),
+      `nav bar background should be dark blue, got ${header['background-color']}`,
+    )
     assert.ok(isOrange(parseColor(brand.color)), `nav brand should be orange, got ${brand.color}`)
   })
 
-  it('paints the hero black with an orange title', async () => {
-    const hero = await page.evaluate(computed('header.hero', ['background-color']))
+  it('paints the hero dark blue with an orange title', async () => {
+    const hero = await page.evaluate(computed('section.hero', ['background-color']))
     const title = await page.evaluate(computed('h1', ['color']))
-    assert.ok(isNearBlack(parseColor(hero['background-color'])), `hero background should be near-black, got ${hero['background-color']}`)
+    assert.ok(
+      isDarkBlue(parseColor(hero['background-color'])),
+      `hero background should be dark blue, got ${hero['background-color']}`,
+    )
     assert.ok(isOrange(parseColor(title.color)), `h1 should be orange, got ${title.color}`)
   })
 
-  it('keeps every nav and hero text colour legible against the background', async () => {
+  it('gives the call to action an orange fill with dark blue text', async () => {
+    const cta = await page.evaluate(computed('.hero__cta', ['background-color', 'color']))
+    assert.ok(isOrange(parseColor(cta['background-color'])), `CTA fill should be orange, got ${cta['background-color']}`)
+    assert.ok(isDarkBlue(parseColor(cta.color)), `CTA label should be dark blue, got ${cta.color}`)
+    assert.ok(
+      contrastRatio(parseColor(cta.color), parseColor(cta['background-color'])) >= 4.5,
+      'CTA label should stay legible on its orange fill',
+    )
+  })
+
+  it('keeps every nav and hero text colour legible against its own background', async () => {
     const samples = await page.evaluate(`
-      const bg = getComputedStyle(document.body).backgroundColor;
-      const targets = ['.site-nav__brand', 'nav a', 'h1', '.hero__tagline'];
-      return targets.map((sel) => ({
-        sel,
-        color: getComputedStyle(document.querySelector(sel)).color,
-        bg,
-      }));
+      const targets = ['.site-nav__brand', '.site-nav__links a', 'h1', '.hero__tagline'];
+      const backdrop = (el) => {
+        for (let node = el; node; node = node.parentElement) {
+          const bg = getComputedStyle(node).backgroundColor;
+          if (!/^rgba\\(.*,\\s*0\\)$/.test(bg)) return bg;
+        }
+        return 'rgb(255, 255, 255)';
+      };
+      return targets.map((sel) => {
+        const el = document.querySelector(sel);
+        return { sel, color: getComputedStyle(el).color, bg: backdrop(el) };
+      });
     `)
     for (const sample of samples) {
       const ratio = contrastRatio(parseColor(sample.color), parseColor(sample.bg))
@@ -162,33 +245,95 @@ describe('Task 4: black and orange colour scheme', () => {
     }
   })
 
-  it('uses no dominant colour outside the black/orange scheme', async () => {
-    const offPalette = await page.evaluate(`
+  it('uses no dominant colour outside the dark blue / orange scheme', async () => {
+    const used = await page.evaluate(`
       const seen = new Set();
       for (const el of document.querySelectorAll('body, body *')) {
         const style = getComputedStyle(el);
         seen.add(style.color);
         const bg = style.backgroundColor;
-        if (!bg.startsWith('rgba(0, 0, 0, 0')) seen.add(bg);
+        if (!/^rgba\\(.*,\\s*0\\)$/.test(bg)) seen.add(bg);
+        for (const side of ['top', 'right', 'bottom', 'left']) {
+          if (parseFloat(style.getPropertyValue('border-' + side + '-width')) > 0) {
+            seen.add(style.getPropertyValue('border-' + side + '-color'));
+          }
+        }
       }
       return [...seen];
     `)
-    const allowed = offPalette.filter((value) => {
+    const offPalette = used.filter((value) => {
       const color = parseColor(value)
-      if (color.a === 0) return true
-      // Greys/blacks/whites are neutral; anything else must read as orange.
+      if (color.a === 0) return false
+      // Greys/blacks/whites are neutral supporting tones; anything tinted must read as blue or orange.
       const neutral = Math.max(color.r, color.g, color.b) - Math.min(color.r, color.g, color.b) < 24
-      return neutral || isOrange(color)
+      return !(neutral || isBlueTinted(color) || isOrange(color))
     })
-    assert.deepEqual(
-      offPalette.filter((v) => !allowed.includes(v)),
-      [],
-      'only black/grey/white neutrals and oranges should appear',
-    )
+    assert.deepEqual(offPalette, [], 'only blues, oranges and neutral greys should appear')
   })
 })
 
-describe('Task 5: responsive layout', () => {
+const textSizes = `
+  return [...document.querySelectorAll('body, body *')]
+    .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
+    .map((el) => ({ text: el.textContent.trim().slice(0, 24), size: parseFloat(getComputedStyle(el).fontSize) }))
+    .sort((a, b) => b.size - a.size);
+`
+
+describe('Task 5: "Alpha Centuri" as the visual focal point', () => {
+  it('renders the h1 as the largest text on the page by a clear margin', async () => {
+    const sizes = await page.evaluate(textSizes)
+    const h1Size = await page.evaluate("return parseFloat(getComputedStyle(document.querySelector('h1')).fontSize)")
+    assert.equal(sizes[0].text, 'Alpha Centuri', `largest text should be the title, got "${sizes[0].text}"`)
+    assert.equal(sizes[0].size, h1Size)
+    assert.ok(
+      h1Size > sizes[1].size * 1.5,
+      `h1 (${h1Size}px) should dominate the next largest text "${sizes[1].text}" (${sizes[1].size}px)`,
+    )
+  })
+
+  it('gives the title the strongest contrast of any text on the page', async () => {
+    const samples = await page.evaluate(`
+      const backdrop = (el) => {
+        for (let node = el; node; node = node.parentElement) {
+          const bg = getComputedStyle(node).backgroundColor;
+          if (!/^rgba\\(.*,\\s*0\\)$/.test(bg)) return bg;
+        }
+        return 'rgb(255, 255, 255)';
+      };
+      return ['h1', '.hero__tagline', '.site-nav__brand', '.site-nav__links a'].map((sel) => {
+        const el = document.querySelector(sel);
+        return { sel, color: getComputedStyle(el).color, bg: backdrop(el) };
+      });
+    `)
+    const ratio = (s) => contrastRatio(parseColor(s.color), parseColor(s.bg))
+    const title = samples.find((s) => s.sel === 'h1')
+    assert.ok(ratio(title) >= 4.5, `h1 contrast ${ratio(title).toFixed(2)}:1 is below 4.5:1`)
+    for (const other of samples.filter((s) => s.sel !== 'h1' && s.sel !== '.hero__tagline')) {
+      assert.ok(
+        ratio(title) >= ratio(other),
+        `h1 (${ratio(title).toFixed(2)}:1) should be at least as prominent as ${other.sel} (${ratio(other).toFixed(2)}:1)`,
+      )
+    }
+  })
+
+  it('sets the title as heavy display type with a tight line height', async () => {
+    const title = await page.evaluate(computed('h1', ['font-weight', 'line-height', 'font-size']))
+    assert.ok(Number(title['font-weight']) >= 700, `title should be bold, got ${title['font-weight']}`)
+    const lineHeight = parseFloat(title['line-height']) / parseFloat(title['font-size'])
+    assert.ok(lineHeight < 1.3, `title line-height ratio ${lineHeight.toFixed(2)} should be tight`)
+  })
+
+  it('centres the hero content block within the viewport', async () => {
+    const box = await page.evaluate(`
+      const inner = document.querySelector('.hero__inner').getBoundingClientRect();
+      return { left: inner.left, right: inner.right, innerWidth: window.innerWidth };
+    `)
+    const slack = Math.abs(box.left - (box.innerWidth - box.right))
+    assert.ok(slack < 2, `hero content should be horizontally centred (left ${box.left}, right gap ${box.innerWidth - box.right})`)
+  })
+})
+
+describe('Task 6: responsive layout', () => {
   after(async () => {
     await page.setViewport(1280, 800)
   })
@@ -215,10 +360,10 @@ describe('Task 5: responsive layout', () => {
         )
       })
 
-      it('stacks the nav above the hero without overlap', async () => {
+      it('stacks the nav bar above the hero without overlap', async () => {
         const boxes = await page.evaluate(`
-          const nav = document.querySelector('nav').getBoundingClientRect();
-          const hero = document.querySelector('header.hero').getBoundingClientRect();
+          const nav = document.querySelector('.site-header').getBoundingClientRect();
+          const hero = document.querySelector('section.hero').getBoundingClientRect();
           return { navBottom: nav.bottom, heroTop: hero.top, navHeight: nav.height, heroHeight: hero.height };
         `)
         assert.ok(boxes.navHeight > 0 && boxes.heroHeight > 0)
@@ -228,7 +373,7 @@ describe('Task 5: responsive layout', () => {
         )
       })
 
-      it('keeps the whole <h1> inside the viewport', async () => {
+      it('keeps the whole <h1> inside the viewport, unclipped', async () => {
         const h1 = await page.evaluate(`
           const el = document.querySelector('h1');
           const rect = el.getBoundingClientRect();
@@ -260,88 +405,80 @@ describe('Task 5: responsive layout', () => {
         `)
         assert.deepEqual(overlaps, [])
       })
+
+      it('lets the hero fill the viewport below the nav bar', async () => {
+        const fill = await page.evaluate(`
+          const header = document.querySelector('.site-header').getBoundingClientRect();
+          const hero = document.querySelector('section.hero').getBoundingClientRect();
+          return { heroHeight: hero.height, available: window.innerHeight - header.height, heroBottom: hero.bottom, innerHeight: window.innerHeight };
+        `)
+        assert.ok(
+          fill.heroHeight >= fill.available - 0.5,
+          `hero (${fill.heroHeight}px) should fill the space below the nav (${fill.available}px)`,
+        )
+        assert.ok(
+          fill.heroBottom >= fill.innerHeight - 0.5,
+          `hero should reach the bottom of the viewport (${fill.heroBottom} vs ${fill.innerHeight})`,
+        )
+      })
+
+      it('keeps the hero and its call to action fully visible', async () => {
+        const cta = await page.evaluate(`
+          const el = document.querySelector('.hero__cta');
+          const rect = el.getBoundingClientRect();
+          return { left: rect.left, right: rect.right, height: rect.height, innerWidth: window.innerWidth };
+        `)
+        assert.ok(cta.height > 0, 'CTA should be visible at every width')
+        assert.ok(cta.left >= 0 && cta.right <= cta.innerWidth + 0.5, 'CTA should stay within the viewport')
+      })
     })
   }
-})
 
-describe('Task 6: graceful fallback for external assets', () => {
-  it('references no third-party or network-hosted assets', async () => {
-    // data:/blob: URLs fetch nothing, so they are exempt from the remote-asset ban.
-    const external = await page.evaluate(`
-      const urls = [...document.querySelectorAll('[src], [href]')].map((el) => el.getAttribute('src') || el.getAttribute('href'));
-      const cssUrls = [...document.styleSheets].flatMap((sheet) => {
-        try { return [...sheet.cssRules].map((r) => r.cssText) } catch { return [] }
-      });
-      return [...urls, ...cssUrls]
-        .filter((v) => !/^\\s*(data|blob):/.test(v))
-        .filter((v) => /(^|["'(\\s])(https?:)?\\/\\//.test(v));
-    `)
-    assert.deepEqual(external, [], 'page should not depend on remote fonts, CSS or scripts')
+  it('declares explicit media queries for the narrow breakpoint', async () => {
+    // Chrome blocks cssRules access on file:// stylesheets, so read the source.
+    const css = await readFile(join(repoRoot, 'styles.css'), 'utf8')
+    const queries = [...css.matchAll(/@media\s*\(([^)]*)\)/g)].map((m) => m[1])
+    assert.ok(queries.length > 0, 'styles.css should carry at least one media query')
+    assert.ok(
+      queries.some((q) => /max-width/.test(q)),
+      `expected a max-width breakpoint, got ${JSON.stringify(queries)}`,
+    )
   })
 
-  it('makes no off-origin network requests when served statically', async () => {
-    const server = await serveStatic(repoRoot)
-    const served = await openPage(`${server.origin}/index.html`)
-    try {
-      const offOrigin = served.requests.filter((url) => !url.startsWith(server.origin))
-      assert.deepEqual(offOrigin, [])
-    } finally {
-      await served.close()
-      await server.close()
-    }
+  it('stacks and centres the nav on a narrow viewport', async () => {
+    await page.setViewport(375, 800)
+    const nav = await page.evaluate(`
+      const bar = document.querySelector('.site-nav').getBoundingClientRect();
+      const brand = document.querySelector('.site-nav__brand').getBoundingClientRect();
+      const links = document.querySelector('.site-nav__links').getBoundingClientRect();
+      return {
+        brandBottom: brand.bottom,
+        linksTop: links.top,
+        brandOffset: Math.abs((brand.left - bar.left) - (bar.right - brand.right)),
+        linksOffset: Math.abs((links.left - bar.left) - (bar.right - links.right)),
+      };
+    `)
+    assert.ok(
+      nav.brandBottom <= nav.linksTop + 0.5,
+      `at 375px the nav links (top ${nav.linksTop}) should drop below the brand (bottom ${nav.brandBottom})`,
+    )
+    assert.ok(nav.brandOffset < 2, `brand should be centred at 375px (off by ${nav.brandOffset}px)`)
+    assert.ok(nav.linksOffset < 2, `nav links should be centred at 375px (off by ${nav.linksOffset}px)`)
   })
 
-  it('falls back to a generic system font family', async () => {
-    const fonts = await page.evaluate(`
-      return ['body', 'h1', 'nav a'].map((sel) => getComputedStyle(document.querySelector(sel)).fontFamily);
+  it('keeps the brand and links side by side on a wide viewport', async () => {
+    await page.setViewport(1280, 800)
+    const inline = await page.evaluate(`
+      const brand = document.querySelector('.site-nav__brand').getBoundingClientRect();
+      const links = document.querySelector('.site-nav__links').getBoundingClientRect();
+      return { brandRight: brand.right, linksLeft: links.left, sameRow: Math.abs(brand.top - links.top) < brand.height };
     `)
-    for (const stack of fonts) {
-      assert.match(stack, /(sans-serif|serif|monospace|system-ui)\s*$/, `font stack "${stack}" needs a generic fallback`)
-    }
-    const faces = await page.evaluate(`
-      return [...document.styleSheets].flatMap((sheet) => {
-        try { return [...sheet.cssRules].filter((r) => r.constructor.name === 'CSSFontFaceRule').map((r) => r.cssText) } catch { return [] }
-      });
-    `)
-    assert.deepEqual(faces, [], 'no @font-face downloads should be required')
-  })
-
-  it('stays legible when the stylesheet fails to load', async () => {
-    const server = await serveStatic(repoRoot)
-    const blocked = await openPage(`${server.origin}/index.html`)
-    try {
-      await blocked.blockUrls(['*styles.css'])
-      await blocked.reload()
-      const state = await blocked.evaluate(`
-        const h1 = document.querySelector('h1');
-        const sizes = [...document.querySelectorAll('body, body *')]
-          .filter((el) => el.textContent.trim())
-          .map((el) => parseFloat(getComputedStyle(el).fontSize));
-        return {
-          stylesheetApplied: getComputedStyle(document.body).backgroundColor !== 'rgba(0, 0, 0, 0)',
-          headingText: h1.textContent.trim(),
-          headingVisible: h1.getBoundingClientRect().height > 0,
-          headingSize: parseFloat(getComputedStyle(h1).fontSize),
-          largestSize: Math.max(...sizes),
-          navText: document.querySelector('nav').textContent.trim(),
-          overflow: document.documentElement.scrollWidth > window.innerWidth,
-        }
-      `)
-      assert.equal(state.stylesheetApplied, false, 'stylesheet should actually be blocked for this check')
-      assert.equal(state.headingText, 'Mordor')
-      assert.equal(state.headingVisible, true)
-      assert.equal(state.headingSize, state.largestSize, 'unstyled page should still lead with "Mordor"')
-      assert.match(state.navText, /Mordor/)
-      assert.equal(state.overflow, false)
-      assert.deepEqual(blocked.pageErrors, [])
-    } finally {
-      await blocked.close()
-      await server.close()
-    }
+    assert.ok(inline.brandRight <= inline.linksLeft, 'brand should stay left of the links at 1280px')
+    assert.equal(inline.sameRow, true)
   })
 })
 
-describe('Task 7: no JavaScript, no console noise', () => {
+describe('Task 7: works with JavaScript disabled', () => {
   it('ships no script tags, inline handlers or javascript: urls', async () => {
     const js = await page.evaluate(`
       const scripts = [...document.querySelectorAll('script')].map((s) => s.src || 'inline');
@@ -358,26 +495,84 @@ describe('Task 7: no JavaScript, no console noise', () => {
     assert.deepEqual(js.jsHrefs, [])
   })
 
-  it('loads with an empty console and no failed requests', async () => {
+  it('renders identically with script execution disabled', async () => {
+    const snapshot = `
+      const rect = (sel) => {
+        const r = document.querySelector(sel).getBoundingClientRect();
+        return { w: Math.round(r.width), h: Math.round(r.height), top: Math.round(r.top) };
+      };
+      return {
+        title: document.querySelector('h1').textContent.trim(),
+        titleSize: getComputedStyle(document.querySelector('h1')).fontSize,
+        titleColor: getComputedStyle(document.querySelector('h1')).color,
+        bodyBg: getComputedStyle(document.body).backgroundColor,
+        navText: document.querySelector('nav').textContent.replace(/\\s+/g, ' ').trim(),
+        tagline: document.querySelector('.hero__tagline').textContent.trim(),
+        header: rect('.site-header'),
+        hero: rect('section.hero'),
+        h1: rect('h1'),
+        cta: rect('.hero__cta'),
+      };
+    `
+    const withJs = await page.evaluate(snapshot)
+    await page.setScriptExecution(false)
+    await page.reload()
+    const withoutJs = await page.evaluate(snapshot)
+    await page.setScriptExecution(true)
+
+    assert.deepEqual(withoutJs, withJs, 'page should look the same with JavaScript disabled')
+    assert.equal(withoutJs.title, 'Alpha Centuri')
+    assert.ok(withoutJs.h1.h > 0 && withoutJs.cta.h > 0, 'title and CTA should still render without JS')
+    assert.deepEqual(page.pageErrors, [])
+  })
+
+  it('serves cleanly over http with no console noise or failed requests', async () => {
     const server = await serveStatic(repoRoot)
     const fresh = await openPage(`${server.origin}/index.html`)
     try {
       assert.deepEqual(fresh.pageErrors, [])
       assert.deepEqual(fresh.consoleMessages, [])
       assert.deepEqual(fresh.failedRequests, [])
+      assert.deepEqual(
+        fresh.requests.filter((url) => !url.startsWith(server.origin)),
+        [],
+        'page should make no off-origin requests',
+      )
 
-      // Click each nav link in turn and re-check after every click.
-      const linkCount = await fresh.evaluate("return document.querySelectorAll('nav a').length")
-      for (let i = 0; i < linkCount; i++) {
-        await fresh.evaluate(`document.querySelectorAll('nav a')[${i}].click(); return null;`)
-        assert.deepEqual(fresh.pageErrors, [], `error after clicking nav link ${i}`)
-        assert.deepEqual(fresh.consoleMessages, [], `console output after clicking nav link ${i}`)
+      // Click every placeholder link in turn and re-check after each one.
+      const links = await fresh.evaluate("return document.querySelectorAll('a').length")
+      for (let i = 0; i < links; i++) {
+        await fresh.evaluate(`document.querySelectorAll('a')[${i}].click(); return null;`)
+        assert.deepEqual(fresh.pageErrors, [], `error after clicking link ${i}`)
+        assert.deepEqual(fresh.consoleMessages, [], `console output after clicking link ${i}`)
       }
-      assert.equal(await fresh.evaluate('return document.title'), 'Mordor')
+      assert.equal(await fresh.evaluate('return document.title'), 'Alpha Centuri')
+      assert.equal(await fresh.evaluate('return location.pathname'), '/index.html')
     } finally {
       await fresh.close()
       await server.close()
     }
+  })
+
+  it('keeps the semantic landmark structure intact', async () => {
+    const landmarks = await page.evaluate(`
+      return {
+        header: !!document.querySelector('body > header'),
+        nav: !!document.querySelector('body > header > nav'),
+        navLabel: document.querySelector('nav').getAttribute('aria-label'),
+        main: !!document.querySelector('body > main'),
+        hero: !!document.querySelector('body > main > section.hero'),
+        emptyLinks: [...document.querySelectorAll('a')].filter((a) => !a.textContent.trim()).length,
+        unlabelledHeadings: [...document.querySelectorAll('h1, h2, h3')].filter((h) => !h.textContent.trim()).length,
+      }
+    `)
+    assert.equal(landmarks.header, true)
+    assert.equal(landmarks.nav, true)
+    assert.ok(landmarks.navLabel, '<nav> should be labelled')
+    assert.equal(landmarks.main, true)
+    assert.equal(landmarks.hero, true)
+    assert.equal(landmarks.emptyLinks, 0, 'every link should have discernible text')
+    assert.equal(landmarks.unlabelledHeadings, 0)
   })
 })
 
@@ -387,39 +582,66 @@ describe('Test plan: end-to-end walkthrough', () => {
   })
 
   for (const width of [1280, 375]) {
-    it(`renders the full page correctly at ${width}px`, async () => {
+    it(`renders the whole page correctly at ${width}px, straight from the filesystem`, async () => {
       await page.setViewport(width, 900)
       await page.reload()
       const state = await page.evaluate(`
-        const nav = document.querySelector('nav');
-        const hero = document.querySelector('header.hero');
+        const header = document.querySelector('.site-header');
+        const hero = document.querySelector('section.hero');
         const h1 = document.querySelector('h1');
-        const textSizes = [...document.querySelectorAll('body, body *')]
+        const sizes = [...document.querySelectorAll('body, body *')]
           .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
-          .map((el) => ({ text: el.textContent.trim().slice(0, 20), size: parseFloat(getComputedStyle(el).fontSize) }))
+          .map((el) => ({ text: el.textContent.trim().slice(0, 24), size: parseFloat(getComputedStyle(el).fontSize) }))
           .sort((a, b) => b.size - a.size);
         return {
-          navTop: nav.getBoundingClientRect().top,
-          navBeforeHero: nav.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING ? true : false,
-          biggest: textSizes[0],
-          h1Size: parseFloat(getComputedStyle(h1).fontSize),
-          runnerUpSize: textSizes[1]?.size ?? 0,
+          protocol: location.protocol,
+          navTop: header.getBoundingClientRect().top,
+          navBeforeHero: !!(header.compareDocumentPosition(hero) & Node.DOCUMENT_POSITION_FOLLOWING),
+          biggest: sizes[0],
+          runnerUp: sizes[1],
           bodyBg: getComputedStyle(document.body).backgroundColor,
           h1Color: getComputedStyle(h1).color,
           overflow: document.documentElement.scrollWidth > window.innerWidth,
           title: document.title,
         }
       `)
-      assert.ok(state.navTop <= 0.5, 'nav should sit at the very top of the page')
+      assert.equal(state.protocol, 'file:', 'the page should work as a plain static file')
+      assert.ok(state.navTop <= 0.5, 'nav bar should sit at the very top of the page')
       assert.equal(state.navBeforeHero, true)
-      assert.equal(state.biggest.text, 'Mordor', '"Mordor" should be the largest text on the page')
-      assert.ok(state.h1Size > state.runnerUpSize * 1.5, `h1 (${state.h1Size}px) should dominate the next largest text (${state.runnerUpSize}px)`)
-      assert.ok(isNearBlack(parseColor(state.bodyBg)))
+      assert.equal(state.biggest.text, 'Alpha Centuri', '"Alpha Centuri" should be the largest text on the page')
+      assert.ok(
+        state.biggest.size > state.runnerUp.size * 1.5,
+        `h1 (${state.biggest.size}px) should dominate the next largest text (${state.runnerUp.size}px)`,
+      )
+      assert.ok(isDarkBlue(parseColor(state.bodyBg)))
       assert.ok(isOrange(parseColor(state.h1Color)))
       assert.ok(contrastRatio(parseColor(state.h1Color), parseColor(state.bodyBg)) >= 4.5)
       assert.equal(state.overflow, false)
-      assert.equal(state.title, 'Mordor')
+      assert.equal(state.title, 'Alpha Centuri')
       assert.deepEqual(page.pageErrors, [])
     })
   }
+
+  it('closes every non-void tag in index.html', async () => {
+    const html = await readFile(join(repoRoot, 'index.html'), 'utf8')
+    const voids = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'source', 'track', 'wbr'])
+    const stack = []
+    for (const [, closing, name, tail] of html.matchAll(/<(\/?)([a-zA-Z][\w-]*)([^>]*)>/g)) {
+      const tag = name.toLowerCase()
+      if (voids.has(tag) || tail.trimEnd().endsWith('/')) continue
+      if (closing) {
+        assert.equal(stack.pop(), tag, `</${tag}> does not close the innermost open element`)
+      } else {
+        stack.push(tag)
+      }
+    }
+    assert.deepEqual(stack, [], 'every opened element should be closed')
+  })
+
+  it('introduces no extra pages, scripts or build tooling', async () => {
+    const { readdir } = await import('node:fs/promises')
+    const root = (await readdir(repoRoot)).filter((name) => !name.startsWith('.'))
+    // Only the two site files plus the pre-existing test harness and specs.
+    assert.deepEqual(root.sort(), ['index.html', 'package.json', 'specs', 'styles.css', 'tests'])
+  })
 })

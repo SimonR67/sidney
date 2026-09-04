@@ -101,7 +101,7 @@ class Session {
  * recorded on `page.consoleMessages` / `page.pageErrors`.
  */
 export async function openPage(url, { width = 1280, height = 800 } = {}) {
-  const profileDir = await mkdtemp(join(tmpdir(), 'mordor-chrome-'))
+  const profileDir = await mkdtemp(join(tmpdir(), 'alpha-centuri-chrome-'))
   const chrome = spawn(chromeBinary(), [
     '--headless=new',
     '--no-sandbox',
@@ -170,6 +170,10 @@ export async function openPage(url, { width = 1280, height = 800 } = {}) {
     async blockUrls(patterns) {
       await session.send('Network.setBlockedURLs', { urls: patterns })
     },
+    /** Turns page script execution off/on, mirroring the browser's "disable JavaScript" setting. */
+    async setScriptExecution(enabled) {
+      await session.send('Emulation.setScriptExecutionDisabled', { value: !enabled })
+    },
     async goto(target) {
       const loaded = new Promise((resolve) => session.on('Page.loadEventFired', resolve))
       await session.send('Page.navigate', { url: target })
@@ -231,9 +235,19 @@ export function contrastRatio(fg, bg) {
   return (light + 0.05) / (dark + 0.05)
 }
 
-/** True for near-black: every channel dark and the colour is not strongly tinted. */
-export function isNearBlack(color) {
-  return relativeLuminance(color) < 0.05 && color.a > 0.9
+/** True for a dark blue: dim overall, with blue clearly the dominant channel. */
+export function isDarkBlue(color) {
+  return (
+    relativeLuminance(color) < 0.12 &&
+    color.a > 0.9 &&
+    color.b > color.r + 12 &&
+    color.b > color.g + 12
+  )
+}
+
+/** True for any blue-leaning tone, light or dark (used for neutral text tinted blue). */
+export function isBlueTinted({ r, g, b }) {
+  return b >= g && g >= r && b - r >= 8
 }
 
 /** True for an orange hue: red dominant, mid green, minimal blue. */

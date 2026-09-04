@@ -1,7 +1,7 @@
 {
-  "name": "mordor",
+  "name": "alpha-centuri",
   "private": true,
-  "description": "Static Mordor home page — hero section and navigation bar, no build step.",
+  "description": "Static Alpha Centuri home page — hero section and navigation bar, no build step.",
   "scripts": {
     "test": "node --test tests/page.test.mjs"
   }
