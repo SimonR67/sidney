@@ -1,7 +1,7 @@
 {
-  "name": "betamax",
+  "name": "sid-meyer-brave-new-worlds",
   "private": true,
-  "description": "Static BetaMax home page — hero section and navigation bar, no build step.",
+  "description": "Static Sid Meyer - Brave New Worlds home page — hero section and navigation bar, no build step.",
   "scripts": {
     "test": "node --test tests/page.test.mjs"
   }

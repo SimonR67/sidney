@@ -1,6 +1,6 @@
 # Palette notes — green → orange/blue
 
-BetaMax originally shipped a dark-green-and-orange scheme. This document records the
+Sid Meyer - Brave New Worlds originally shipped a dark-green-and-orange scheme. This document records the
 green audit, the orange-and-blue palette that replaces it, and the green instances
 deliberately left alone.
 

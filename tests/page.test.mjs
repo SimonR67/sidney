@@ -13,6 +13,19 @@ import {
   serveStatic,
 } from './browser.mjs'
 import {
+  BRANDING_NOTES,
+  FLAGGED,
+  OLD_SITE_NAME,
+  SITE_NAME,
+  fileAtCommit,
+  isFlagged,
+  oldNameOccurrences,
+  readBrandingNotes,
+  scanRepo,
+  scannableFiles,
+  scannableFilesAtCommit,
+} from './branding.mjs'
+import {
   PALETTE_NOTES,
   STYLING_SOURCES,
   greenOccurrences,
@@ -59,7 +72,7 @@ describe('Task 1: semantic skeleton', () => {
     assert.ok(doc.hasBody)
   })
 
-  it('declares a charset, a responsive viewport and the title "BetaMax"', async () => {
+  it(`declares a charset, a responsive viewport and the title "${SITE_NAME}"`, async () => {
     const head = await page.evaluate(`
       return {
         charset: document.characterSet,
@@ -69,7 +82,7 @@ describe('Task 1: semantic skeleton', () => {
     `)
     assert.equal(head.charset, 'UTF-8')
     assert.match(head.viewport, /width=device-width/)
-    assert.equal(head.title, 'BetaMax')
+    assert.equal(head.title, SITE_NAME)
   })
 
   it('has a <header> holding a <nav>, plus a hero <section>', async () => {
@@ -107,13 +120,13 @@ describe('Task 2: navigation bar', () => {
     assert.equal(first, 'HEADER')
   })
 
-  it('shows the site name "BetaMax" as the nav brand', async () => {
+  it(`shows the site name "${SITE_NAME}" as the nav brand`, async () => {
     const brand = await page.evaluate(`
       const el = document.querySelector('.site-nav__brand');
       return el ? { text: el.textContent.trim(), href: el.getAttribute('href') } : null;
     `)
     assert.ok(brand, 'nav should carry a brand element')
-    assert.equal(brand.text, 'BetaMax')
+    assert.equal(brand.text, SITE_NAME)
     assert.ok(brand.href.startsWith('#'), `brand link should be a placeholder, got ${brand.href}`)
   })
 
@@ -168,7 +181,7 @@ describe('Task 2: navigation bar', () => {
       return { before, after: location.pathname, title: document.title };
     `)
     assert.equal(result.after, result.before)
-    assert.equal(result.title, 'BetaMax')
+    assert.equal(result.title, SITE_NAME)
     assert.deepEqual(page.pageErrors, [])
     assert.deepEqual(page.consoleMessages.filter((m) => m.type === 'error'), [])
   })
@@ -190,7 +203,7 @@ describe('Task 3: hero section', () => {
     assert.equal(order.heroInsideMain, true)
   })
 
-  it('has a single <h1> reading "BetaMax" inside the hero', async () => {
+  it(`has a single <h1> reading "${SITE_NAME}" inside the hero`, async () => {
     const heading = await page.evaluate(`
       const h1s = document.querySelectorAll('h1');
       return {
@@ -200,7 +213,7 @@ describe('Task 3: hero section', () => {
       }
     `)
     assert.equal(heading.count, 1, 'the page should have exactly one <h1>')
-    assert.equal(heading.text, 'BetaMax')
+    assert.equal(heading.text, SITE_NAME)
     assert.equal(heading.insideHero, true)
   })
 
@@ -307,15 +320,15 @@ describe('Task 4: dark blue and orange colour scheme', () => {
 const textSizes = `
   return [...document.querySelectorAll('body, body *')]
     .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
-    .map((el) => ({ text: el.textContent.trim().slice(0, 24), size: parseFloat(getComputedStyle(el).fontSize) }))
+    .map((el) => ({ text: el.textContent.trim().slice(0, 40), size: parseFloat(getComputedStyle(el).fontSize) }))
     .sort((a, b) => b.size - a.size);
 `
 
-describe('Task 5: "BetaMax" as the visual focal point', () => {
+describe(`Task 5: "${SITE_NAME}" as the visual focal point`, () => {
   it('renders the h1 as the largest text on the page by a clear margin', async () => {
     const sizes = await page.evaluate(textSizes)
     const h1Size = await page.evaluate("return parseFloat(getComputedStyle(document.querySelector('h1')).fontSize)")
-    assert.equal(sizes[0].text, 'BetaMax', `largest text should be the title, got "${sizes[0].text}"`)
+    assert.equal(sizes[0].text, SITE_NAME, `largest text should be the title, got "${sizes[0].text}"`)
     assert.equal(sizes[0].size, h1Size)
     assert.ok(
       h1Size > sizes[1].size * 2,
@@ -638,7 +651,7 @@ describe('Task 8: works with JavaScript disabled', () => {
     await page.setScriptExecution(true)
 
     assert.deepEqual(withoutJs, withJs, 'page should look the same with JavaScript disabled')
-    assert.equal(withoutJs.title, 'BetaMax')
+    assert.equal(withoutJs.title, SITE_NAME)
     assert.ok(withoutJs.h1.h > 0 && withoutJs.cta.h > 0, 'title and CTA should still render without JS')
     assert.deepEqual(page.pageErrors, [])
   })
@@ -665,7 +678,7 @@ describe('Task 8: works with JavaScript disabled', () => {
         assert.deepEqual(fresh.pageErrors, [], `error after clicking link ${i}`)
         assert.deepEqual(fresh.consoleMessages, [], `console output after clicking link ${i}`)
       }
-      assert.equal(await fresh.evaluate('return document.title'), 'BetaMax')
+      assert.equal(await fresh.evaluate('return document.title'), SITE_NAME)
       assert.equal(await fresh.evaluate('return location.pathname'), '/index.html')
     } finally {
       await fresh.close()
@@ -1226,7 +1239,7 @@ describe('Test plan: end-to-end walkthrough', () => {
         const h1 = document.querySelector('h1');
         const sizes = [...document.querySelectorAll('body, body *')]
           .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
-          .map((el) => ({ text: el.textContent.trim().slice(0, 24), size: parseFloat(getComputedStyle(el).fontSize) }))
+          .map((el) => ({ text: el.textContent.trim().slice(0, 40), size: parseFloat(getComputedStyle(el).fontSize) }))
           .sort((a, b) => b.size - a.size);
         return {
           protocol: location.protocol,
@@ -1243,7 +1256,7 @@ describe('Test plan: end-to-end walkthrough', () => {
       assert.equal(state.protocol, 'file:', 'the page should work as a plain static file')
       assert.ok(state.navTop <= 0.5, 'nav bar should sit at the very top of the page')
       assert.equal(state.navBeforeHero, true)
-      assert.equal(state.biggest.text, 'BetaMax', '"BetaMax" should be the largest text on the page')
+      assert.equal(state.biggest.text, SITE_NAME, `"${SITE_NAME}" should be the largest text on the page`)
       assert.ok(
         state.biggest.size > state.runnerUp.size * 2,
         `h1 (${state.biggest.size}px) should be at least twice the next largest text (${state.runnerUp.size}px)`,
@@ -1252,7 +1265,7 @@ describe('Test plan: end-to-end walkthrough', () => {
       assert.ok(isOrange(parseColor(state.h1Color)))
       assert.ok(contrastRatio(parseColor(state.h1Color), parseColor(state.bodyBg)) >= 4.5)
       assert.equal(state.overflow, false)
-      assert.equal(state.title, 'BetaMax')
+      assert.equal(state.title, SITE_NAME)
       assert.deepEqual(page.pageErrors, [])
     })
   }
@@ -1578,9 +1591,9 @@ const clickNav = async (visitor, label, expectedPath) => {
 }
 
 const WALK = [
-  { label: 'About', path: '/about.html', heading: 'About', title: 'About — BetaMax', image: 'images/City_Eclipse.jpeg' },
-  { label: 'Contact', path: '/contact.html', heading: 'Contact', title: 'Contact — BetaMax', image: 'images/Orion18032022-for-lightroom.jpg' },
-  { label: 'Home', path: '/index.html', heading: 'BetaMax', title: 'BetaMax', image: 'images/File1767.jpg' },
+  { label: 'About', path: '/about.html', heading: 'About', title: `About — ${SITE_NAME}`, image: 'images/City_Eclipse.jpeg' },
+  { label: 'Contact', path: '/contact.html', heading: 'Contact', title: `Contact — ${SITE_NAME}`, image: 'images/Orion18032022-for-lightroom.jpg' },
+  { label: 'Home', path: '/index.html', heading: SITE_NAME, title: SITE_NAME, image: 'images/File1767.jpg' },
 ]
 
 describe('Pages test plan: end-to-end walk of the three pages', () => {
@@ -1640,5 +1653,362 @@ describe('Pages test plan: end-to-end walk of the three pages', () => {
         assert.equal(response.status, 200, `${file} references ${target}, which is not served`)
       }
     }
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Branding: the site is renamed to "Sid Meyer - Brave New Worlds". Text only —
+// every one of these tests guards a string, none of them a layout rule.
+// ---------------------------------------------------------------------------
+
+const BRANDING_DISPOSITIONS = new Set(['Updated', 'Flagged'])
+
+describe('Branding task 1: rename inventory', () => {
+  it('records every occurrence of the old name with its file, line and role', async () => {
+    const notes = await readBrandingNotes(repoRoot)
+    const rows = tableUnder(notes, 'Audit inventory')
+    assert.ok(rows, `${BRANDING_NOTES} should carry an "## Audit inventory" table`)
+    for (const row of rows) {
+      assert.ok(row.file, 'every inventory row should name a file')
+      assert.ok(row.line, `${row.file}: every inventory row should give a line`)
+      assert.ok(row.occurrence, `${row.file}: every inventory row should quote the occurrence`)
+      assert.ok(row.role, `${row.file}: every inventory row should say what the occurrence does`)
+      assert.ok(
+        BRANDING_DISPOSITIONS.has(row.disposition),
+        `${row.file}:${row.line} has disposition "${row.disposition}", expected one of ${[...BRANDING_DISPOSITIONS].join('/')}`,
+      )
+    }
+  })
+
+  it('leaves no occurrence in the pre-change repo that the inventory has not accounted for', async (t) => {
+    const commit = await baseCommit()
+    if (!commit) return t.skip('base branch not available locally; cannot read the pre-change repo')
+    const rows = tableUnder(await readBrandingNotes(repoRoot), 'Audit inventory')
+    const inventoried = new Set(
+      rows.flatMap((row) =>
+        row.line
+          .split(',')
+          .flatMap((part) => {
+            const [from, to] = part.trim().split('-').map(Number)
+            return to ? Array.from({ length: to - from + 1 }, (_, i) => from + i) : [from]
+          })
+          .map((line) => `${row.file}:${line}`),
+      ),
+    )
+    for (const file of await scannableFilesAtCommit(repoRoot, commit)) {
+      const before = await fileAtCommit(repoRoot, commit, file)
+      for (const occurrence of oldNameOccurrences(before)) {
+        assert.ok(
+          inventoried.has(`${file}:${occurrence.line}`),
+          `${file}:${occurrence.line} carried "${occurrence.value}" before the rename but is not in the inventory`,
+        )
+      }
+    }
+  })
+
+  it('categorises every flagged occurrence as an internal identifier, not branding', async () => {
+    const rows = tableUnder(await readBrandingNotes(repoRoot), 'Audit inventory')
+    const flagged = rows.filter((row) => row.disposition === 'Flagged')
+    assert.ok(flagged.length > 0, 'the inventory should record what the rename deliberately left alone')
+    for (const row of flagged) {
+      assert.ok(
+        FLAGGED.some((entry) => entry.file === row.file),
+        `${row.file}:${row.line} is flagged but is not one of the exceptions the sweep allows`,
+      )
+    }
+  })
+})
+
+/** Every page, with the exact title its tab should show. */
+const BRANDED_PAGES = [
+  { file: 'index.html', route: '/', title: SITE_NAME },
+  { file: 'about.html', route: '/about.html', title: `About — ${SITE_NAME}` },
+  { file: 'contact.html', route: '/contact.html', title: `Contact — ${SITE_NAME}` },
+]
+
+const titleOf = (html) => html.match(/<title>([^<]*)<\/title>/)?.[1] ?? null
+
+describe('Branding task 2: page titles', () => {
+  for (const { file, route, title } of BRANDED_PAGES) {
+    it(`serves ${file} with the title "${title}"`, async () => {
+      const html = await (await fetch(`${site.origin}${route}`)).text()
+      assert.equal(titleOf(html), title)
+    })
+
+    it(`renders that title in the browser on ${route}`, async () => {
+      const visitor = await openPage(`${site.origin}${route}`)
+      try {
+        assert.equal(await visitor.evaluate('return document.title'), title)
+      } finally {
+        await visitor.close()
+      }
+    })
+  }
+
+  it('keeps the "{Page} — {site}" pattern the site already used', async () => {
+    for (const { file, route } of BRANDED_PAGES) {
+      const rendered = titleOf(await (await fetch(`${site.origin}${route}`)).text())
+      const matches = rendered === SITE_NAME || rendered.endsWith(` — ${SITE_NAME}`)
+      assert.ok(matches, `${file} titles the tab "${rendered}", which does not carry "${SITE_NAME}"`)
+      assert.ok(!new RegExp(OLD_SITE_NAME, 'i').test(rendered), `${file} still titles the tab "${rendered}"`)
+    }
+  })
+})
+
+describe('Branding task 3: header and nav brand', () => {
+  for (const { file, route } of BRANDED_PAGES) {
+    it(`reads "${SITE_NAME}" in ${file}'s header`, async () => {
+      const visitor = await openPage(`${site.origin}${route}`)
+      try {
+        const header = await visitor.evaluate(`
+          const brand = document.querySelector('.site-nav__brand');
+          return {
+            brand: brand?.textContent.trim() ?? null,
+            header: document.querySelector('.site-header').textContent.replace(/\\s+/g, ' ').trim(),
+          };
+        `)
+        assert.equal(header.brand, SITE_NAME)
+        assert.ok(
+          !new RegExp(OLD_SITE_NAME, 'i').test(header.header),
+          `${file}'s header still reads "${header.header}"`,
+        )
+      } finally {
+        await visitor.close()
+      }
+    })
+  }
+
+  it('spells the brand identically on all three pages', async () => {
+    const brands = []
+    for (const { route } of BRANDED_PAGES) {
+      const html = await (await fetch(`${site.origin}${route}`)).text()
+      brands.push(html.match(/<a class="site-nav__brand"[^>]*>([^<]*)<\/a>/)?.[1] ?? null)
+    }
+    assert.deepEqual(brands, BRANDED_PAGES.map(() => SITE_NAME))
+  })
+})
+
+/** The `## Branding surfaces checked and found empty` table, keyed by surface. */
+const emptySurfaces = async () => {
+  const rows = tableUnder(await readBrandingNotes(repoRoot), 'Branding surfaces checked and found empty')
+  assert.ok(rows, `${BRANDING_NOTES} should carry a "## Branding surfaces checked and found empty" table`)
+  return rows
+}
+
+const carriesOldName = (text) => new RegExp(OLD_SITE_NAME, 'i').test(text)
+
+describe('Branding task 4: footer branding', () => {
+  it('has no footer to rename, and records that finding', async () => {
+    for (const { file, route } of BRANDED_PAGES) {
+      const html = await (await fetch(`${site.origin}${route}`)).text()
+      assert.equal(/<footer\b/i.test(html), false, `${file} has grown a footer this test has not been told about`)
+    }
+    const footer = (await emptySurfaces()).find((row) => /footer/i.test(row.surface))
+    assert.ok(footer, `${BRANDING_NOTES} should record that the site has no footer`)
+    assert.match(footer.status, /none present/i)
+  })
+
+  it('would catch an old-name footer on any page', async () => {
+    for (const { file, route } of BRANDED_PAGES) {
+      const html = await (await fetch(`${site.origin}${route}`)).text()
+      const text = html.match(/<footer\b[^>]*>([\s\S]*?)<\/footer>/i)?.[1]
+      if (!text) continue
+      assert.ok(text.includes(SITE_NAME), `${file}'s footer should read "${SITE_NAME}"`)
+      assert.equal(carriesOldName(text), false, `${file}'s footer still carries the old name`)
+    }
+  })
+})
+
+/** The meta tags that carry a site's name when a site declares them. */
+const BRANDING_META = [
+  'description',
+  'application-name',
+  'apple-mobile-web-app-title',
+  'og:title',
+  'og:site_name',
+  'og:description',
+  'twitter:title',
+  'twitter:description',
+]
+
+/** Every `<meta>` in `html`, as `{ key, content }` — `key` is its name or property. */
+const metaTags = (html) =>
+  [...html.matchAll(/<meta\b[^>]*>/gi)].map((m) => {
+    const attrs = Object.fromEntries(
+      [...m[0].matchAll(/([a-zA-Z:-]+)="([^"]*)"/g)].map((a) => [a[1].toLowerCase(), a[2]]),
+    )
+    return { key: attrs.name ?? attrs.property ?? attrs.charset ?? Object.keys(attrs)[0], content: attrs.content ?? '' }
+  })
+
+describe('Branding task 5: meta tags', () => {
+  it('carries the new name in every branding-bearing meta tag it declares', async () => {
+    for (const { file, route } of BRANDED_PAGES) {
+      const html = await (await fetch(`${site.origin}${route}`)).text()
+      for (const tag of metaTags(html)) {
+        if (!BRANDING_META.includes(tag.key.toLowerCase())) continue
+        assert.ok(
+          tag.content.includes(SITE_NAME),
+          `${file}'s <meta ${tag.key}> reads "${tag.content}", which does not name the site`,
+        )
+      }
+    }
+  })
+
+  it('leaves the old name in no meta tag on any page', async () => {
+    for (const { file, route } of BRANDED_PAGES) {
+      const html = await (await fetch(`${site.origin}${route}`)).text()
+      for (const tag of metaTags(html)) {
+        assert.equal(carriesOldName(tag.content), false, `${file}'s <meta ${tag.key}> still reads "${tag.content}"`)
+      }
+    }
+  })
+
+  it('declares no branding-bearing meta tag today, and records that finding', async () => {
+    for (const { file, route } of BRANDED_PAGES) {
+      const html = await (await fetch(`${site.origin}${route}`)).text()
+      const keys = metaTags(html).map((tag) => tag.key.toLowerCase())
+      assert.deepEqual(keys, ['utf-8', 'viewport'], `${file} declares meta tags this audit has not covered`)
+    }
+    const meta = (await emptySurfaces()).find((row) => /meta/i.test(row.surface))
+    assert.ok(meta, `${BRANDING_NOTES} should record that no meta tag carries the site name`)
+    assert.match(meta.status, /none present/i)
+  })
+})
+
+describe('Branding task 6: README', () => {
+  it('has no README naming the site under its old name', async () => {
+    const { readdir } = await import('node:fs/promises')
+    for (const dir of ['.', 'docs', 'images']) {
+      for (const name of await readdir(join(repoRoot, dir))) {
+        if (!/^readme\.md$/i.test(name)) continue
+        const text = await readSource(repoRoot, join(dir, name))
+        assert.equal(carriesOldName(text), false, `${dir}/${name} still names the site "${OLD_SITE_NAME}"`)
+        if (dir === '.') {
+          assert.ok(text.includes(SITE_NAME), `${name} should introduce the site as "${SITE_NAME}"`)
+        }
+      }
+    }
+  })
+
+  it('has no root README to retitle, and records that finding', async () => {
+    const { readdir } = await import('node:fs/promises')
+    const root = await readdir(repoRoot)
+    assert.equal(root.some((name) => /^readme\.md$/i.test(name)), false)
+    const readme = (await emptySurfaces()).find((row) => /readme/i.test(row.surface))
+    assert.ok(readme, `${BRANDING_NOTES} should record that the repo has no README`)
+    assert.match(readme.status, /none present/i)
+  })
+})
+
+describe('Branding task 7: package.json', () => {
+  it('describes the package by the new site name', async () => {
+    const pkg = JSON.parse(await readSource(repoRoot, 'package.json'))
+    assert.ok(pkg.description.includes(SITE_NAME), `package.json describes the site as "${pkg.description}"`)
+    assert.equal(carriesOldName(pkg.description), false)
+  })
+
+  it('slugs the package name off the new site name', async () => {
+    const pkg = JSON.parse(await readSource(repoRoot, 'package.json'))
+    assert.equal(carriesOldName(pkg.name), false, `package.json is still named "${pkg.name}"`)
+    assert.equal(pkg.name, SITE_NAME.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, ''))
+  })
+
+  it('renames nothing the tooling depends on', async () => {
+    const pkg = JSON.parse(await readSource(repoRoot, 'package.json'))
+    // The name is safe to change only because nothing resolves the package by it:
+    // it is private, has no dependencies and is never imported or installed.
+    assert.equal(pkg.private, true, 'the package is private — it is never published under its name')
+    assert.equal(pkg.dependencies, undefined)
+    assert.equal(pkg.devDependencies, undefined)
+    assert.equal(pkg.scripts.test, 'node --test tests/page.test.mjs', 'the test script should still run the suite by path')
+    for (const file of await scannableFiles(repoRoot)) {
+      if (file === 'package.json') continue
+      const text = await readSource(repoRoot, file)
+      assert.equal(
+        new RegExp(String.raw`(from|require\(|npx|npm (i|install|run) )\s*['"]?${pkg.name}\b`).test(text),
+        false,
+        `${file} resolves the package by name — renaming it would break that reference`,
+      )
+    }
+  })
+})
+
+describe('Branding task 8: repo-wide sweep', () => {
+  it('leaves the old name nowhere outside the flagged exceptions', async () => {
+    const remaining = (await scanRepo(repoRoot)).filter((occurrence) => !isFlagged(occurrence.file, occurrence))
+    assert.deepEqual(
+      remaining.map((occurrence) => `${occurrence.file}:${occurrence.line} — ${occurrence.text}`),
+      [],
+    )
+  })
+
+  it('keeps every flagged exception real — none of them is stale', async () => {
+    const found = await scanRepo(repoRoot)
+    for (const entry of FLAGGED) {
+      assert.ok(
+        found.some((occurrence) => occurrence.file === entry.file && occurrence.text.includes(entry.snippet)),
+        `${entry.file} no longer carries "${entry.snippet}" — drop it from the flagged list`,
+      )
+    }
+  })
+
+  it('names the site consistently everywhere it does appear', async () => {
+    const misspelled = []
+    for (const file of await scannableFiles(repoRoot)) {
+      const text = await readSource(repoRoot, file)
+      for (const [index, line] of text.split('\n').entries()) {
+        // The one spelling that counts: same words, same spacing, same hyphen.
+        for (const [near] of line.matchAll(/Sid\s+Meyer[^<"`|]*/g)) {
+          if (near.startsWith(SITE_NAME)) continue
+          misspelled.push(`${file}:${index + 1} — ${near.trim()}`)
+        }
+      }
+    }
+    assert.deepEqual(misspelled, [])
+  })
+})
+
+describe('Branding task 9: branding baked into graphics', () => {
+  it('ships no image asset that carries the site name in its filename', async () => {
+    for (const file of (await scannableFiles(repoRoot)).concat(await (async () => {
+      const { readdir } = await import('node:fs/promises')
+      return (await readdir(join(repoRoot, 'images'))).map((name) => join('images', name))
+    })())) {
+      assert.equal(carriesOldName(file), false, `${file} is named after the old branding`)
+    }
+  })
+
+  it('has no wordmark baked into the favicon — it is plain shapes, not text', async () => {
+    for (const { file, route } of BRANDED_PAGES) {
+      const html = await (await fetch(`${site.origin}${route}`)).text()
+      const icon = decodeURIComponent(html.match(/<link\s+rel="icon"\s+href="([^"]*)"/s)?.[1] ?? '')
+      assert.ok(icon.startsWith('data:image/svg+xml,'), `${file} should still declare its inline SVG favicon`)
+      assert.equal(
+        /<text|<tspan|<textPath/i.test(icon),
+        false,
+        `${file}'s favicon now has text baked in — flag it for redraw instead of renaming it here`,
+      )
+    }
+  })
+
+  it('signs off every occurrence it left alone, with a reason', async () => {
+    const notes = await readBrandingNotes(repoRoot)
+    const rows = tableUnder(notes, 'Flagged — left unchanged, for reviewer sign-off')
+    assert.ok(rows, `${BRANDING_NOTES} should carry a "## Flagged — left unchanged, for reviewer sign-off" table`)
+    for (const row of rows) {
+      assert.ok(row.item, 'every flagged row should name the item')
+      assert.ok(row.location, `${row.item}: every flagged row should give a location`)
+      assert.match(row.status, /left unchanged/i)
+      assert.ok(row.reason.length > 20, `${row.item}: every flagged row should say why it was left alone`)
+    }
+    for (const entry of FLAGGED) {
+      assert.ok(
+        rows.some((row) => row.location.includes(entry.file)),
+        `${entry.file} is skipped by the sweep but not signed off in ${BRANDING_NOTES}`,
+      )
+    }
+    const logo = (await emptySurfaces()).find((row) => /logo|wordmark/i.test(row.surface))
+    assert.ok(logo, `${BRANDING_NOTES} should record whether any logo graphic carries the name`)
+    assert.match(logo.status, /none present/i)
   })
 })
