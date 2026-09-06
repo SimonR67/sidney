@@ -1,11 +1,13 @@
-/* Sid Meyer - Brave New Worlds — dark blue and orange. */
+/* Sid Meyer - Brave New Worlds — black, gold and aqua. */
 
 :root {
-  --navy: #071c2e;           /* dominant page background */
+  --black: #000000;          /* dominant page background */
+  --gold: #ffd700;           /* every heading, including the page title */
+  --aqua: #00ffff;           /* body text */
+  --navy: #071c2e;           /* CTA label, on the orange fill */
   --navy-raised: #0d2e4a;    /* nav band, sits just above the page */
   --ember: #ff7a18;          /* primary orange accent */
-  --ember-bright: #ffa34d;   /* brightest orange: hero title and hover states */
-  --mist: #cfe0f2;           /* neutral body text, faintly blue */
+  --ember-bright: #ffa34d;   /* brightest orange: hover and focus states */
   --edge: #1c4a73;           /* hairline borders */
 }
 
@@ -14,7 +16,7 @@
 }
 
 html {
-  background-color: var(--navy);
+  background-color: var(--black);
 }
 
 /* Column layout so the hero can absorb whatever height the nav bar leaves. */
@@ -23,8 +25,8 @@ body {
   flex-direction: column;
   min-height: 100vh;
   margin: 0;
-  background-color: var(--navy);
-  color: var(--mist);
+  background-color: var(--black);
+  color: var(--aqua);
   font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   line-height: 1.5;
 }
@@ -32,6 +34,16 @@ body {
 main {
   display: flex;
   flex: 1;
+}
+
+/* Every headline is gold, whichever level it is used at. */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  color: var(--gold);
 }
 
 /* Navigation bar */
@@ -93,7 +105,7 @@ main {
   flex: 1;
   align-items: center;
   justify-content: center;
-  background-color: var(--navy);
+  background-color: var(--black);
   padding: clamp(3rem, 10vw, 6rem) clamp(1rem, 4vw, 2rem);
 }
 
@@ -106,7 +118,7 @@ main {
 /* The focal point of the page: the largest, highest-contrast text there is. */
 .hero__title {
   margin: 0;
-  color: var(--ember-bright);
+  color: var(--gold);
   font-size: clamp(2.75rem, 11vw, 6rem);
   font-weight: 800;
   letter-spacing: 0.04em;
@@ -117,7 +129,7 @@ main {
 .hero__tagline {
   margin: 1.25rem auto 0;
   max-width: 40rem;
-  color: var(--mist);
+  color: var(--aqua);
   font-size: clamp(1rem, 3.5vw, 1.25rem);
 }
 
@@ -147,7 +159,7 @@ main {
   flex: 1;
   align-items: center;
   justify-content: center;
-  background-color: var(--navy);
+  background-color: var(--black);
   padding: clamp(3rem, 10vw, 6rem) clamp(1rem, 4vw, 2rem);
 }
 
@@ -159,7 +171,7 @@ main {
 
 .page__title {
   margin: 0;
-  color: var(--ember-bright);
+  color: var(--gold);
   font-size: clamp(1.75rem, 6vw, 3rem);
   font-weight: 800;
   letter-spacing: 0.04em;

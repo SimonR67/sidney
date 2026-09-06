@@ -5,8 +5,11 @@ import { readFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
   contrastRatio,
+  isAqua,
+  isBlack,
   isBlueTinted,
   isDarkBlue,
+  isGold,
   isOrange,
   openPage,
   parseColor,
@@ -36,6 +39,7 @@ import {
   readSource,
   tableUnder,
 } from './palette.mjs'
+import { THEME, THEME_NOTES, pageFiles, readThemeNotes, stylingSources } from './theme.mjs'
 
 const computed = (selector, props) => `
   const el = document.querySelector(${JSON.stringify(selector)});
@@ -233,10 +237,12 @@ describe('Task 3: hero section', () => {
   })
 })
 
-describe('Task 4: dark blue and orange colour scheme', () => {
-  it('paints the page background dark blue', async () => {
+// The nav bar and the CTA keep the blue/orange they were given: the theme job
+// that painted the page black left both out of scope. See docs/theme-notes.md.
+describe('Task 4: black, gold and aqua colour scheme', () => {
+  it('paints the page background black', async () => {
     const { 'background-color': body } = await page.evaluate(computed('body', ['background-color']))
-    assert.ok(isDarkBlue(parseColor(body)), `body background should be dark blue, got ${body}`)
+    assert.ok(isBlack(parseColor(body)), `body background should be black, got ${body}`)
   })
 
   it('paints the nav bar dark blue with orange branding', async () => {
@@ -249,14 +255,14 @@ describe('Task 4: dark blue and orange colour scheme', () => {
     assert.ok(isOrange(parseColor(brand.color)), `nav brand should be orange, got ${brand.color}`)
   })
 
-  it('paints the hero dark blue with an orange title', async () => {
+  it('paints the hero black with a gold title', async () => {
     const hero = await page.evaluate(computed('section.hero', ['background-color']))
     const title = await page.evaluate(computed('h1', ['color']))
     assert.ok(
-      isDarkBlue(parseColor(hero['background-color'])),
-      `hero background should be dark blue, got ${hero['background-color']}`,
+      isBlack(parseColor(hero['background-color'])),
+      `hero background should be black, got ${hero['background-color']}`,
     )
-    assert.ok(isOrange(parseColor(title.color)), `h1 should be orange, got ${title.color}`)
+    assert.ok(isGold(parseColor(title.color)), `h1 should be gold, got ${title.color}`)
   })
 
   it('gives the call to action an orange fill with dark blue text', async () => {
@@ -290,7 +296,7 @@ describe('Task 4: dark blue and orange colour scheme', () => {
     }
   })
 
-  it('uses no dominant colour outside the dark blue / orange scheme', async () => {
+  it('uses no dominant colour outside the theme and the out-of-scope nav/CTA accents', async () => {
     const used = await page.evaluate(`
       const seen = new Set();
       for (const el of document.querySelectorAll('body, body *')) {
@@ -309,11 +315,12 @@ describe('Task 4: dark blue and orange colour scheme', () => {
     const offPalette = used.filter((value) => {
       const color = parseColor(value)
       if (color.a === 0) return false
-      // Greys/blacks/whites are neutral supporting tones; anything tinted must read as blue or orange.
+      // Greys/blacks/whites are neutral supporting tones; anything tinted must read as
+      // theme gold or aqua, or as one of the blues/oranges the nav bar and CTA kept.
       const neutral = Math.max(color.r, color.g, color.b) - Math.min(color.r, color.g, color.b) < 24
-      return !(neutral || isBlueTinted(color) || isOrange(color))
+      return !(neutral || isGold(color) || isAqua(color) || isBlueTinted(color) || isOrange(color))
     })
-    assert.deepEqual(offPalette, [], 'only blues, oranges and neutral greys should appear')
+    assert.deepEqual(offPalette, [], 'only gold, aqua, blues, oranges and neutral greys should appear')
   })
 })
 
@@ -927,10 +934,10 @@ const legacyTokens = (notes) => [
 ]
 
 /** Everything that could still name one of them — docs and specs record history on purpose. */
-const CODE_FILES = ['styles.css', 'index.html', 'package.json', 'tests/browser.mjs', 'tests/page.test.mjs', 'tests/palette.mjs']
+const CODE_FILES = ['styles.css', 'index.html', 'package.json', 'tests/browser.mjs', 'tests/page.test.mjs', 'tests/palette.mjs', 'tests/theme.mjs']
 
 describe('Palette task 4: theme variables renamed off green', () => {
-  it('declares each renamed token with its palette value', async () => {
+  it('declares each renamed token with its palette value, or records where the theme retired it', async () => {
     const notes = await readNotes(repoRoot)
     const palette = new Map(
       tableUnder(notes, 'Palette').map((row) => [row.token.replace(/`/g, ''), row.hex.replace(/`/g, '')]),
@@ -942,7 +949,13 @@ describe('Palette task 4: theme variables renamed off green', () => {
     )
     assert.ok(renamed.size > 0, 'the audit should have turned up green-named tokens to rename')
     const declared = rootTokens(await readSource(repoRoot, 'styles.css'))
+    const themeNotes = await readThemeNotes(repoRoot)
     for (const token of renamed) {
+      // The black/gold/aqua theme retired --mist; anything it dropped has to say so.
+      if (!declared.has(token)) {
+        assert.ok(themeNotes.includes(token), `${token} has left :root without ${THEME_NOTES} accounting for it`)
+        continue
+      }
       assert.equal(declared.get(token), palette.get(token), `:root should declare ${token} as ${palette.get(token)}`)
     }
   })
@@ -970,15 +983,26 @@ describe('Palette task 4: theme variables renamed off green', () => {
 })
 
 describe('Palette task 5: no green left in the stylesheet', () => {
-  it('declares exactly the tokens the palette table defines', async () => {
+  it('declares exactly the tokens the current theme table defines', async () => {
     const declared = [...rootTokens(await readSource(repoRoot, 'styles.css'))]
-    const palette = tableUnder(await readNotes(repoRoot), 'Palette')
+    const themed = tableUnder(await readThemeNotes(repoRoot), 'Theme variables')
       .map((row) => [row.token.replace(/`/g, ''), row.hex.replace(/`/g, '')])
     assert.deepEqual(
       declared.sort(),
-      palette.sort(),
-      'the :root tokens should match docs/palette-notes.md exactly, name and value',
+      themed.sort(),
+      `the :root tokens should match ${THEME_NOTES} exactly, name and value`,
     )
+  })
+
+  it('keeps every palette token the theme still uses at the value the palette gave it', async () => {
+    const declared = rootTokens(await readSource(repoRoot, 'styles.css'))
+    const survivors = tableUnder(await readNotes(repoRoot), 'Palette')
+      .map((row) => [row.token.replace(/`/g, ''), row.hex.replace(/`/g, '')])
+      .filter(([token]) => declared.has(token))
+    assert.ok(survivors.length > 0, 'the theme should have carried some palette tokens across unchanged')
+    for (const [token, hex] of survivors) {
+      assert.equal(declared.get(token), hex, `${token} should still be ${hex}, as ${PALETTE_NOTES} documents it`)
+    }
   })
 
   it('matches no green pattern at all', async () => {
@@ -986,13 +1010,16 @@ describe('Palette task 5: no green left in the stylesheet', () => {
     assert.deepEqual(hits, [], `styles.css still carries green: ${JSON.stringify(hits)}`)
   })
 
-  it('hard-codes no colour outside the palette', async () => {
+  it('hard-codes no colour outside the theme variables', async () => {
     const css = await readSource(repoRoot, 'styles.css')
-    const palette = new Set(
-      tableUnder(await readNotes(repoRoot), 'Palette').map((row) => row.hex.replace(/`/g, '')),
+    const themed = new Set(
+      tableUnder(await readThemeNotes(repoRoot), 'Theme variables').map((row) => row.hex.replace(/`/g, '')),
     )
-    const strays = hexLiterals(css).filter((hex) => !palette.has(hex))
-    assert.deepEqual(strays, [], 'every hex in styles.css should come from the documented palette')
+    const strays = hexLiterals(css).filter((hex) => !themed.has(hex))
+    assert.deepEqual(strays, [], `every hex in styles.css should come from the ${THEME_NOTES} table`)
+    // And they should all sit in :root: every rule below it names a colour by token.
+    const rules = css.slice(css.indexOf('}', css.indexOf(':root')))
+    assert.deepEqual(hexLiterals(rules), [], 'no rule should hard-code a colour outside the :root block')
   })
 })
 
@@ -1014,19 +1041,26 @@ describe('Palette task 6: no green left in the markup', () => {
     }
   })
 
-  it('renders a favicon whose colours match the page it labels', async () => {
+  // The favicon used to be required to match the page background. The theme job
+  // that painted the page black puts non-CSS assets, favicons included, out of
+  // scope — so the clash is now asserted to exist, and to be signed off.
+  it('keeps the favicon exactly as the palette job drew it, clash and all', async () => {
     const href = await page.evaluate(`return document.querySelector('link[rel="icon"]')?.getAttribute('href') ?? ''`)
     const icon = decodeURIComponent(href)
     assert.match(icon, /^data:image\/svg\+xml,/, 'the favicon should stay an inline SVG data URI')
     const bodyBg = await page.evaluate("return getComputedStyle(document.body).backgroundColor")
     const [background, accent] = hexLiterals(icon)
-    assert.ok(isDarkBlue(hexToRgb(background)), `favicon background should be dark blue, got ${background}`)
-    assert.ok(isOrange(hexToRgb(accent)), `favicon accent should stay orange, got ${accent}`)
-    assert.deepEqual(
+    assert.ok(isDarkBlue(hexToRgb(background)), `favicon background should still be dark blue, got ${background}`)
+    assert.ok(isOrange(hexToRgb(accent)), `favicon accent should still be orange, got ${accent}`)
+    assert.notDeepEqual(
       hexToRgb(background),
       parseColor(bodyBg),
-      'the favicon background should be the same blue as the page background',
+      'if the favicon has been brought back in line with the page, drop it from the sign-off list',
     )
+    const flagged = tableUnder(await readThemeNotes(repoRoot), 'Flagged — left unchanged, for reviewer sign-off')
+      .find((row) => /favicon/i.test(row.item))
+    assert.ok(flagged, `${THEME_NOTES} should sign off the favicon it deliberately left clashing`)
+    assert.equal(flagged.status, 'Left unchanged')
   })
 })
 
@@ -1063,7 +1097,7 @@ describe('Palette task 8: served output reflects the new palette', () => {
     }
   })
 
-  it('serves the two source files byte for byte, palette and all', async () => {
+  it('serves the two source files byte for byte, theme and all', async () => {
     const server = await serveStatic(repoRoot)
     try {
       for (const file of STYLING_SOURCES) {
@@ -1072,7 +1106,7 @@ describe('Palette task 8: served output reflects the new palette', () => {
         assert.deepEqual(greenOccurrences(served), [], `the served ${file} still carries green`)
       }
       const css = await (await fetch(`${server.origin}/styles.css`)).text()
-      for (const row of tableUnder(await readNotes(repoRoot), 'Palette')) {
+      for (const row of tableUnder(await readThemeNotes(repoRoot), 'Theme variables')) {
         assert.ok(css.includes(row.hex.replace(/`/g, '')), `served CSS should carry ${row.token}`)
       }
     } finally {
@@ -1261,8 +1295,8 @@ describe('Test plan: end-to-end walkthrough', () => {
         state.biggest.size > state.runnerUp.size * 2,
         `h1 (${state.biggest.size}px) should be at least twice the next largest text (${state.runnerUp.size}px)`,
       )
-      assert.ok(isDarkBlue(parseColor(state.bodyBg)))
-      assert.ok(isOrange(parseColor(state.h1Color)))
+      assert.ok(isBlack(parseColor(state.bodyBg)), `body background should be black, got ${state.bodyBg}`)
+      assert.ok(isGold(parseColor(state.h1Color)), `h1 should be gold, got ${state.h1Color}`)
       assert.ok(contrastRatio(parseColor(state.h1Color), parseColor(state.bodyBg)) >= 4.5)
       assert.equal(state.overflow, false)
       assert.equal(state.title, SITE_NAME)
@@ -2010,5 +2044,416 @@ describe('Branding task 9: branding baked into graphics', () => {
     const logo = (await emptySurfaces()).find((row) => /logo|wordmark/i.test(row.surface))
     assert.ok(logo, `${BRANDING_NOTES} should record whether any logo graphic carries the name`)
     assert.match(logo.status, /none present/i)
+  })
+})
+
+// ---------------------------------------------------------------------------
+// Theme: black page background, gold headings, aqua body text.
+// (specs/dccfae81-4d05-4206-9959-224ae7058bcc/plan.md)
+// ---------------------------------------------------------------------------
+
+describe('Theme task 1: styling-source inventory', () => {
+  it('lists every page in the repo, with the styling each one loads', async () => {
+    const notes = await readThemeNotes(repoRoot)
+    const rows = tableUnder(notes, 'Pages and their styling')
+    assert.ok(rows, `${THEME_NOTES} should carry a "## Pages and their styling" table`)
+    assert.deepEqual(
+      rows.map((row) => row.page.replace(/`/g, '')).sort(),
+      await pageFiles(repoRoot),
+      'the inventory should account for every page in the repo, and no others',
+    )
+  })
+
+  it('records, for each page, the stylesheet and inline styling it actually carries', async () => {
+    const rows = tableUnder(await readThemeNotes(repoRoot), 'Pages and their styling')
+    for (const row of rows) {
+      const page = row.page.replace(/`/g, '')
+      const actual = stylingSources(await readSource(repoRoot, page))
+      assert.deepEqual(
+        row.stylesheet.replace(/`/g, '').split(',').map((s) => s.trim()).filter(Boolean),
+        actual.stylesheets,
+        `${page} links ${JSON.stringify(actual.stylesheets)}, which is not what the inventory records`,
+      )
+      assert.equal(
+        row['style blocks'],
+        String(actual.styleBlocks.length),
+        `${page} carries ${actual.styleBlocks.length} <style> blocks`,
+      )
+      assert.equal(
+        row['style attributes'],
+        String(actual.styleAttributes.length),
+        `${page} carries ${actual.styleAttributes.length} style="" attributes`,
+      )
+    }
+  })
+
+  it('lists every stylesheet the pages load as a styling source, and no phantom ones', async () => {
+    const notes = await readThemeNotes(repoRoot)
+    const sources = tableUnder(notes, 'Styling sources')
+    assert.ok(sources, `${THEME_NOTES} should carry a "## Styling sources" table`)
+    for (const row of sources) {
+      assert.ok(row.role.length > 0, `styling source ${row.file} should say what it does`)
+    }
+    const listed = new Set(sources.map((row) => row.file.replace(/`/g, '')))
+    const loaded = new Set()
+    for (const page of await pageFiles(repoRoot)) {
+      for (const href of stylingSources(await readSource(repoRoot, page)).stylesheets) loaded.add(href)
+    }
+    assert.ok(loaded.size > 0, 'the site should load at least one stylesheet')
+    for (const href of loaded) {
+      assert.ok(listed.has(href), `${href} is loaded by a page but is not in the styling-source inventory`)
+    }
+  })
+
+  it('renders each inventoried page in the browser, confirming styles.css applied', async () => {
+    for (const page of await pageFiles(repoRoot)) {
+      const rendered = await openPage(`${site.origin}/${page}`)
+      try {
+        const applied = await rendered.evaluate(`
+          return {
+            sheets: [...document.styleSheets].map((s) => (s.href ?? 'inline').split('/').pop()),
+            styleBlocks: document.querySelectorAll('style').length,
+            styled: [...document.querySelectorAll('[style]')].map((el) => el.getAttribute('style')),
+          }
+        `)
+        assert.deepEqual(applied.sheets, ['styles.css'], `${page} should apply styles.css and nothing else`)
+        assert.equal(applied.styleBlocks, 0, `${page} carries a <style> block the inventory has not been told about`)
+        assert.deepEqual(applied.styled, [], `${page} carries an inline style attribute`)
+      } finally {
+        await rendered.close()
+      }
+    }
+  })
+})
+
+describe('Theme task 2: black page background', () => {
+  it('paints the body and the page wrapper behind it black', async () => {
+    await page.reload()
+    const surfaces = await page.evaluate(`
+      const of = (sel) => getComputedStyle(document.querySelector(sel)).backgroundColor;
+      return { html: of('html'), body: of('body'), section: of('main > section') };
+    `)
+    for (const [where, value] of Object.entries(surfaces)) {
+      assert.ok(isBlack(parseColor(value)), `${where} background should be black, got ${value}`)
+    }
+  })
+
+  it('declares the background once, from the shared stylesheet', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    assert.match(css, /--black:\s*#000000/, 'styles.css should declare a black theme token')
+    const body = css.match(/\bbody\s*\{([^}]*)\}/)
+    assert.ok(body, 'styles.css should carry a body rule')
+    assert.match(body[1], /background-color:\s*var\(--black\)/, 'body should take its background from the token')
+  })
+
+  it('leaves no pixel of the page painted in the old background colour', async () => {
+    const backgrounds = await page.evaluate(`
+      return [...document.querySelectorAll('html, body, main, main *')]
+        .map((el) => ({ tag: el.tagName + '.' + el.className, bg: getComputedStyle(el).backgroundColor }))
+        .filter((el) => !/^rgba\\(.*,\\s*0\\)$/.test(el.bg));
+    `)
+    assert.ok(backgrounds.length > 0, 'something on the page should paint a background')
+    for (const { tag, bg } of backgrounds) {
+      assert.ok(
+        isBlack(parseColor(bg)) || isOrange(parseColor(bg)),
+        `${tag} still paints ${bg} — only the black page and the out-of-scope orange CTA should paint inside <main>`,
+      )
+    }
+  })
+})
+
+/** Computed colour of a probe element per heading level, rendered inside <main>. */
+const HEADING_COLOURS = `
+  const probe = document.createElement('div');
+  probe.innerHTML = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].map((t) => '<' + t + '>Probe</' + t + '>').join('');
+  document.querySelector('main').appendChild(probe);
+  const colours = Object.fromEntries([...probe.children].map((el) => [el.tagName.toLowerCase(), getComputedStyle(el).color]));
+  probe.remove();
+  return colours;
+`
+
+describe('Theme task 3: gold headings', () => {
+  it('renders every heading level h1-h6 in gold', async () => {
+    await page.reload()
+    const colours = await page.evaluate(HEADING_COLOURS)
+    assert.deepEqual(Object.keys(colours), ['h1', 'h2', 'h3', 'h4', 'h5', 'h6'])
+    for (const [level, colour] of Object.entries(colours)) {
+      assert.ok(isGold(parseColor(colour)), `${level} should render gold, got ${colour}`)
+    }
+  })
+
+  it('renders the visible page title in gold on the page that has one', async () => {
+    const title = await page.evaluate(`
+      const h1 = document.querySelector('h1');
+      return { text: h1.textContent.trim(), colour: getComputedStyle(h1).color, className: h1.className };
+    `)
+    assert.equal(title.className, 'hero__title', 'the home page title should still be the hero title')
+    assert.ok(isGold(parseColor(title.colour)), `"${title.text}" should render gold, got ${title.colour}`)
+  })
+
+  it('declares the heading colour in the shared stylesheet, from the gold token', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    assert.match(css, /--gold:\s*#ffd700/, 'styles.css should declare a gold theme token')
+    const rule = css.match(/\bh1,\s*\n?\s*h2,\s*\n?\s*h3,\s*\n?\s*h4,\s*\n?\s*h5,\s*\n?\s*h6\s*\{([^}]*)\}/)
+    assert.ok(rule, 'styles.css should carry one rule covering h1 through h6')
+    assert.match(rule[1], /color:\s*var\(--gold\)/, 'the heading rule should take its colour from the token')
+    for (const selector of ['.hero__title', '.page__title']) {
+      const title = css.match(new RegExp(`\\${selector}\\s*\\{([^}]*)\\}`))
+      assert.ok(title, `styles.css should still carry a ${selector} rule`)
+      assert.match(title[1], /color:\s*var\(--gold\)/, `${selector} should be gold too, not the old accent`)
+    }
+  })
+
+  it('keeps gold legible on the black page', async () => {
+    const { colour, bg } = await page.evaluate(`
+      return {
+        colour: getComputedStyle(document.querySelector('h1')).color,
+        bg: getComputedStyle(document.body).backgroundColor,
+      }
+    `)
+    const ratio = contrastRatio(parseColor(colour), parseColor(bg))
+    assert.ok(ratio >= 4.5, `gold on black reads at ${ratio.toFixed(2)}:1`)
+  })
+})
+
+/** Computed colour of a probe paragraph, list item, span and div inside <main>. */
+const BODY_TEXT_COLOURS = `
+  const probe = document.createElement('div');
+  probe.innerHTML = '<p>p</p><ul><li>li</li></ul><span>span</span><div>div</div>';
+  document.querySelector('main').appendChild(probe);
+  const colours = Object.fromEntries(
+    ['p', 'li', 'span', 'div'].map((tag) => [tag, getComputedStyle(probe.querySelector(tag)).color])
+  );
+  probe.remove();
+  return colours;
+`
+
+describe('Theme task 4: aqua body text', () => {
+  it('renders paragraphs, list items, spans and generic containers in aqua', async () => {
+    await page.reload()
+    const colours = await page.evaluate(BODY_TEXT_COLOURS)
+    for (const [tag, colour] of Object.entries(colours)) {
+      assert.ok(isAqua(parseColor(colour)), `<${tag}> should render aqua, got ${colour}`)
+    }
+  })
+
+  it('renders the hero tagline — the page\'s real body copy — in aqua', async () => {
+    const tagline = await page.evaluate(`
+      const el = document.querySelector('.hero__tagline');
+      return { tag: el.tagName, colour: getComputedStyle(el).color };
+    `)
+    assert.equal(tagline.tag, 'P')
+    assert.ok(isAqua(parseColor(tagline.colour)), `the tagline should render aqua, got ${tagline.colour}`)
+  })
+
+  it('sets the colour once on body, from the aqua token, so everything inherits it', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    assert.match(css, /--aqua:\s*#00ffff/, 'styles.css should declare an aqua theme token')
+    const body = css.match(/\bbody\s*\{([^}]*)\}/)
+    assert.match(body[1], /\bcolor:\s*var\(--aqua\)/, 'body text colour should come from the aqua token')
+    assert.ok(!/--mist\b/.test(css), 'the old neutral body-text token should be gone')
+  })
+
+  it('leaves headings gold rather than sweeping them into the body colour', async () => {
+    const both = await page.evaluate(`
+      return {
+        heading: getComputedStyle(document.querySelector('h1')).color,
+        body: getComputedStyle(document.querySelector('.hero__tagline')).color,
+      }
+    `)
+    assert.ok(isGold(parseColor(both.heading)), `h1 should stay gold, got ${both.heading}`)
+    assert.notEqual(both.heading, both.body, 'headings and body copy should not share a colour')
+  })
+
+  it('keeps aqua legible on the black page', async () => {
+    const { colour, bg } = await page.evaluate(`
+      return {
+        colour: getComputedStyle(document.querySelector('.hero__tagline')).color,
+        bg: getComputedStyle(document.body).backgroundColor,
+      }
+    `)
+    const ratio = contrastRatio(parseColor(colour), parseColor(bg))
+    assert.ok(ratio >= 4.5, `aqua on black reads at ${ratio.toFixed(2)}:1`)
+  })
+})
+
+describe('Theme task 5: the theme variables carry the new colours', () => {
+  it('declares black, gold and aqua as custom properties in :root', async () => {
+    const declared = rootTokens(await readSource(repoRoot, 'styles.css'))
+    assert.equal(declared.get('--black'), THEME.black)
+    assert.equal(declared.get('--gold'), THEME.gold)
+    assert.equal(declared.get('--aqua'), THEME.aqua)
+  })
+
+  it('resolves those properties to the same values in the browser', async () => {
+    await page.reload()
+    const resolved = await page.evaluate(`
+      const root = getComputedStyle(document.documentElement);
+      return Object.fromEntries(['--black', '--gold', '--aqua'].map((n) => [n, root.getPropertyValue(n).trim()]));
+    `)
+    assert.deepEqual(resolved, { '--black': THEME.black, '--gold': THEME.gold, '--aqua': THEME.aqua })
+  })
+
+  // `Palette task 5` guards the other half of the variable system: that :root matches
+  // the documented table exactly and that no rule hard-codes a colour of its own.
+
+  it('makes the downstream rules inherit the tokens, not repeat their values', async () => {
+    const css = await readSource(repoRoot, 'styles.css')
+    for (const [token, uses] of [['--black', 4], ['--gold', 3], ['--aqua', 2]]) {
+      const count = [...css.matchAll(new RegExp(`var\\(${token}\\)`, 'g'))].length
+      assert.ok(count >= uses, `${token} should be referenced by at least ${uses} rules, found ${count}`)
+    }
+  })
+})
+
+describe('Theme task 6: per-page colour overrides', () => {
+  it('finds no inline <style> block or style="" attribute on any page to bring in line', async () => {
+    for (const file of await pageFiles(repoRoot)) {
+      const found = stylingSources(await readSource(repoRoot, file))
+      assert.deepEqual(found.styleBlocks, [], `${file} carries a <style> block that could override the theme`)
+      assert.deepEqual(found.styleAttributes, [], `${file} carries a style="" attribute that could override the theme`)
+    }
+  })
+
+  it('records that finding in the sign-off list, so the empty result is deliberate', async () => {
+    const rows = tableUnder(await readThemeNotes(repoRoot), 'Flagged — left unchanged, for reviewer sign-off')
+    assert.ok(rows, `${THEME_NOTES} should carry a "## Flagged — left unchanged, for reviewer sign-off" table`)
+    for (const row of rows) {
+      assert.ok(row.item.length > 0, 'every flagged row should name what was checked')
+      assert.ok(row.location.length > 0, `flagged row "${row.item}" should say where`)
+      assert.ok(
+        ['None present', 'Left unchanged'].includes(row.status),
+        `flagged row "${row.item}" has status "${row.status}"`,
+      )
+      assert.ok(row.reason.length > 20, `flagged row "${row.item}" needs a real justification, got "${row.reason}"`)
+    }
+    const inline = rows.find((row) => /inline/i.test(row.item) && /style/i.test(row.item))
+    assert.ok(inline, `${THEME_NOTES} should record whether any page carries inline styling`)
+    assert.equal(inline.status, 'None present')
+  })
+
+  it('would catch a stale override: an injected inline colour is the only thing that beats the theme', async () => {
+    await page.reload()
+    const outcome = await page.evaluate(`
+      const el = document.querySelector('.hero__tagline');
+      const themed = getComputedStyle(el).color;
+      el.setAttribute('style', 'color: rgb(207, 224, 242)');
+      const overridden = getComputedStyle(el).color;
+      el.removeAttribute('style');
+      return { themed, overridden, restored: getComputedStyle(el).color };
+    `)
+    assert.ok(isAqua(parseColor(outcome.themed)), 'the tagline should start out aqua')
+    assert.equal(outcome.overridden, 'rgb(207, 224, 242)', 'an inline style would win over the shared stylesheet')
+    assert.equal(outcome.restored, outcome.themed, 'removing it should hand the colour back to the stylesheet')
+  })
+
+  it('leaves no element on any page rendering an old-scheme colour it should not', async () => {
+    for (const file of await pageFiles(repoRoot)) {
+      const rendered = await openPage(`${site.origin}/${file}`)
+      try {
+        const stale = await rendered.evaluate(`
+          const inScope = (el) => !el.closest('.site-header') && !el.classList.contains('hero__cta');
+          return [...document.querySelectorAll('main, main *')].filter(inScope).map((el) => ({
+            tag: el.tagName + '.' + el.className,
+            heading: /^H[1-6]$/.test(el.tagName),
+            color: getComputedStyle(el).color,
+          }));
+        `)
+        assert.ok(stale.length > 0, `${file} should render something inside <main>`)
+        for (const el of stale) {
+          const ok = el.heading ? isGold(parseColor(el.color)) : isAqua(parseColor(el.color))
+          assert.ok(ok, `${file}: ${el.tag} renders ${el.color}, not the ${el.heading ? 'gold' : 'aqua'} the theme sets`)
+        }
+      } finally {
+        await rendered.close()
+      }
+    }
+  })
+})
+
+describe('Theme task 7: every page and template carries the theme', () => {
+  for (const width of [1280, 375]) {
+    it(`renders black, gold and aqua on every inventoried page at ${width}px`, async () => {
+      for (const file of await pageFiles(repoRoot)) {
+        const rendered = await openPage(`${site.origin}/${file}`, { width, height: 800 })
+        try {
+          const state = await rendered.evaluate(`
+            ${HEADING_COLOURS.replace('return colours;', '')}
+            const bodyProbe = document.createElement('div');
+            bodyProbe.innerHTML = '<p>p</p><ul><li>li</li></ul><span>span</span>';
+            document.querySelector('main').appendChild(bodyProbe);
+            const body = ['p', 'li', 'span'].map((tag) => getComputedStyle(bodyProbe.querySelector(tag)).color);
+            bodyProbe.remove();
+            return {
+              background: getComputedStyle(document.body).backgroundColor,
+              section: getComputedStyle(document.querySelector('main > section')).backgroundColor,
+              headings: colours,
+              title: getComputedStyle(document.querySelector('h1')).color,
+              body,
+            };
+          `)
+          assert.ok(isBlack(parseColor(state.background)), `${file}: body background is ${state.background}`)
+          assert.ok(isBlack(parseColor(state.section)), `${file}: page section background is ${state.section}`)
+          for (const [level, colour] of Object.entries(state.headings)) {
+            assert.ok(isGold(parseColor(colour)), `${file}: ${level} renders ${colour}, not gold`)
+          }
+          assert.ok(isGold(parseColor(state.title)), `${file}: the page title renders ${state.title}, not gold`)
+          for (const colour of state.body) {
+            assert.ok(isAqua(parseColor(colour)), `${file}: body text renders ${colour}, not aqua`)
+          }
+        } finally {
+          await rendered.close()
+        }
+      }
+    })
+  }
+
+  it('keeps every line of real text legible against the colour it now sits on', async () => {
+    for (const file of await pageFiles(repoRoot)) {
+      const rendered = await openPage(`${site.origin}/${file}`)
+      try {
+        const samples = await rendered.evaluate(`
+          const backdrop = (el) => {
+            for (let node = el; node; node = node.parentElement) {
+              const bg = getComputedStyle(node).backgroundColor;
+              if (!/^rgba\\(.*,\\s*0\\)$/.test(bg)) return bg;
+            }
+            return 'rgb(255, 255, 255)';
+          };
+          return [...document.querySelectorAll('body, body *')]
+            .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
+            .map((el) => ({ text: el.textContent.trim().slice(0, 24), color: getComputedStyle(el).color, bg: backdrop(el) }));
+        `)
+        assert.ok(samples.length > 0)
+        for (const sample of samples) {
+          const ratio = contrastRatio(parseColor(sample.color), parseColor(sample.bg))
+          assert.ok(ratio >= 4.5, `${file}: "${sample.text}" reads at ${ratio.toFixed(2)}:1 against ${sample.bg}`)
+        }
+      } finally {
+        await rendered.close()
+      }
+    }
+  })
+
+  it('leaves the old dark-blue page background nowhere on the site', async () => {
+    for (const file of await pageFiles(repoRoot)) {
+      const rendered = await openPage(`${site.origin}/${file}`)
+      try {
+        const stale = await rendered.evaluate(`
+          return [...document.querySelectorAll('main, main *')]
+            .map((el) => ({ tag: el.tagName + '.' + el.className, bg: getComputedStyle(el).backgroundColor }))
+            .filter((el) => !/^rgba\\(.*,\\s*0\\)$/.test(el.bg));
+        `)
+        for (const el of stale) {
+          assert.equal(
+            isDarkBlue(parseColor(el.bg)),
+            false,
+            `${file}: ${el.tag} still paints the old dark blue ${el.bg}`,
+          )
+        }
+      } finally {
+        await rendered.close()
+      }
+    }
   })
 })
