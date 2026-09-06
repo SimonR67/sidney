@@ -34,7 +34,8 @@ Consequences for routing:
 | `contact.html` | Contact page (`/contact`). Added by this job. |
 | `styles.css` | The only stylesheet; linked by all three pages. |
 | `images/` | Static image assets. Added by this job. |
-| `docs/palette-notes.md` | Colour-scheme audit from the previous job. |
+| `docs/palette-notes.md` | Colour-scheme audit from the green → orange/blue job. |
+| `docs/theme-notes.md` | The current black/gold/aqua theme: styling inventory, variables and sign-off list. |
 | `tests/page.test.mjs` | Whole-site test suite (`npm test`). |
 
 The nav lives inline in each page as `header.site-header > nav.site-nav`, with

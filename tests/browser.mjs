@@ -285,3 +285,18 @@ export function isBlueTinted({ r, g, b }) {
 export function isOrange({ r, g, b }) {
   return r > 180 && g > 60 && g < 190 && b < 90 && r - g > 50 && g - b > 20
 }
+
+/** True for black: no light in any channel, fully opaque. */
+export function isBlack({ r, g, b, a }) {
+  return r === 0 && g === 0 && b === 0 && a > 0.9
+}
+
+/** True for a gold hue: full red, strong green, no blue at all. */
+export function isGold({ r, g, b }) {
+  return r > 200 && g > 150 && g < 240 && b < 60 && r - g > 20
+}
+
+/** True for an aqua/cyan hue: green and blue at full strength, no red. */
+export function isAqua({ r, g, b }) {
+  return r < 60 && g > 200 && b > 200 && Math.abs(g - b) < 40
+}

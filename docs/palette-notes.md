@@ -40,6 +40,12 @@ Deep blue takes over every structural role green used to hold; the two oranges c
 across unchanged, so the accent hierarchy the page already had is preserved. Blue hues
 sit around 205–210°, which keeps them cleanly complementary to the 25–30° oranges.
 
+**Historical.** The table below is the palette as *this* job left it, and the rest of
+this document is the record of that job. The site's current palette is the
+black/gold/aqua theme in `docs/theme-notes.md`, which kept some of these tokens,
+retired others and added its own; that document, not this one, is what `:root` is
+tested against.
+
 | Token | Hex | Family | Role |
 |---|---|---|---|
 | `--navy` | `#071c2e` | blue | Dominant page background (was `--forest`) |
