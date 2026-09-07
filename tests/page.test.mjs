@@ -1,7 +1,7 @@
-// Tests for the "Strange New Worlds" rebuild.
-// Plan: specs/8393b537-ac67-46f5-b4e0-0b0d2e416f06/plan.md
-// Rebrand to dark blue / orange / "Alpha Centauri":
-// Plan: specs/73e4bb2c-ee3b-4009-b0ed-97501935ff03/plan.md
+// Tests for the "Alpha Centauri" site.
+// Original build plan: specs/8393b537-ac67-46f5-b4e0-0b0d2e416f06/plan.md
+// Rebrand plan (dark blue, orange, new name):
+// specs/73e4bb2c-ee3b-4009-b0ed-97501935ff03/plan.md
 import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { access } from 'node:fs/promises'
@@ -542,6 +542,48 @@ describe('Rebrand task 5 (rendered): every accent is orange, in every state', ()
       }
     })
   }
+})
+
+describe('Rebrand tasks 9-11: the metadata this site does not carry', () => {
+  it('carries no meta tag beyond charset and viewport, so none can name the site', async () => {
+    for (const file of await htmlFiles()) {
+      const metas = [...(await read(file)).matchAll(/<meta\b[^>]*>/gi)].map(([tag]) => tag)
+
+      assert.equal(metas.length, 2, `${file} has meta tags this rebrand has not accounted for:\n${metas.join('\n')}`)
+      assert.match(metas[0], /charset="utf-8"/)
+      assert.match(metas[1], /name="viewport"/)
+    }
+  })
+
+  it('ships no web app manifest to rename', async () => {
+    const manifests = (await siteFiles()).filter((file) => /manifest\.json$|\.webmanifest$/.test(file))
+
+    assert.deepEqual(manifests, [], `${PALETTE_NOTES} flags the site as having no manifest`)
+    for (const file of await htmlFiles()) {
+      assert.ok(!/rel="manifest"/i.test(await read(file)), `${file} links a manifest`)
+    }
+  })
+
+  it('renders no footer or copyright line to rename', async () => {
+    for (const file of await htmlFiles()) {
+      const html = await read(file)
+
+      assert.ok(!tagsIn(html).includes('footer'), `${file} contains a <footer>`)
+      assert.ok(!/©|&copy;|copyright/i.test(html), `${file} carries a copyright line`)
+    }
+  })
+})
+
+describe('Rebrand task 13: the flagged gaps are written down', () => {
+  it('lists each out-of-scope gap in the plan notes', async () => {
+    const notes = await read(PALETTE_NOTES)
+    const [, gaps] = notes.split(/^## \d+\. Flagged gaps.*$/m)
+
+    assert.ok(gaps, `${PALETTE_NOTES} has no "Flagged gaps" section`)
+    for (const gap of ['package.json', 'button', 'meta', 'manifest', 'footer', 'toggle', 'favicon', 'README']) {
+      assert.match(gaps, new RegExp(gap, 'i'), `the flagged gaps say nothing about ${gap}`)
+    }
+  })
 })
 
 describe('Rebrand task 6: no trace of the superseded shades', () => {

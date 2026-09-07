@@ -1,14 +1,14 @@
-// Helpers for the "Strange New Worlds" site: the three pages, the shared
+// Helpers for the "Alpha Centauri" site: the three pages, the shared
 // stylesheet, and just enough CSS parsing to assert on declared colours.
 import { readdir, readFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
 
 export const repoRoot = join(import.meta.dirname, '..')
 
-export const SITE_NAME = 'Strange New Worlds'
+export const SITE_NAME = 'Alpha Centauri'
 
-/** The name this rebuild supersedes; it should survive nowhere on the site. */
-export const OLD_SITE_NAME = /sid meyer|brave new worlds/i
+/** The names this rebuild supersedes; they should survive nowhere on the site. */
+export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds/i
 
 export const STYLESHEET = 'style.css'
 
