@@ -1,16 +1,21 @@
 // Tests for the "Strange New Worlds" rebuild.
 // Plan: specs/8393b537-ac67-46f5-b4e0-0b0d2e416f06/plan.md
+// Rebrand to dark blue / orange / "Alpha Centauri":
+// Plan: specs/73e4bb2c-ee3b-4009-b0ed-97501935ff03/plan.md
 import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { access } from 'node:fs/promises'
 import { join } from 'node:path'
-import { contrastRatio, isDarkGreen, isGold, openPage, parseColor, serveStatic } from './browser.mjs'
+import { contrastRatio, isDarkBlue, isOrange, openPage, parseColor, serveStatic } from './browser.mjs'
 import {
   COLOURS,
+  COLOUR_VARS,
+  OLD_COLOURS,
   PAGES,
   NAV_LINKS,
   MIN_CONTRAST,
   OLD_SITE_NAME,
+  PALETTE_NOTES,
   SITE_NAME,
   STYLESHEET,
   declaredValue,
@@ -92,30 +97,30 @@ const clickNav = async (page, label, expectedPath) => {
 }
 
 describe('Task 1: shared stylesheet base colours', () => {
-  it('paints the page a dark green', async () => {
+  it('paints the page a dark blue', async () => {
     const css = await read(STYLESHEET)
     const background = declaredValue(css, GLOBAL_SELECTORS, 'background-color')
 
     assert.ok(background, `no background-color on any of ${GLOBAL_SELECTORS.join(', ')} in ${STYLESHEET}`)
     assert.ok(
-      isDarkGreen(parseHex(background)),
-      `${STYLESHEET} sets background-color: ${background}, which is not a dark green`,
+      isDarkBlue(parseHex(background)),
+      `${STYLESHEET} sets background-color: ${background}, which is not a dark blue`,
     )
   })
 
-  it('writes in gold', async () => {
+  it('writes in orange', async () => {
     const css = await read(STYLESHEET)
     const colour = declaredValue(css, GLOBAL_SELECTORS, 'color')
 
     assert.ok(colour, `no color on any of ${GLOBAL_SELECTORS.join(', ')} in ${STYLESHEET}`)
-    assert.ok(isGold(parseHex(colour)), `${STYLESHEET} sets color: ${colour}, which is not a gold`)
+    assert.ok(isOrange(parseHex(colour)), `${STYLESHEET} sets color: ${colour}, which is not an orange`)
   })
 
   it('declares the two scheme colours as the values the tests expect', async () => {
     const css = await read(STYLESHEET)
 
-    assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'background-color'), COLOURS.darkGreen)
-    assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'color'), COLOURS.gold)
+    assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'background-color'), COLOURS.darkBlue)
+    assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'color'), COLOURS.orange)
   })
 })
 
@@ -221,15 +226,15 @@ describe('Task 5: the nav menu, styled the same on every page', () => {
     }
   })
 
-  it('paints the nav itself dark green with gold links, not just the body', async () => {
+  it('paints the nav itself dark blue with orange links, not just the body', async () => {
     const css = await read(STYLESHEET)
     const background = declaredValue(css, ['.site-nav'], 'background-color')
     const linkColour = declaredValue(css, ['.site-nav__links a'], 'color')
 
     assert.ok(background, `${STYLESHEET} sets no background-color on .site-nav`)
-    assert.ok(isDarkGreen(parseHex(background)), `.site-nav background-color is ${background}, not a dark green`)
+    assert.ok(isDarkBlue(parseHex(background)), `.site-nav background-color is ${background}, not a dark blue`)
     assert.ok(linkColour, `${STYLESHEET} sets no color on the nav links`)
-    assert.ok(isGold(parseHex(linkColour)), `nav link color is ${linkColour}, not a gold`)
+    assert.ok(isOrange(parseHex(linkColour)), `nav link color is ${linkColour}, not an orange`)
   })
 
   it('keeps the layout simple: no grids, columns, animations or transitions', async () => {
@@ -245,7 +250,7 @@ describe('Task 5 (rendered): nav colours in the browser', () => {
   const site = servedInBrowser()
 
   for (const { file } of PAGES) {
-    it(`renders ${file} with a dark green nav and gold nav links`, async () => {
+    it(`renders ${file} with a dark blue nav and orange nav links`, async () => {
       const { page } = site
       await page.goto(`${site.origin}/${file}`)
       const state = await page.evaluate(`
@@ -259,28 +264,28 @@ describe('Task 5 (rendered): nav colours in the browser', () => {
         }
       `)
 
-      assert.ok(isDarkGreen(parseColor(state.navBg)), `nav background on ${file} is ${state.navBg}`)
-      assert.ok(isGold(parseColor(state.linkColor)), `nav link colour on ${file} is ${state.linkColor}`)
-      assert.ok(isDarkGreen(parseColor(state.bodyBg)), `body background on ${file} is ${state.bodyBg}`)
-      assert.ok(isGold(parseColor(state.bodyColor)), `body text colour on ${file} is ${state.bodyColor}`)
+      assert.ok(isDarkBlue(parseColor(state.navBg)), `nav background on ${file} is ${state.navBg}`)
+      assert.ok(isOrange(parseColor(state.linkColor)), `nav link colour on ${file} is ${state.linkColor}`)
+      assert.ok(isDarkBlue(parseColor(state.bodyBg)), `body background on ${file} is ${state.bodyBg}`)
+      assert.ok(isOrange(parseColor(state.bodyColor)), `body text colour on ${file} is ${state.bodyColor}`)
     })
   }
 })
 
-describe('Task 6: gold on dark green stays legible', () => {
+describe('Task 6: orange on dark blue stays legible', () => {
   it('clears the readability threshold for the two declared shades', () => {
-    const ratio = contrastRatio(parseHex(COLOURS.gold), parseHex(COLOURS.darkGreen))
+    const ratio = contrastRatio(parseHex(COLOURS.orange), parseHex(COLOURS.darkBlue))
 
     assert.ok(
       ratio >= MIN_CONTRAST,
-      `${COLOURS.gold} on ${COLOURS.darkGreen} is only ${ratio.toFixed(2)}:1, below ${MIN_CONTRAST}:1`,
+      `${COLOURS.orange} on ${COLOURS.darkBlue} is only ${ratio.toFixed(2)}:1, below ${MIN_CONTRAST}:1`,
     )
   })
 
   it('uses no colours beyond those two shades', async () => {
     const css = await read(STYLESHEET)
 
-    assert.deepEqual([...new Set(hexColours(css))].sort(), [COLOURS.darkGreen, COLOURS.gold].sort())
+    assert.deepEqual([...new Set(hexColours(css))].sort(), [COLOURS.darkBlue, COLOURS.orange].sort())
   })
 })
 
@@ -410,10 +415,10 @@ describe('Test plan: the visitor journey end to end', () => {
     assert.equal(state.title, SITE_NAME, `${where}: browser tab`)
     assert.equal(state.siteTitle, SITE_NAME, `${where}: visible site title`)
     assert.deepEqual(state.nav, NAV_LINKS, `${where}: nav menu`)
-    assert.ok(isDarkGreen(parseColor(state.bodyBg)), `${where}: body background ${state.bodyBg}`)
-    assert.ok(isDarkGreen(parseColor(state.navBg)), `${where}: nav background ${state.navBg}`)
-    assert.ok(isGold(parseColor(state.navColor)), `${where}: nav link colour ${state.navColor}`)
-    assert.ok(isGold(parseColor(state.headingColor)), `${where}: heading colour ${state.headingColor}`)
+    assert.ok(isDarkBlue(parseColor(state.bodyBg)), `${where}: body background ${state.bodyBg}`)
+    assert.ok(isDarkBlue(parseColor(state.navBg)), `${where}: nav background ${state.navBg}`)
+    assert.ok(isOrange(parseColor(state.navColor)), `${where}: nav link colour ${state.navColor}`)
+    assert.ok(isOrange(parseColor(state.headingColor)), `${where}: heading colour ${state.headingColor}`)
     assert.equal(state.overflow, false, `${where}: page overflows sideways`)
     assert.equal(state.interactive, 0, `${where}: page carries forms, images or scripts`)
   }
@@ -453,6 +458,102 @@ describe('Test plan: the visitor journey end to end', () => {
         const open = [...html.matchAll(new RegExp(`<${tag}\\b`, 'gi'))].length
         const close = [...html.matchAll(new RegExp(`</${tag}>`, 'gi'))].length
         assert.equal(open, close, `${file} has ${open} <${tag}> against ${close} </${tag}>`)
+      }
+    }
+  })
+})
+
+describe('Rebrand task 2: one documented palette', () => {
+  it('records both chosen shades in the plan notes', async () => {
+    const notes = await read(PALETTE_NOTES)
+
+    for (const hex of Object.values(COLOURS)) {
+      assert.match(notes, new RegExp(hex, 'i'), `${PALETTE_NOTES} does not record ${hex}`)
+    }
+  })
+
+  it('writes each shade once, as a custom property named after it', async () => {
+    const css = await read(STYLESHEET)
+
+    for (const [name, hex] of Object.entries(COLOURS)) {
+      assert.equal(declaredValue(css, [':root'], COLOUR_VARS[name]), hex)
+      assert.equal(
+        hexColours(css).filter((colour) => colour === hex).length,
+        1,
+        `${hex} is written more than once in ${STYLESHEET}; it should come from ${COLOUR_VARS[name]}`,
+      )
+    }
+  })
+})
+
+describe('Rebrand task 4: buttons', () => {
+  const site = servedInBrowser()
+
+  const BUTTONS = `
+    return [...document.querySelectorAll('button, [role="button"], input[type="button"], input[type="submit"], .btn, .button')]
+      .map((el) => ({
+        tag: el.tagName.toLowerCase(),
+        background: getComputedStyle(el).backgroundColor,
+        border: getComputedStyle(el).borderColor,
+      }))
+  `
+
+  for (const { file } of PAGES) {
+    it(`has no button on ${file}, so the orange lands on text accents alone`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/${file}`)
+      const buttons = await page.evaluate(BUTTONS)
+
+      // Should a button ever appear, it has to carry the orange itself.
+      for (const button of buttons) {
+        assert.ok(
+          isOrange(parseColor(button.background)) || isOrange(parseColor(button.border)),
+          `<${button.tag}> on ${file} is ${button.background} on ${button.border}, neither of them orange`,
+        )
+      }
+      assert.deepEqual(buttons, [], `${file} now carries a button; the gap flagged in ${PALETTE_NOTES} is out of date`)
+    })
+  }
+})
+
+describe('Rebrand task 5 (rendered): every accent is orange, in every state', () => {
+  const site = servedInBrowser()
+
+  const ACCENTS = { 'the site title': 'h1.site-title', 'the page heading': 'main h2', 'a nav link': 'nav a' }
+
+  for (const { file } of PAGES) {
+    it(`paints the accents on ${file} orange at rest, on hover and on focus`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/${file}`)
+
+      for (const [what, selector] of Object.entries(ACCENTS)) {
+        for (const state of [[], ['hover'], ['focus'], ['active']]) {
+          await page.forcePseudoState(selector, state)
+          const colour = await page.evaluate(
+            `return getComputedStyle(document.querySelector(${JSON.stringify(selector)})).color`,
+          )
+
+          assert.ok(
+            isOrange(parseColor(colour)),
+            `${what} on ${file} is ${colour} under :${state.join(':') || 'rest'}, which is not an orange`,
+          )
+        }
+        await page.forcePseudoState(selector, [])
+      }
+    })
+  }
+})
+
+describe('Rebrand task 6: no trace of the superseded shades', () => {
+  it('mentions neither the old dark green nor the old gold anywhere in the site', async () => {
+    for (const file of await siteFiles()) {
+      const contents = await read(file)
+
+      for (const digits of OLD_COLOURS) {
+        assert.ok(
+          !new RegExp(digits, 'i').test(contents),
+          `${file} still uses the superseded colour #${digits}`,
+        )
       }
     }
   })

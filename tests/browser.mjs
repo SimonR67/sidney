@@ -266,17 +266,17 @@ export function contrastRatio(fg, bg) {
   return (light + 0.05) / (dark + 0.05)
 }
 
-/** True for a dark green: dim overall, with green clearly the dominant channel. */
-export function isDarkGreen(color) {
+/** True for a dark blue: dim overall, with blue clearly the dominant channel. */
+export function isDarkBlue(color) {
   return (
     relativeLuminance(color) < 0.12 &&
     color.a > 0.9 &&
-    color.g > color.r + 12 &&
-    color.g > color.b + 8
+    color.b > color.r + 12 &&
+    color.b > color.g + 8
   )
 }
 
-/** True for a gold hue: full red, strong green, no blue at all. */
-export function isGold({ r, g, b }) {
-  return r > 200 && g > 150 && g < 240 && b < 60 && r - g > 20
+/** True for an orange hue: full red, mid green, next to no blue — not a gold. */
+export function isOrange({ r, g, b }) {
+  return r > 200 && g > 80 && g < 200 && b < 80 && r - g > 60
 }
