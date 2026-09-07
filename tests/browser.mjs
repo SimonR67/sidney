@@ -266,37 +266,17 @@ export function contrastRatio(fg, bg) {
   return (light + 0.05) / (dark + 0.05)
 }
 
-/** True for a dark blue: dim overall, with blue clearly the dominant channel. */
-export function isDarkBlue(color) {
+/** True for a dark green: dim overall, with green clearly the dominant channel. */
+export function isDarkGreen(color) {
   return (
     relativeLuminance(color) < 0.12 &&
     color.a > 0.9 &&
-    color.b > color.r + 12 &&
-    color.b > color.g + 12
+    color.g > color.r + 12 &&
+    color.g > color.b + 8
   )
-}
-
-/** True for any blue-leaning tone, light or dark (used for neutral text tinted blue). */
-export function isBlueTinted({ r, g, b }) {
-  return b >= r && b >= g && b - Math.min(r, g) >= 8
-}
-
-/** True for an orange hue: red dominant, mid green, minimal blue. */
-export function isOrange({ r, g, b }) {
-  return r > 180 && g > 60 && g < 190 && b < 90 && r - g > 50 && g - b > 20
-}
-
-/** True for black: no light in any channel, fully opaque. */
-export function isBlack({ r, g, b, a }) {
-  return r === 0 && g === 0 && b === 0 && a > 0.9
 }
 
 /** True for a gold hue: full red, strong green, no blue at all. */
 export function isGold({ r, g, b }) {
   return r > 200 && g > 150 && g < 240 && b < 60 && r - g > 20
-}
-
-/** True for an aqua/cyan hue: green and blue at full strength, no red. */
-export function isAqua({ r, g, b }) {
-  return r < 60 && g > 200 && b > 200 && Math.abs(g - b) < 40
 }

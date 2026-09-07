@@ -1,0 +1,73 @@
+/* Strange New Worlds — dark green page, gold writing. */
+
+:root {
+  --dark-green: #0b2e1a;
+  --gold: #ffd700;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--dark-green);
+}
+
+body {
+  margin: 0;
+  padding: 1.5rem;
+  background-color: var(--dark-green);
+  color: var(--gold);
+  font-family: Georgia, "Times New Roman", serif;
+  line-height: 1.5;
+}
+
+/* Headings inherit the gold from the body; only their size sets them apart. */
+h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+h2 {
+  margin: 0 0 0.75rem;
+  font-size: 1.25rem;
+}
+
+p {
+  margin: 0;
+}
+
+/* Navigation: the same dark green as the page, with gold links. */
+
+.site-header {
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--gold);
+}
+
+.site-nav {
+  margin-top: 1rem;
+  background-color: var(--dark-green);
+}
+
+.site-nav__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.site-nav__links a {
+  color: var(--gold);
+  text-decoration: none;
+}
+
+.site-nav__links a:hover,
+.site-nav__links a:focus {
+  text-decoration: underline;
+}
+
+main {
+  padding-top: 1.5rem;
+}
