@@ -1,24 +1,42 @@
-// Helpers for the "Strange New Worlds" site: the three pages, the shared
+// Helpers for the "Alpha Centauri" site: the three pages, the shared
 // stylesheet, and just enough CSS parsing to assert on declared colours.
 import { readdir, readFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
 
 export const repoRoot = join(import.meta.dirname, '..')
 
-export const SITE_NAME = 'Strange New Worlds'
+export const SITE_NAME = 'Alpha Centauri'
 
-/** The name this rebuild supersedes; it should survive nowhere on the site. */
-export const OLD_SITE_NAME = /sid meyer|brave new worlds/i
+/** The names this rebuild supersedes; they should survive nowhere on the site. */
+export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds/i
 
 export const STYLESHEET = 'style.css'
 
-/** The colour scheme: dark green page, gold writing. */
+/** The colour scheme: dark blue page, orange writing. */
 export const COLOURS = {
-  darkGreen: '#0b2e1a',
-  gold: '#ffd700',
+  darkBlue: '#0b1e3c',
+  orange: '#ff8c1a',
 }
 
-/** Readability floor for gold-on-green text: WCAG AA for body copy. */
+/**
+ * The custom property each scheme colour is declared under, so the palette is
+ * defined in exactly one place.
+ */
+export const COLOUR_VARS = {
+  darkBlue: '--dark-blue',
+  orange: '--orange',
+}
+
+/**
+ * The shades this rebrand supersedes, as bare hex digits so the check catches
+ * them however they are written (`#ffd700`, `%23ffd700` inside a data URI, …).
+ */
+export const OLD_COLOURS = ['0b2e1a', 'ffd700']
+
+/** Where the palette choice and the flagged out-of-scope gaps are written down. */
+export const PALETTE_NOTES = 'specs/73e4bb2c-ee3b-4009-b0ed-97501935ff03/notes.md'
+
+/** Readability floor for orange-on-blue text: WCAG AA for body copy. */
 export const MIN_CONTRAST = 4.5
 
 /** The nav menu, in the order it is written. */

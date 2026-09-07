@@ -1,8 +1,8 @@
-/* Strange New Worlds — dark green page, gold writing. */
+/* Alpha Centauri — dark blue page, orange writing. */
 
 :root {
-  --dark-green: #0b2e1a;
-  --gold: #ffd700;
+  --dark-blue: #0b1e3c;
+  --orange: #ff8c1a;
 }
 
 * {
@@ -10,19 +10,19 @@
 }
 
 html {
-  background-color: var(--dark-green);
+  background-color: var(--dark-blue);
 }
 
 body {
   margin: 0;
   padding: 1.5rem;
-  background-color: var(--dark-green);
-  color: var(--gold);
+  background-color: var(--dark-blue);
+  color: var(--orange);
   font-family: Georgia, "Times New Roman", serif;
   line-height: 1.5;
 }
 
-/* Headings inherit the gold from the body; only their size sets them apart. */
+/* Headings inherit the orange from the body; only their size sets them apart. */
 h1 {
   margin: 0;
   font-size: 2rem;
@@ -37,16 +37,16 @@ p {
   margin: 0;
 }
 
-/* Navigation: the same dark green as the page, with gold links. */
+/* Navigation: the same dark blue as the page, with orange links. */
 
 .site-header {
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--gold);
+  border-bottom: 1px solid var(--orange);
 }
 
 .site-nav {
   margin-top: 1rem;
-  background-color: var(--dark-green);
+  background-color: var(--dark-blue);
 }
 
 .site-nav__links {
@@ -59,7 +59,7 @@ p {
 }
 
 .site-nav__links a {
-  color: var(--gold);
+  color: var(--orange);
   text-decoration: none;
 }
 
