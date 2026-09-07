@@ -1,7 +1,7 @@
 {
-  "name": "sid-meyer-brave-new-worlds",
+  "name": "strange-new-worlds",
   "private": true,
-  "description": "Static Sid Meyer - Brave New Worlds home page — hero section and navigation bar, no build step.",
+  "description": "Static Strange New Worlds site — Home, About Us and Contact, no build step.",
   "scripts": {
     "test": "node --test tests/page.test.mjs"
   }
