@@ -1,7 +1,7 @@
 {
   "name": "strange-new-worlds",
   "private": true,
-  "description": "Static Alpha Centauri site — Home, About Us and Contact, no build step.",
+  "description": "Static Beta Centuri site — Home, About Us and Contact, no build step.",
   "scripts": {
     "test": "node --test tests/page.test.mjs"
   }

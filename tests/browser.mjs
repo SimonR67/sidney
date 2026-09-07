@@ -266,14 +266,18 @@ export function contrastRatio(fg, bg) {
   return (light + 0.05) / (dark + 0.05)
 }
 
-/** True for a dark blue: dim overall, with blue clearly the dominant channel. */
-export function isDarkBlue(color) {
-  return (
-    relativeLuminance(color) < 0.12 &&
-    color.a > 0.9 &&
-    color.b > color.r + 12 &&
-    color.b > color.g + 8
-  )
+/** How far apart a colour's channels are; 0 for a true neutral grey. */
+const spread = ({ r, g, b }) => Math.max(r, g, b) - Math.min(r, g, b)
+
+/** True for a dark grey: dim but not black, and neutral — no channel dominates. */
+export function isDarkGrey(color) {
+  const luminance = relativeLuminance(color)
+  return luminance >= 0.005 && luminance < 0.12 && color.a > 0.9 && spread(color) <= 12
+}
+
+/** True for a light grey (white included): bright, neutral, opaque. */
+export function isLightGrey(color) {
+  return relativeLuminance(color) > 0.5 && color.a > 0.9 && spread(color) <= 12
 }
 
 /** True for an orange hue: full red, mid green, next to no blue — not a gold. */

@@ -1,21 +1,29 @@
-// Helpers for the "Alpha Centauri" site: the three pages, the shared
+// Helpers for the "Beta Centuri" site: the three pages, the shared
 // stylesheet, and just enough CSS parsing to assert on declared colours.
 import { readdir, readFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
 
 export const repoRoot = join(import.meta.dirname, '..')
 
-export const SITE_NAME = 'Alpha Centauri'
+export const SITE_NAME = 'Beta Centuri'
 
 /** The names this rebuild supersedes; they should survive nowhere on the site. */
-export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds/i
+export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds|alpha[- ]?centauri/i
 
 export const STYLESHEET = 'style.css'
 
-/** The colour scheme: dark blue page, orange writing. */
+/**
+ * The colour scheme: two dark greys for the surfaces, light grey for the body
+ * text, and three oranges — the accent plus the shades its hover and active
+ * states brighten and deepen to.
+ */
 export const COLOURS = {
-  darkBlue: '#0b1e3c',
+  darkGrey: '#1f1f1f',
+  raisedGrey: '#2e2e2e',
+  lightGrey: '#e6e6e6',
   orange: '#ff8c1a',
+  orangeBright: '#ffa94d',
+  orangeDeep: '#e8820f',
 }
 
 /**
@@ -23,18 +31,22 @@ export const COLOURS = {
  * defined in exactly one place.
  */
 export const COLOUR_VARS = {
-  darkBlue: '--dark-blue',
+  darkGrey: '--dark-grey',
+  raisedGrey: '--raised-grey',
+  lightGrey: '--light-grey',
   orange: '--orange',
+  orangeBright: '--orange-bright',
+  orangeDeep: '--orange-deep',
 }
 
 /**
  * The shades this rebrand supersedes, as bare hex digits so the check catches
  * them however they are written (`#ffd700`, `%23ffd700` inside a data URI, …).
  */
-export const OLD_COLOURS = ['0b2e1a', 'ffd700']
+export const OLD_COLOURS = ['0b2e1a', 'ffd700', '0b1e3c']
 
-/** Where the palette choice and the flagged out-of-scope gaps are written down. */
-export const PALETTE_NOTES = 'specs/73e4bb2c-ee3b-4009-b0ed-97501935ff03/notes.md'
+/** Where the discovery, the palette choice and the flagged gaps are written down. */
+export const NOTES = 'specs/201be276-bbdc-4548-b65d-b0f2c227227f/notes.md'
 
 /** Readability floor for orange-on-blue text: WCAG AA for body copy. */
 export const MIN_CONTRAST = 4.5
