@@ -10,6 +10,12 @@ export const SITE_NAME = 'Alpha Centuri'
 /** The names this rebuild supersedes; they should survive nowhere on the site. */
 export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds|alpha[- ]?centauri|beta[- ]?centuri/i
 
+/** The board advisory paragraph the home page has to carry, word for word. */
+export const HOME_PARAGRAPH =
+  'Our board advisory services ensure that your board is composed of the most qualified and diverse ' +
+  'members, driving better decision-making and governance and support in building your businesses ' +
+  'roadmap for growth.'
+
 /** The files a page's `<title>` is generated from — here, the pages themselves. */
 export const TITLE_SOURCES = ['index.html', 'about.html', 'contact.html']
 

@@ -24,6 +24,7 @@ import {
   PAGES,
   NAV_LINKS,
   MIN_CONTRAST,
+  HOME_PARAGRAPH,
   OLD_SITE_NAME,
   NOTES,
   SITE_NAME,
@@ -1183,6 +1184,131 @@ describe('Alpha rebrand task 7: the visible branding reads "Alpha Centuri"', () 
     const headers = await Promise.all(PAGES.map(async ({ file }) => headerBlock(await read(file))))
 
     assert.deepEqual([...new Set(headers)].length, 1, 'the three pages carry different header markup')
+  })
+})
+
+describe('Alpha rebrand task 8: the board advisory paragraph on the home page', () => {
+  const site = servedInBrowser()
+
+  /** Locates the paragraph in the rendered page and measures it against its neighbours. */
+  const MEASURE = `
+    const wanted = ${JSON.stringify(HOME_PARAGRAPH)}
+    const normalise = (text) => text.replace(/\\s+/g, ' ').trim()
+    const matches = [...document.querySelectorAll('body *')].filter((el) => normalise(el.textContent) === wanted)
+    const el = matches.at(-1)
+    if (!el) return { matches: matches.length, found: false }
+    const style = getComputedStyle(el)
+    const rect = el.getBoundingClientRect()
+    const box = (node) => {
+      if (!node) return null
+      const r = node.getBoundingClientRect()
+      return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }
+    }
+    return {
+      matches: matches.length,
+      found: true,
+      tag: el.tagName.toLowerCase(),
+      inMain: !!el.closest('main'),
+      display: style.display,
+      visibility: style.visibility,
+      opacity: style.opacity,
+      color: style.color,
+      rect: box(el),
+      previous: box(el.previousElementSibling),
+      next: box(el.nextElementSibling),
+      main: box(document.querySelector('main')),
+      viewport: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+    }
+  `
+
+  it('writes the paragraph into the home page source, word for word, in its own <p>', async () => {
+    const main = mainOf(await read('index.html'))
+
+    assert.ok(main.includes(HOME_PARAGRAPH), 'index.html does not carry the paragraph verbatim inside <main>')
+    assert.match(main, new RegExp(`<p>${HOME_PARAGRAPH.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}</p>`))
+  })
+
+  it('keeps the welcome line the paragraph follows', async () => {
+    const main = mainOf(await read('index.html'))
+
+    assert.ok(main.indexOf('Welcome to') < main.indexOf(HOME_PARAGRAPH), 'the paragraph does not follow the welcome line')
+  })
+
+  for (const width of [1280, 375]) {
+    it(`renders it once, visibly and without breaking the layout at ${width}px`, async () => {
+      const { page } = site
+      await page.setViewport(width, 900)
+      await page.goto(`${site.origin}/index.html`)
+      const state = await page.evaluate(MEASURE)
+
+      assert.ok(state.found, 'the paragraph is not in the rendered home page')
+      assert.equal(state.tag, 'p', `the paragraph renders as a <${state.tag}>`)
+      assert.ok(state.inMain, 'the paragraph renders outside <main>')
+      assert.notEqual(state.display, 'none')
+      assert.notEqual(state.visibility, 'hidden')
+      assert.notEqual(state.opacity, '0')
+      assert.ok(isLightGrey(parseColor(state.color)), `the paragraph is ${state.color}, not the body copy colour`)
+      assert.ok(state.rect.bottom - state.rect.top > 0, 'the paragraph has no height')
+
+      // Nothing around the insertion point overlaps, overflows or is clipped.
+      assert.ok(state.rect.left >= 0, `the paragraph starts at ${state.rect.left}px, off the left edge`)
+      assert.ok(state.rect.right <= state.viewport, `the paragraph runs to ${state.rect.right}px past ${state.viewport}px`)
+      assert.equal(state.documentWidth <= state.viewport, true, 'the page now overflows sideways')
+      assert.ok(state.rect.right <= state.main.right + 1, 'the paragraph spills out of <main>')
+      if (state.previous) {
+        assert.ok(state.rect.top >= state.previous.bottom, 'the paragraph overlaps the element above it')
+      }
+      if (state.next) {
+        assert.ok(state.rect.bottom <= state.next.top, 'the paragraph overlaps the element below it')
+      }
+    })
+  }
+
+  it('sets the paragraph off from the welcome line instead of running the two together', async () => {
+    const { page } = site
+    await page.setViewport(1280, 900)
+    await page.goto(`${site.origin}/index.html`)
+    const spacing = await page.evaluate(`
+      const [welcome, advisory] = document.querySelectorAll('main p')
+      const line = parseFloat(getComputedStyle(advisory).lineHeight)
+      return { gap: advisory.getBoundingClientRect().top - welcome.getBoundingClientRect().bottom, line }
+    `)
+
+    assert.ok(
+      spacing.gap > 0,
+      `the two home page paragraphs sit ${spacing.gap}px apart, so they read as one block of text`,
+    )
+    assert.ok(spacing.gap < spacing.line * 2, `the gap of ${spacing.gap}px is a layout change, not a paragraph break`)
+  })
+
+  it('leaves the single-paragraph pages spaced exactly as they were', async () => {
+    const { page } = site
+    const css = await read(STYLESHEET)
+
+    assert.equal(declaredValue(css, ['p'], 'margin'), '0', 'a bare <p> no longer sits flush, so the other pages moved')
+    for (const file of ['about.html', 'contact.html']) {
+      await page.goto(`${site.origin}/${file}`)
+      const margin = await page.evaluate(`
+        const style = getComputedStyle(document.querySelector('main p'))
+        return { top: style.marginTop, bottom: style.marginBottom }
+      `)
+
+      assert.deepEqual(margin, { top: '0px', bottom: '0px' }, `the lone paragraph on ${file} has gained a margin`)
+    }
+  })
+
+  it('renders it exactly once, and on the home page only', async () => {
+    const { page } = site
+    await page.setViewport(1280, 900)
+    await page.goto(`${site.origin}/index.html`)
+    const home = await page.evaluate(MEASURE)
+
+    // <main> and <body> would also match if the page held nothing else.
+    assert.equal(home.matches, 1, `the paragraph appears ${home.matches} times on the home page`)
+    for (const file of ['about.html', 'contact.html']) {
+      assert.ok(!(await read(file)).includes(HOME_PARAGRAPH), `${file} carries the home page paragraph`)
+    }
   })
 })
 
