@@ -8,6 +8,7 @@ import { access } from 'node:fs/promises'
 import { join } from 'node:path'
 import {
   contrastRatio,
+  isDarkBlue,
   isDarkGrey,
   isLightGrey,
   isOrange,
@@ -281,9 +282,9 @@ describe('Task 5 (rendered): nav colours in the browser', () => {
   }
 })
 
-describe('Task 6: the foreground shades stay legible on both greys', () => {
+describe('Task 6: the foreground shades stay legible on every surface', () => {
   const FOREGROUNDS = ['lightGrey', 'orange', 'orangeBright', 'orangeDeep']
-  const SURFACES = ['darkGrey', 'raisedGrey']
+  const SURFACES = Object.keys(COLOURS).filter((name) => !FOREGROUNDS.includes(name))
 
   for (const surface of SURFACES) {
     for (const foreground of FOREGROUNDS) {
@@ -883,6 +884,49 @@ describe('Alpha rebrand task 1: the audit of what has to change', () => {
       assert.ok(references(branding).includes(reference), `the audit omits the visible branding at ${reference}`)
     }
     assert.match(home, /<main>/, 'the audit does not say where the home page copy lives')
+  })
+})
+
+describe('Alpha rebrand task 2: the new theme values, named and centralised', () => {
+  const SURFACES = { darkBlue: 'the page surface', raisedBlue: 'the raised header/nav surface' }
+  const ACCENTS = { orange: 'the accent', orangeBright: 'its hover shade', orangeDeep: 'its pressed shade' }
+
+  it('declares the dark blues as custom properties holding the intended hexes', async () => {
+    const css = await read(STYLESHEET)
+
+    for (const [name, what] of Object.entries(SURFACES)) {
+      const declared = declaredValue(css, [':root'], COLOUR_VARS[name])
+
+      assert.equal(declared, COLOURS[name], `${COLOUR_VARS[name]} (${what}) is not ${COLOURS[name]}`)
+      assert.ok(isDarkBlue(parseHex(declared)), `${COLOUR_VARS[name]} is ${declared}, which is not a dark blue`)
+    }
+  })
+
+  it('keeps the oranges as custom properties holding the intended hexes', async () => {
+    const css = await read(STYLESHEET)
+
+    for (const [name, what] of Object.entries(ACCENTS)) {
+      const declared = declaredValue(css, [':root'], COLOUR_VARS[name])
+
+      assert.equal(declared, COLOURS[name], `${COLOUR_VARS[name]} (${what}) is not ${COLOURS[name]}`)
+      assert.ok(isOrange(parseHex(declared)), `${COLOUR_VARS[name]} is ${declared}, which is not an orange`)
+    }
+  })
+
+  it('keeps the two blues distinct, so the header can sit on its own layer', () => {
+    assert.notEqual(COLOURS.darkBlue, COLOURS.raisedBlue)
+  })
+
+  it('writes the new shades once each, so nothing hard-codes them', async () => {
+    const css = await read(STYLESHEET)
+
+    for (const name of Object.keys(SURFACES)) {
+      assert.equal(
+        hexColours(css).filter((colour) => colour === COLOURS[name]).length,
+        1,
+        `${COLOURS[name]} is written more than once in ${STYLESHEET}; it should come from ${COLOUR_VARS[name]}`,
+      )
+    }
   })
 })
 

@@ -13,13 +13,19 @@ export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds|alph
 export const STYLESHEET = 'style.css'
 
 /**
- * The colour scheme: two dark greys for the surfaces, light grey for the body
+ * The colour scheme: two dark blues for the surfaces, light grey for the body
  * text, and three oranges — the accent plus the shades its hover and active
  * states brighten and deepen to.
+ *
+ * The two greys are the outgoing surfaces. Plan task 2 introduces the blues
+ * alongside them without repainting anything, so both pairs are declared for
+ * that one step; task 3 switches the surfaces over and drops the greys.
  */
 export const COLOURS = {
   darkGrey: '#1f1f1f',
   raisedGrey: '#2e2e2e',
+  darkBlue: '#0c1c38',
+  raisedBlue: '#16294d',
   lightGrey: '#e6e6e6',
   orange: '#ff8c1a',
   orangeBright: '#ffa94d',
@@ -33,6 +39,8 @@ export const COLOURS = {
 export const COLOUR_VARS = {
   darkGrey: '--dark-grey',
   raisedGrey: '--raised-grey',
+  darkBlue: '--dark-blue',
+  raisedBlue: '--raised-blue',
   lightGrey: '--light-grey',
   orange: '--orange',
   orangeBright: '--orange-bright',

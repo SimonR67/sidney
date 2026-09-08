@@ -280,6 +280,17 @@ export function isLightGrey(color) {
   return relativeLuminance(color) > 0.5 && color.a > 0.9 && spread(color) <= 12
 }
 
+/**
+ * True for a dark blue: dim but not black, opaque, and unmistakably blue —
+ * blue leads the channels by a clear margin and green sits between it and red,
+ * which rules out a neutral grey, a purple and a teal alike.
+ */
+export function isDarkBlue(color) {
+  const { r, g, b, a } = color
+  const luminance = relativeLuminance(color)
+  return luminance >= 0.005 && luminance < 0.12 && a > 0.9 && b - g >= 12 && g >= r && b - r >= 24
+}
+
 /** True for an orange hue: full red, mid green, next to no blue — not a gold. */
 export function isOrange({ r, g, b }) {
   return r > 200 && g > 80 && g < 200 && b < 80 && r - g > 60
