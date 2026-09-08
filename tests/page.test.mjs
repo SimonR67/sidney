@@ -7,6 +7,7 @@
 import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { access } from 'node:fs/promises'
+import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
 import {
   contrastRatio,
@@ -48,6 +49,9 @@ import {
 } from './site.mjs'
 
 const GLOBAL_SELECTORS = [':root', '*', 'html', 'body']
+
+/** The state of the site this rebrand started from, for the task 9 diff review. */
+const BASELINE = 'main'
 
 /**
  * Serves the repo and opens one headless-Chrome page for the enclosing suite.
@@ -1308,6 +1312,91 @@ describe('Alpha rebrand task 8: the board advisory paragraph on the home page', 
     assert.equal(home.matches, 1, `the paragraph appears ${home.matches} times on the home page`)
     for (const file of ['about.html', 'contact.html']) {
       assert.ok(!(await read(file)).includes(HOME_PARAGRAPH), `${file} carries the home page paragraph`)
+    }
+  })
+})
+
+describe('Alpha rebrand task 9: nothing changed that was not meant to', () => {
+  const site = servedInBrowser()
+
+  /** The added/removed lines of `git diff <BASELINE> -- <file>`, or `null` when the ref is missing. */
+  const changedLines = (file) => {
+    const ref = spawnSync('git', ['rev-parse', '--verify', `${BASELINE}^{commit}`], { cwd: repoRoot })
+    if (ref.status !== 0) return null
+    const diff = spawnSync('git', ['diff', '--unified=0', BASELINE, '--', file], { cwd: repoRoot, encoding: 'utf8' })
+    assert.equal(diff.status, 0, diff.stderr)
+    return diff.stdout
+      .split('\n')
+      .filter((line) => /^[+-]/.test(line) && !/^(\+\+\+|---)/.test(line))
+      .map((line) => line.slice(1).trim())
+      .filter(Boolean)
+  }
+
+  /** A changed line the rebrand accounts for: the site name, or the favicon's page colour. */
+  const isBrandingOnly = (line) =>
+    /Centuri/.test(line) || line.includes(`fill='%23${COLOURS.darkBlue.slice(1)}'`) || line.includes("fill='%231f1f1f'")
+
+  for (const file of ['about.html', 'contact.html']) {
+    it(`changes nothing but the title and branding strings on ${file}`, () => {
+      const lines = changedLines(file)
+
+      if (lines === null) return // No baseline to diff against in this checkout.
+      assert.ok(lines.length > 0, `${file} was never rebranded`)
+      for (const line of lines) {
+        assert.ok(isBrandingOnly(line), `${file} has a change beyond the title/branding swap:\n  ${line}`)
+      }
+    })
+  }
+
+  it('changes nothing on the home page but the branding and the new paragraph', () => {
+    const lines = changedLines('index.html')
+
+    if (lines === null) return
+    for (const line of lines) {
+      assert.ok(
+        isBrandingOnly(line) || line.includes(HOME_PARAGRAPH),
+        `index.html has a change beyond the branding swap and the new paragraph:\n  ${line}`,
+      )
+    }
+  })
+
+  it('leaves the navigation structure alone on every page', async () => {
+    const { page } = site
+    const source = await Promise.all(PAGES.map(async ({ file }) => navBlock(await read(file))))
+
+    assert.equal(new Set(source).size, 1, 'the three pages no longer share one nav markup')
+    for (const { file } of PAGES) {
+      await page.goto(`${site.origin}/${file}`)
+      const nav = await page.evaluate(`
+        const nav = document.querySelector('nav')
+        return {
+          count: document.querySelectorAll('nav').length,
+          label: nav.getAttribute('aria-label'),
+          links: [...nav.querySelectorAll('a')].map((a) => ({ href: a.getAttribute('href'), label: a.textContent.trim() })),
+        }
+      `)
+
+      assert.equal(nav.count, 1, `${file} has ${nav.count} navigations`)
+      assert.equal(nav.label, 'Primary', `${file}'s nav is no longer labelled Primary`)
+      assert.deepEqual(nav.links, NAV_LINKS, `${file}'s nav links have changed`)
+    }
+  })
+
+  it('leaves the element skeleton of every page as it was', async () => {
+    const SKELETON = {
+      'index.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p', 'p'],
+      'about.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p'],
+      'contact.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p'],
+    }
+
+    for (const [file, skeleton] of Object.entries(SKELETON)) {
+      assert.deepEqual(tagsIn(await read(file)), skeleton, `${file}'s markup structure has changed`)
+    }
+  })
+
+  it('leaves the non-home pages saying only what they said before', async () => {
+    for (const { file, heading } of PAGES.filter((p) => p.file !== 'index.html')) {
+      assert.equal(mainOf(await read(file)).trim(), `<h2>${heading}</h2>\n      <p>Coming soon.</p>`)
     }
   })
 })
