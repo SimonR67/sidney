@@ -1025,6 +1025,91 @@ describe('Alpha rebrand task 4: every audited button style carries the orange', 
   })
 })
 
+describe('Alpha rebrand task 5: every audited link and text accent is orange', () => {
+  const site = servedInBrowser()
+
+  /** One probe per text accent the task 1 audit turned up, added to the page under test. */
+  const INJECT = `
+    const main = document.querySelector('main')
+    const link = document.createElement('a')
+    link.id = 'probe-link'
+    link.href = 'about.html'
+    link.textContent = 'Probe'
+    const badge = document.createElement('span')
+    badge.id = 'probe-badge'
+    badge.className = 'badge'
+    badge.textContent = 'New'
+    const tag = document.createElement('span')
+    tag.id = 'probe-tag'
+    tag.className = 'tag'
+    tag.textContent = 'Tag'
+    main.append(link, badge, tag)
+    return null
+  `
+
+  const ACCENTS = [
+    { selector: 'h1.site-title', what: 'the site title', states: [[]] },
+    { selector: 'main h2', what: 'the page heading', states: [[]] },
+    { selector: '#probe-link', what: 'a link in the page body', states: [[], ['hover'], ['focus'], ['active'], ['visited']] },
+    { selector: 'nav a', what: 'a nav link', states: [[], ['hover'], ['focus'], ['active'], ['visited']] },
+    { selector: '#probe-badge', what: 'a badge', states: [[]] },
+    { selector: '#probe-tag', what: 'a tag', states: [[]] },
+  ]
+
+  for (const { file } of PAGES) {
+    it(`paints every accent on ${file} orange in each of its states`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/${file}`)
+      await page.evaluate(INJECT)
+
+      for (const { selector, what, states } of ACCENTS) {
+        for (const forced of states) {
+          await page.forcePseudoState(selector, forced)
+          const colour = await page.evaluate(
+            `return getComputedStyle(document.querySelector(${JSON.stringify(selector)})).color`,
+          )
+
+          assert.ok(
+            isOrange(parseColor(colour)),
+            `${what} on ${file} is ${colour} under :${forced.join(':') || 'rest'}, which is not an orange`,
+          )
+        }
+        await page.forcePseudoState(selector, [])
+      }
+    })
+  }
+
+  it('draws the accent rules from the palette, hover state included', async () => {
+    const css = await read(STYLESHEET)
+    const ACCENT_RULES = [
+      ['h1', 'color', COLOURS.orange],
+      ['h2', 'color', COLOURS.orange],
+      ['a', 'color', COLOURS.orange],
+      ['a:hover', 'color', COLOURS.orangeBright],
+      ['a:active', 'color', COLOURS.orangeDeep],
+      ['.site-nav__links a', 'color', COLOURS.orange],
+      ['.site-nav__links a:hover', 'color', COLOURS.orangeBright],
+      ['.site-nav__links a[aria-current="page"]', 'color', COLOURS.orangeBright],
+      ['.site-header', 'border-bottom', `1px solid ${COLOURS.orange}`],
+      [':focus-visible', 'outline', `2px solid ${COLOURS.orange}`],
+      ['.badge', 'color', COLOURS.orange],
+      ['.badge', 'border', `1px solid ${COLOURS.orange}`],
+    ]
+
+    for (const [selector, property, expected] of ACCENT_RULES) {
+      assert.equal(declaredValue(css, [selector], property), expected, `${selector} { ${property} }`)
+    }
+  })
+
+  it('keeps the body copy out of the accents, so the orange still stands out', async () => {
+    const { page } = site
+    await page.goto(`${site.origin}/index.html`)
+    const copy = await page.evaluate(`return getComputedStyle(document.querySelector('main p')).color`)
+
+    assert.ok(isLightGrey(parseColor(copy)), `the body copy is ${copy}, which should stay a light grey`)
+  })
+})
+
 describe('Beta rebrand task 7: no trace of the superseded shades', () => {
   it('mentions none of the old dark green, old gold or old dark blue anywhere in the site', async () => {
     for (const file of await siteFiles()) {
