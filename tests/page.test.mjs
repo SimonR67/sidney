@@ -1141,6 +1141,51 @@ describe('Alpha rebrand task 6: the browser tab reads "Alpha Centuri"', () => {
   })
 })
 
+describe('Alpha rebrand task 7: the visible branding reads "Alpha Centuri"', () => {
+  const site = servedInBrowser()
+
+  /** The page's `<header>` element, markup and all. */
+  const headerBlock = (html) => html.match(/<header\b[\s\S]*?<\/header>/i)?.[0] ?? null
+
+  /** The page's `<footer>` element, or `null` — this site ships none. */
+  const footerBlock = (html) => html.match(/<footer\b[\s\S]*?<\/footer>/i)?.[0] ?? null
+
+  for (const { file } of PAGES) {
+    it(`shows the new name in the rendered header of ${file}`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/${file}`)
+      const branding = await page.evaluate(`
+        const header = document.querySelector('header.site-header');
+        return {
+          title: header.querySelector('.site-title').textContent.trim(),
+          text: header.textContent,
+          footer: document.querySelector('footer')?.textContent ?? null,
+        }
+      `)
+
+      assert.equal(branding.title, SITE_NAME)
+      assert.ok(!OLD_SITE_NAME.test(branding.text), `the header on ${file} still names the old site`)
+      assert.equal(branding.footer, null, `${file} now ships a footer, which has to carry the new name too`)
+    })
+
+    it(`leaves no trace of the old name in the header or footer markup of ${file}`, async () => {
+      const html = await read(file)
+      const header = headerBlock(html)
+
+      assert.ok(header, `${file} has no <header>`)
+      assert.ok(header.includes(`>${SITE_NAME}<`), `the header markup of ${file} does not carry ${SITE_NAME}`)
+      assert.ok(!OLD_SITE_NAME.test(header), `the header markup of ${file} still names the old site`)
+      assert.equal(footerBlock(html), null, `${file} now ships a footer, which has to carry the new name too`)
+    })
+  }
+
+  it('brands all three pages identically, so the header is one string to change', async () => {
+    const headers = await Promise.all(PAGES.map(async ({ file }) => headerBlock(await read(file))))
+
+    assert.deepEqual([...new Set(headers)].length, 1, 'the three pages carry different header markup')
+  })
+})
+
 describe('Beta rebrand task 7: no trace of the superseded shades', () => {
   it('mentions none of the old dark green, old gold or old dark blue anywhere in the site', async () => {
     for (const file of await siteFiles()) {
