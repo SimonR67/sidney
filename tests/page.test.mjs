@@ -1,14 +1,17 @@
-// Tests for the "Beta Centuri" site.
+// Tests for the "Alpha Centuri" site.
 // Original build plan: specs/8393b537-ac67-46f5-b4e0-0b0d2e416f06/plan.md
-// Rebrand plan (dark grey page, orange accents, new name):
+// Grey rebrand plan (dark grey page, orange accents):
 // specs/201be276-bbdc-4548-b65d-b0f2c227227f/plan.md
+// Alpha rebrand plan (dark blue page, orange accents, new name):
+// specs/392b9d9e-063b-4b5e-80e0-17475eb94210/plan.md
 import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { access } from 'node:fs/promises'
+import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
 import {
   contrastRatio,
-  isDarkGrey,
+  isDarkBlue,
   isLightGrey,
   isOrange,
   openPage,
@@ -22,10 +25,12 @@ import {
   PAGES,
   NAV_LINKS,
   MIN_CONTRAST,
+  HOME_PARAGRAPH,
   OLD_SITE_NAME,
   NOTES,
   SITE_NAME,
   STYLESHEET,
+  TITLE_SOURCES,
   declaredValue,
   headingsIn,
   hexColours,
@@ -44,6 +49,9 @@ import {
 } from './site.mjs'
 
 const GLOBAL_SELECTORS = [':root', '*', 'html', 'body']
+
+/** The state of the site this rebrand started from, for the task 9 diff review. */
+const BASELINE = 'main'
 
 /**
  * Serves the repo and opens one headless-Chrome page for the enclosing suite.
@@ -105,14 +113,14 @@ const clickNav = async (page, label, expectedPath) => {
 }
 
 describe('Task 1: shared stylesheet base colours', () => {
-  it('paints the page a dark grey', async () => {
+  it('paints the page a dark blue', async () => {
     const css = await read(STYLESHEET)
     const background = declaredValue(css, GLOBAL_SELECTORS, 'background-color')
 
     assert.ok(background, `no background-color on any of ${GLOBAL_SELECTORS.join(', ')} in ${STYLESHEET}`)
     assert.ok(
-      isDarkGrey(parseHex(background)),
-      `${STYLESHEET} sets background-color: ${background}, which is not a dark grey`,
+      isDarkBlue(parseHex(background)),
+      `${STYLESHEET} sets background-color: ${background}, which is not a dark blue`,
     )
   })
 
@@ -127,7 +135,7 @@ describe('Task 1: shared stylesheet base colours', () => {
   it('declares the base colours as the values the tests expect', async () => {
     const css = await read(STYLESHEET)
 
-    assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'background-color'), COLOURS.darkGrey)
+    assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'background-color'), COLOURS.darkBlue)
     assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'color'), COLOURS.lightGrey)
   })
 })
@@ -235,13 +243,13 @@ describe('Task 5: the nav menu, styled the same on every page', () => {
     }
   })
 
-  it('paints the nav itself dark grey with orange links, not just the body', async () => {
+  it('paints the nav itself dark blue with orange links, not just the body', async () => {
     const css = await read(STYLESHEET)
     const background = declaredValue(css, ['.site-nav'], 'background-color')
     const linkColour = declaredValue(css, ['.site-nav__links a'], 'color')
 
     assert.ok(background, `${STYLESHEET} sets no background-color on .site-nav`)
-    assert.ok(isDarkGrey(parseHex(background)), `.site-nav background-color is ${background}, not a dark grey`)
+    assert.ok(isDarkBlue(parseHex(background)), `.site-nav background-color is ${background}, not a dark blue`)
     assert.ok(linkColour, `${STYLESHEET} sets no color on the nav links`)
     assert.ok(isOrange(parseHex(linkColour)), `nav link color is ${linkColour}, not an orange`)
   })
@@ -259,7 +267,7 @@ describe('Task 5 (rendered): nav colours in the browser', () => {
   const site = servedInBrowser()
 
   for (const { file } of PAGES) {
-    it(`renders ${file} with a dark grey nav and orange nav links`, async () => {
+    it(`renders ${file} with a dark blue nav and orange nav links`, async () => {
       const { page } = site
       await page.goto(`${site.origin}/${file}`)
       const state = await page.evaluate(`
@@ -273,17 +281,17 @@ describe('Task 5 (rendered): nav colours in the browser', () => {
         }
       `)
 
-      assert.ok(isDarkGrey(parseColor(state.navBg)), `nav background on ${file} is ${state.navBg}`)
+      assert.ok(isDarkBlue(parseColor(state.navBg)), `nav background on ${file} is ${state.navBg}`)
       assert.ok(isOrange(parseColor(state.linkColor)), `nav link colour on ${file} is ${state.linkColor}`)
-      assert.ok(isDarkGrey(parseColor(state.bodyBg)), `body background on ${file} is ${state.bodyBg}`)
+      assert.ok(isDarkBlue(parseColor(state.bodyBg)), `body background on ${file} is ${state.bodyBg}`)
       assert.ok(isLightGrey(parseColor(state.bodyColor)), `body text colour on ${file} is ${state.bodyColor}`)
     })
   }
 })
 
-describe('Task 6: the foreground shades stay legible on both greys', () => {
+describe('Task 6: the foreground shades stay legible on every surface', () => {
   const FOREGROUNDS = ['lightGrey', 'orange', 'orangeBright', 'orangeDeep']
-  const SURFACES = ['darkGrey', 'raisedGrey']
+  const SURFACES = Object.keys(COLOURS).filter((name) => !FOREGROUNDS.includes(name))
 
   for (const surface of SURFACES) {
     for (const foreground of FOREGROUNDS) {
@@ -432,8 +440,8 @@ describe('Test plan: the visitor journey end to end', () => {
     assert.equal(state.title, SITE_NAME, `${where}: browser tab`)
     assert.equal(state.siteTitle, SITE_NAME, `${where}: visible site title`)
     assert.deepEqual(state.nav, NAV_LINKS, `${where}: nav menu`)
-    assert.ok(isDarkGrey(parseColor(state.bodyBg)), `${where}: body background ${state.bodyBg}`)
-    assert.ok(isDarkGrey(parseColor(state.navBg)), `${where}: nav background ${state.navBg}`)
+    assert.ok(isDarkBlue(parseColor(state.bodyBg)), `${where}: body background ${state.bodyBg}`)
+    assert.ok(isDarkBlue(parseColor(state.navBg)), `${where}: nav background ${state.navBg}`)
     assert.ok(isOrange(parseColor(state.navColor)), `${where}: nav link colour ${state.navColor}`)
     assert.ok(isOrange(parseColor(state.headingColor)), `${where}: heading colour ${state.headingColor}`)
     assert.ok(isLightGrey(parseColor(state.copyColor)), `${where}: body copy colour ${state.copyColor}`)
@@ -481,22 +489,22 @@ describe('Test plan: the visitor journey end to end', () => {
   })
 })
 
-describe('Beta rebrand task 7: two layered dark greys', () => {
+describe('Beta rebrand task 7: two layered surfaces', () => {
   const site = servedInBrowser()
 
-  it('declares a base surface and a raised one, both dark grey and not the same', async () => {
+  it('declares a base surface and a raised one, both dark blue and not the same', async () => {
     const css = await read(STYLESHEET)
     const base = declaredValue(css, GLOBAL_SELECTORS, 'background-color')
     const raised = declaredValue(css, ['.site-header'], 'background-color')
 
     assert.ok(raised, `${STYLESHEET} sets no background-color on .site-header`)
-    assert.ok(isDarkGrey(parseHex(base)), `the page background ${base} is not a dark grey`)
-    assert.ok(isDarkGrey(parseHex(raised)), `the header background ${raised} is not a dark grey`)
+    assert.ok(isDarkBlue(parseHex(base)), `the page background ${base} is not a dark blue`)
+    assert.ok(isDarkBlue(parseHex(raised)), `the header background ${raised} is not a dark blue`)
     assert.notEqual(raised, base, 'the header and the page share one shade, so nothing is layered')
   })
 
   for (const { file } of PAGES) {
-    it(`renders ${file} with the header sitting on a different dark grey to the page`, async () => {
+    it(`renders ${file} with the header sitting on a different dark blue to the page`, async () => {
       const { page } = site
       await page.goto(`${site.origin}/${file}`)
       const state = await page.evaluate(`
@@ -506,8 +514,8 @@ describe('Beta rebrand task 7: two layered dark greys', () => {
         }
       `)
 
-      assert.ok(isDarkGrey(parseColor(state.pageBg)), `page background on ${file} is ${state.pageBg}`)
-      assert.ok(isDarkGrey(parseColor(state.headerBg)), `header background on ${file} is ${state.headerBg}`)
+      assert.ok(isDarkBlue(parseColor(state.pageBg)), `page background on ${file} is ${state.pageBg}`)
+      assert.ok(isDarkBlue(parseColor(state.headerBg)), `header background on ${file} is ${state.headerBg}`)
       assert.notEqual(state.headerBg, state.pageBg, `header and page render the same shade on ${file}`)
     })
   }
@@ -832,6 +840,663 @@ describe('Beta rebrand task 1: the superseded name, found and written down', () 
 
     assert.match(discovery, new RegExp(STYLESHEET.replace('.', '\\.')), `the discovery notes omit ${STYLESHEET}`)
     assert.match(discovery, /custom propert/i, 'the discovery notes do not say how the colours are centralised')
+  })
+})
+
+describe('Alpha rebrand task 1: the audit of what has to change', () => {
+  /** The block under a `### Heading` inside the notes, up to the next heading of any level. */
+  const subsection = async (heading) => {
+    const notes = await read(NOTES)
+    return notes.split(new RegExp(`^### ${heading}.*$`, 'm')).at(1)?.split(/^#{2,3} /m).at(0) ?? null
+  }
+
+  /** Every `file.ext:line` reference written in a block of the audit. */
+  const references = (block) => [...block.matchAll(/`([\w./-]+\.\w+):(\d+)`/g)].map(([, file, line]) => `${file}:${line}`)
+
+  const AUDIT = {
+    'Site title occurrences': ['index.html:6', 'about.html:6', 'contact.html:6'],
+    'Background colour declarations': ['style.css:17', 'style.css:23', 'style.css:70', 'style.css:76'],
+    'Button colour declarations': ['style.css:121', 'style.css:122', 'style.css:123'],
+    'Link and text-accent colour declarations': ['style.css:33', 'style.css:39', 'style.css:47', 'style.css:89'],
+    'Home page content source': ['index.html:26', 'index.html:27'],
+  }
+
+  for (const [heading, expected] of Object.entries(AUDIT)) {
+    it(`lists concrete file:line references under "${heading}"`, async () => {
+      const block = await subsection(heading)
+
+      assert.ok(block, `${NOTES} has no "### ${heading}" section`)
+      const found = references(block)
+      for (const reference of expected) {
+        assert.ok(found.includes(reference), `the "${heading}" audit omits ${reference}`)
+      }
+    })
+  }
+
+  it('accounts for every file of the site and its tests, so nothing found is left off the list', async () => {
+    const notes = await read(NOTES)
+    const [, discovery] = notes.split(/^## \d+\. Discovery.*$/m)
+
+    assert.ok(discovery, `${NOTES} has no "Discovery" section`)
+    for (const file of [...(await siteFiles()), 'tests/site.mjs', 'tests/page.test.mjs']) {
+      assert.match(discovery, new RegExp(file.replace(/\./g, '\\.')), `the audit never mentions ${file}`)
+    }
+  })
+
+  it('names the branding text and the home page copy the rebrand has to rewrite', async () => {
+    const branding = await subsection('Site title occurrences')
+    const home = await subsection('Home page content source')
+
+    for (const reference of ['index.html:16', 'about.html:16', 'contact.html:16']) {
+      assert.ok(references(branding).includes(reference), `the audit omits the visible branding at ${reference}`)
+    }
+    assert.match(home, /<main>/, 'the audit does not say where the home page copy lives')
+  })
+})
+
+describe('Alpha rebrand task 2: the new theme values, named and centralised', () => {
+  const SURFACES = { darkBlue: 'the page surface', raisedBlue: 'the raised header/nav surface' }
+  const ACCENTS = { orange: 'the accent', orangeBright: 'its hover shade', orangeDeep: 'its pressed shade' }
+
+  it('declares the dark blues as custom properties holding the intended hexes', async () => {
+    const css = await read(STYLESHEET)
+
+    for (const [name, what] of Object.entries(SURFACES)) {
+      const declared = declaredValue(css, [':root'], COLOUR_VARS[name])
+
+      assert.equal(declared, COLOURS[name], `${COLOUR_VARS[name]} (${what}) is not ${COLOURS[name]}`)
+      assert.ok(isDarkBlue(parseHex(declared)), `${COLOUR_VARS[name]} is ${declared}, which is not a dark blue`)
+    }
+  })
+
+  it('keeps the oranges as custom properties holding the intended hexes', async () => {
+    const css = await read(STYLESHEET)
+
+    for (const [name, what] of Object.entries(ACCENTS)) {
+      const declared = declaredValue(css, [':root'], COLOUR_VARS[name])
+
+      assert.equal(declared, COLOURS[name], `${COLOUR_VARS[name]} (${what}) is not ${COLOURS[name]}`)
+      assert.ok(isOrange(parseHex(declared)), `${COLOUR_VARS[name]} is ${declared}, which is not an orange`)
+    }
+  })
+
+  it('keeps the two blues distinct, so the header can sit on its own layer', () => {
+    assert.notEqual(COLOURS.darkBlue, COLOURS.raisedBlue)
+  })
+
+  it('writes the new shades once each, so nothing hard-codes them', async () => {
+    const css = await read(STYLESHEET)
+
+    for (const name of Object.keys(SURFACES)) {
+      assert.equal(
+        hexColours(css).filter((colour) => colour === COLOURS[name]).length,
+        1,
+        `${COLOURS[name]} is written more than once in ${STYLESHEET}; it should come from ${COLOUR_VARS[name]}`,
+      )
+    }
+  })
+})
+
+describe('Alpha rebrand task 4: every audited button style carries the orange', () => {
+  const site = servedInBrowser()
+
+  /**
+   * One probe per distinct button style the task 1 audit turned up: the bare
+   * element, the `.btn` class it shares its rule with, and the secondary
+   * variant. `fills` marks the ones whose orange is the fill rather than just
+   * the border and label.
+   */
+  const BUTTONS = [
+    { id: 'probe-element', tag: 'button', className: '', what: 'a bare <button>', fills: true },
+    { id: 'probe-btn', tag: 'button', className: 'btn', what: 'a .btn', fills: true },
+    { id: 'probe-anchor', tag: 'a', className: 'btn', what: 'a .btn on an <a>', fills: true },
+    { id: 'probe-secondary', tag: 'button', className: 'btn btn--secondary', what: 'a .btn--secondary', fills: false },
+  ]
+
+  const INJECT = `
+    for (const { id, tag, className } of ${JSON.stringify(BUTTONS)}) {
+      const el = document.createElement(tag)
+      el.id = id
+      if (className) el.className = className
+      el.textContent = 'Probe'
+      document.querySelector('main').append(el)
+    }
+    return null
+  `
+
+  const paintOf = (selector) => `
+    const style = getComputedStyle(document.querySelector(${JSON.stringify(selector)}));
+    return { background: style.backgroundColor, border: style.borderTopColor, label: style.color }
+  `
+
+  const STATES = [['rest', []], ['hover', ['hover']], ['focus', ['focus']], ['active', ['active']]]
+
+  for (const button of BUTTONS) {
+    it(`paints ${button.what} orange at rest, on hover, on focus and on press`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/index.html`)
+      await page.evaluate(INJECT)
+      const selector = `#${button.id}`
+
+      for (const [state, forced] of STATES) {
+        await page.forcePseudoState(selector, forced)
+        const paint = await page.evaluate(paintOf(selector))
+
+        assert.ok(
+          isOrange(parseColor(paint.border)),
+          `${button.what} under :${state} has a ${paint.border} border, which is not an orange`,
+        )
+        if (button.fills) {
+          assert.ok(
+            isOrange(parseColor(paint.background)),
+            `${button.what} under :${state} is filled ${paint.background}, which is not an orange`,
+          )
+          assert.equal(
+            parseColor(paint.label).r,
+            parseHex(COLOURS.darkBlue).r,
+            `${button.what}'s label under :${state} is ${paint.label}, not the page's dark blue`,
+          )
+        } else {
+          assert.ok(
+            isOrange(parseColor(paint.label)),
+            `${button.what}'s label under :${state} is ${paint.label}, which is not an orange`,
+          )
+        }
+        const ratio = contrastRatio(parseColor(paint.label), parseColor(paint.background))
+        if (parseColor(paint.background).a > 0) {
+          assert.ok(
+            ratio >= MIN_CONTRAST,
+            `${button.what} under :${state} is ${paint.label} on ${paint.background}: ${ratio.toFixed(2)}:1`,
+          )
+        }
+      }
+      await page.forcePseudoState(selector, [])
+    })
+  }
+
+  it('takes the button colours from the palette alone, never a literal', async () => {
+    const css = await read(STYLESHEET)
+    const BUTTON_RULES = [
+      ['.btn', 'background-color', COLOURS.orange],
+      ['.btn', 'border', `1px solid ${COLOURS.orange}`],
+      ['.btn', 'color', COLOURS.darkBlue],
+      ['.btn:hover', 'background-color', COLOURS.orangeBright],
+      ['.btn:active', 'background-color', COLOURS.orangeDeep],
+      ['.btn--secondary', 'color', COLOURS.orange],
+    ]
+
+    for (const [selector, property, expected] of BUTTON_RULES) {
+      assert.equal(declaredValue(css, [selector], property), expected, `${selector} { ${property} }`)
+    }
+  })
+})
+
+describe('Alpha rebrand task 5: every audited link and text accent is orange', () => {
+  const site = servedInBrowser()
+
+  /** One probe per text accent the task 1 audit turned up, added to the page under test. */
+  const INJECT = `
+    const main = document.querySelector('main')
+    const link = document.createElement('a')
+    link.id = 'probe-link'
+    link.href = 'about.html'
+    link.textContent = 'Probe'
+    const badge = document.createElement('span')
+    badge.id = 'probe-badge'
+    badge.className = 'badge'
+    badge.textContent = 'New'
+    const tag = document.createElement('span')
+    tag.id = 'probe-tag'
+    tag.className = 'tag'
+    tag.textContent = 'Tag'
+    main.append(link, badge, tag)
+    return null
+  `
+
+  const ACCENTS = [
+    { selector: 'h1.site-title', what: 'the site title', states: [[]] },
+    { selector: 'main h2', what: 'the page heading', states: [[]] },
+    { selector: '#probe-link', what: 'a link in the page body', states: [[], ['hover'], ['focus'], ['active'], ['visited']] },
+    { selector: 'nav a', what: 'a nav link', states: [[], ['hover'], ['focus'], ['active'], ['visited']] },
+    { selector: '#probe-badge', what: 'a badge', states: [[]] },
+    { selector: '#probe-tag', what: 'a tag', states: [[]] },
+  ]
+
+  for (const { file } of PAGES) {
+    it(`paints every accent on ${file} orange in each of its states`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/${file}`)
+      await page.evaluate(INJECT)
+
+      for (const { selector, what, states } of ACCENTS) {
+        for (const forced of states) {
+          await page.forcePseudoState(selector, forced)
+          const colour = await page.evaluate(
+            `return getComputedStyle(document.querySelector(${JSON.stringify(selector)})).color`,
+          )
+
+          assert.ok(
+            isOrange(parseColor(colour)),
+            `${what} on ${file} is ${colour} under :${forced.join(':') || 'rest'}, which is not an orange`,
+          )
+        }
+        await page.forcePseudoState(selector, [])
+      }
+    })
+  }
+
+  it('draws the accent rules from the palette, hover state included', async () => {
+    const css = await read(STYLESHEET)
+    const ACCENT_RULES = [
+      ['h1', 'color', COLOURS.orange],
+      ['h2', 'color', COLOURS.orange],
+      ['a', 'color', COLOURS.orange],
+      ['a:hover', 'color', COLOURS.orangeBright],
+      ['a:active', 'color', COLOURS.orangeDeep],
+      ['.site-nav__links a', 'color', COLOURS.orange],
+      ['.site-nav__links a:hover', 'color', COLOURS.orangeBright],
+      ['.site-nav__links a[aria-current="page"]', 'color', COLOURS.orangeBright],
+      ['.site-header', 'border-bottom', `1px solid ${COLOURS.orange}`],
+      [':focus-visible', 'outline', `2px solid ${COLOURS.orange}`],
+      ['.badge', 'color', COLOURS.orange],
+      ['.badge', 'border', `1px solid ${COLOURS.orange}`],
+    ]
+
+    for (const [selector, property, expected] of ACCENT_RULES) {
+      assert.equal(declaredValue(css, [selector], property), expected, `${selector} { ${property} }`)
+    }
+  })
+
+  it('keeps the body copy out of the accents, so the orange still stands out', async () => {
+    const { page } = site
+    await page.goto(`${site.origin}/index.html`)
+    const copy = await page.evaluate(`return getComputedStyle(document.querySelector('main p')).color`)
+
+    assert.ok(isLightGrey(parseColor(copy)), `the body copy is ${copy}, which should stay a light grey`)
+  })
+})
+
+describe('Alpha rebrand task 6: the browser tab reads "Alpha Centuri"', () => {
+  const site = servedInBrowser()
+
+  it('names the site "Alpha Centuri", the one value every page titles itself with', () => {
+    assert.equal(SITE_NAME, 'Alpha Centuri')
+  })
+
+  for (const file of TITLE_SOURCES) {
+    it(`renders <title>Alpha Centuri</title> on ${file}`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/${file}`)
+
+      assert.equal(await page.evaluate('return document.title'), 'Alpha Centuri')
+      assert.equal(titleOf(await read(file)), 'Alpha Centuri')
+    })
+  }
+
+  it('leaves the superseded name in none of the title-generating sources', async () => {
+    for (const file of TITLE_SOURCES) {
+      assert.ok(!OLD_SITE_NAME.test(titleOf(await read(file))), `${file}'s <title> still names the old site`)
+    }
+  })
+
+  it('titles every page from the same value, so there is one name to change', async () => {
+    const titles = await Promise.all(TITLE_SOURCES.map(async (file) => titleOf(await read(file))))
+
+    assert.deepEqual([...new Set(titles)], [SITE_NAME])
+  })
+})
+
+describe('Alpha rebrand task 7: the visible branding reads "Alpha Centuri"', () => {
+  const site = servedInBrowser()
+
+  /** The page's `<header>` element, markup and all. */
+  const headerBlock = (html) => html.match(/<header\b[\s\S]*?<\/header>/i)?.[0] ?? null
+
+  /** The page's `<footer>` element, or `null` — this site ships none. */
+  const footerBlock = (html) => html.match(/<footer\b[\s\S]*?<\/footer>/i)?.[0] ?? null
+
+  for (const { file } of PAGES) {
+    it(`shows the new name in the rendered header of ${file}`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/${file}`)
+      const branding = await page.evaluate(`
+        const header = document.querySelector('header.site-header');
+        return {
+          title: header.querySelector('.site-title').textContent.trim(),
+          text: header.textContent,
+          footer: document.querySelector('footer')?.textContent ?? null,
+        }
+      `)
+
+      assert.equal(branding.title, SITE_NAME)
+      assert.ok(!OLD_SITE_NAME.test(branding.text), `the header on ${file} still names the old site`)
+      assert.equal(branding.footer, null, `${file} now ships a footer, which has to carry the new name too`)
+    })
+
+    it(`leaves no trace of the old name in the header or footer markup of ${file}`, async () => {
+      const html = await read(file)
+      const header = headerBlock(html)
+
+      assert.ok(header, `${file} has no <header>`)
+      assert.ok(header.includes(`>${SITE_NAME}<`), `the header markup of ${file} does not carry ${SITE_NAME}`)
+      assert.ok(!OLD_SITE_NAME.test(header), `the header markup of ${file} still names the old site`)
+      assert.equal(footerBlock(html), null, `${file} now ships a footer, which has to carry the new name too`)
+    })
+  }
+
+  it('brands all three pages identically, so the header is one string to change', async () => {
+    const headers = await Promise.all(PAGES.map(async ({ file }) => headerBlock(await read(file))))
+
+    assert.deepEqual([...new Set(headers)].length, 1, 'the three pages carry different header markup')
+  })
+})
+
+describe('Alpha rebrand task 8: the board advisory paragraph on the home page', () => {
+  const site = servedInBrowser()
+
+  /** Locates the paragraph in the rendered page and measures it against its neighbours. */
+  const MEASURE = `
+    const wanted = ${JSON.stringify(HOME_PARAGRAPH)}
+    const normalise = (text) => text.replace(/\\s+/g, ' ').trim()
+    const matches = [...document.querySelectorAll('body *')].filter((el) => normalise(el.textContent) === wanted)
+    const el = matches.at(-1)
+    if (!el) return { matches: matches.length, found: false }
+    const style = getComputedStyle(el)
+    const rect = el.getBoundingClientRect()
+    const box = (node) => {
+      if (!node) return null
+      const r = node.getBoundingClientRect()
+      return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }
+    }
+    return {
+      matches: matches.length,
+      found: true,
+      tag: el.tagName.toLowerCase(),
+      inMain: !!el.closest('main'),
+      display: style.display,
+      visibility: style.visibility,
+      opacity: style.opacity,
+      color: style.color,
+      rect: box(el),
+      previous: box(el.previousElementSibling),
+      next: box(el.nextElementSibling),
+      main: box(document.querySelector('main')),
+      viewport: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+    }
+  `
+
+  it('writes the paragraph into the home page source, word for word, in its own <p>', async () => {
+    const main = mainOf(await read('index.html'))
+
+    assert.ok(main.includes(HOME_PARAGRAPH), 'index.html does not carry the paragraph verbatim inside <main>')
+    assert.match(main, new RegExp(`<p>${HOME_PARAGRAPH.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}</p>`))
+  })
+
+  it('keeps the welcome line the paragraph follows', async () => {
+    const main = mainOf(await read('index.html'))
+
+    assert.ok(main.indexOf('Welcome to') < main.indexOf(HOME_PARAGRAPH), 'the paragraph does not follow the welcome line')
+  })
+
+  for (const width of [1280, 375]) {
+    it(`renders it once, visibly and without breaking the layout at ${width}px`, async () => {
+      const { page } = site
+      await page.setViewport(width, 900)
+      await page.goto(`${site.origin}/index.html`)
+      const state = await page.evaluate(MEASURE)
+
+      assert.ok(state.found, 'the paragraph is not in the rendered home page')
+      assert.equal(state.tag, 'p', `the paragraph renders as a <${state.tag}>`)
+      assert.ok(state.inMain, 'the paragraph renders outside <main>')
+      assert.notEqual(state.display, 'none')
+      assert.notEqual(state.visibility, 'hidden')
+      assert.notEqual(state.opacity, '0')
+      assert.ok(isLightGrey(parseColor(state.color)), `the paragraph is ${state.color}, not the body copy colour`)
+      assert.ok(state.rect.bottom - state.rect.top > 0, 'the paragraph has no height')
+
+      // Nothing around the insertion point overlaps, overflows or is clipped.
+      assert.ok(state.rect.left >= 0, `the paragraph starts at ${state.rect.left}px, off the left edge`)
+      assert.ok(state.rect.right <= state.viewport, `the paragraph runs to ${state.rect.right}px past ${state.viewport}px`)
+      assert.equal(state.documentWidth <= state.viewport, true, 'the page now overflows sideways')
+      assert.ok(state.rect.right <= state.main.right + 1, 'the paragraph spills out of <main>')
+      if (state.previous) {
+        assert.ok(state.rect.top >= state.previous.bottom, 'the paragraph overlaps the element above it')
+      }
+      if (state.next) {
+        assert.ok(state.rect.bottom <= state.next.top, 'the paragraph overlaps the element below it')
+      }
+    })
+  }
+
+  it('sets the paragraph off from the welcome line instead of running the two together', async () => {
+    const { page } = site
+    await page.setViewport(1280, 900)
+    await page.goto(`${site.origin}/index.html`)
+    const spacing = await page.evaluate(`
+      const [welcome, advisory] = document.querySelectorAll('main p')
+      const line = parseFloat(getComputedStyle(advisory).lineHeight)
+      return { gap: advisory.getBoundingClientRect().top - welcome.getBoundingClientRect().bottom, line }
+    `)
+
+    assert.ok(
+      spacing.gap > 0,
+      `the two home page paragraphs sit ${spacing.gap}px apart, so they read as one block of text`,
+    )
+    assert.ok(spacing.gap < spacing.line * 2, `the gap of ${spacing.gap}px is a layout change, not a paragraph break`)
+  })
+
+  it('leaves the single-paragraph pages spaced exactly as they were', async () => {
+    const { page } = site
+    const css = await read(STYLESHEET)
+
+    assert.equal(declaredValue(css, ['p'], 'margin'), '0', 'a bare <p> no longer sits flush, so the other pages moved')
+    for (const file of ['about.html', 'contact.html']) {
+      await page.goto(`${site.origin}/${file}`)
+      const margin = await page.evaluate(`
+        const style = getComputedStyle(document.querySelector('main p'))
+        return { top: style.marginTop, bottom: style.marginBottom }
+      `)
+
+      assert.deepEqual(margin, { top: '0px', bottom: '0px' }, `the lone paragraph on ${file} has gained a margin`)
+    }
+  })
+
+  it('renders it exactly once, and on the home page only', async () => {
+    const { page } = site
+    await page.setViewport(1280, 900)
+    await page.goto(`${site.origin}/index.html`)
+    const home = await page.evaluate(MEASURE)
+
+    // <main> and <body> would also match if the page held nothing else.
+    assert.equal(home.matches, 1, `the paragraph appears ${home.matches} times on the home page`)
+    for (const file of ['about.html', 'contact.html']) {
+      assert.ok(!(await read(file)).includes(HOME_PARAGRAPH), `${file} carries the home page paragraph`)
+    }
+  })
+})
+
+describe('Alpha rebrand task 9: nothing changed that was not meant to', () => {
+  const site = servedInBrowser()
+
+  /** The added/removed lines of `git diff <BASELINE> -- <file>`, or `null` when the ref is missing. */
+  const changedLines = (file) => {
+    const ref = spawnSync('git', ['rev-parse', '--verify', `${BASELINE}^{commit}`], { cwd: repoRoot })
+    if (ref.status !== 0) return null
+    const diff = spawnSync('git', ['diff', '--unified=0', BASELINE, '--', file], { cwd: repoRoot, encoding: 'utf8' })
+    assert.equal(diff.status, 0, diff.stderr)
+    return diff.stdout
+      .split('\n')
+      .filter((line) => /^[+-]/.test(line) && !/^(\+\+\+|---)/.test(line))
+      .map((line) => line.slice(1).trim())
+      .filter(Boolean)
+  }
+
+  /** A changed line the rebrand accounts for: the site name, or the favicon's page colour. */
+  const isBrandingOnly = (line) =>
+    /Centuri/.test(line) || line.includes(`fill='%23${COLOURS.darkBlue.slice(1)}'`) || line.includes("fill='%231f1f1f'")
+
+  for (const file of ['about.html', 'contact.html']) {
+    it(`changes nothing but the title and branding strings on ${file}`, () => {
+      const lines = changedLines(file)
+
+      if (lines === null) return // No baseline to diff against in this checkout.
+      assert.ok(lines.length > 0, `${file} was never rebranded`)
+      for (const line of lines) {
+        assert.ok(isBrandingOnly(line), `${file} has a change beyond the title/branding swap:\n  ${line}`)
+      }
+    })
+  }
+
+  it('changes nothing on the home page but the branding and the new paragraph', () => {
+    const lines = changedLines('index.html')
+
+    if (lines === null) return
+    for (const line of lines) {
+      assert.ok(
+        isBrandingOnly(line) || line.includes(HOME_PARAGRAPH),
+        `index.html has a change beyond the branding swap and the new paragraph:\n  ${line}`,
+      )
+    }
+  })
+
+  it('leaves the navigation structure alone on every page', async () => {
+    const { page } = site
+    const source = await Promise.all(PAGES.map(async ({ file }) => navBlock(await read(file))))
+
+    assert.equal(new Set(source).size, 1, 'the three pages no longer share one nav markup')
+    for (const { file } of PAGES) {
+      await page.goto(`${site.origin}/${file}`)
+      const nav = await page.evaluate(`
+        const nav = document.querySelector('nav')
+        return {
+          count: document.querySelectorAll('nav').length,
+          label: nav.getAttribute('aria-label'),
+          links: [...nav.querySelectorAll('a')].map((a) => ({ href: a.getAttribute('href'), label: a.textContent.trim() })),
+        }
+      `)
+
+      assert.equal(nav.count, 1, `${file} has ${nav.count} navigations`)
+      assert.equal(nav.label, 'Primary', `${file}'s nav is no longer labelled Primary`)
+      assert.deepEqual(nav.links, NAV_LINKS, `${file}'s nav links have changed`)
+    }
+  })
+
+  it('leaves the element skeleton of every page as it was', async () => {
+    const SKELETON = {
+      'index.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p', 'p'],
+      'about.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p'],
+      'contact.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p'],
+    }
+
+    for (const [file, skeleton] of Object.entries(SKELETON)) {
+      assert.deepEqual(tagsIn(await read(file)), skeleton, `${file}'s markup structure has changed`)
+    }
+  })
+
+  it('leaves the non-home pages saying only what they said before', async () => {
+    for (const { file, heading } of PAGES.filter((p) => p.file !== 'index.html')) {
+      assert.equal(mainOf(await read(file)).trim(), `<h2>${heading}</h2>\n      <p>Coming soon.</p>`)
+    }
+  })
+})
+
+describe('Alpha rebrand task 10: the whole site, crawled and verified', () => {
+  const site = servedInBrowser()
+
+  /** Everything the definition of done asks of a page, read off the rendered document. */
+  const AUDIT_PAGE = `
+    const link = document.createElement('a')
+    link.href = 'about.html'
+    link.className = 'btn'
+    link.textContent = 'Probe'
+    document.querySelector('main').append(link)
+    const wanted = ${JSON.stringify(HOME_PARAGRAPH)}
+    const normalise = (text) => text.replace(/\\s+/g, ' ').trim()
+    return {
+      path: location.pathname,
+      title: document.title,
+      branding: document.querySelector('.site-title').textContent.trim(),
+      bodyBg: getComputedStyle(document.body).backgroundColor,
+      headerBg: getComputedStyle(document.querySelector('.site-header')).backgroundColor,
+      navBg: getComputedStyle(document.querySelector('nav')).backgroundColor,
+      buttonBg: getComputedStyle(link).backgroundColor,
+      buttonLabel: getComputedStyle(link).color,
+      linkColor: getComputedStyle(document.querySelector('nav a')).color,
+      headingColor: getComputedStyle(document.querySelector('main h2')).color,
+      paragraphs: [...document.querySelectorAll('body *')].filter((el) => normalise(el.textContent) === wanted).length,
+      hrefs: [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')),
+      stylesheets: [...document.styleSheets].map((sheet) => sheet.href).filter(Boolean),
+      overflow: document.documentElement.scrollWidth > window.innerWidth,
+    }
+  `
+
+  it('crawls every page reachable from the home page and finds the whole rebrand in place', async () => {
+    const { page } = site
+    const seen = new Map()
+    const queue = ['index.html']
+
+    while (queue.length) {
+      const file = queue.shift()
+      if (seen.has(file)) continue
+      await page.goto(`${site.origin}/${file}`)
+      const state = await page.evaluate(AUDIT_PAGE)
+      seen.set(file, state)
+      for (const href of state.hrefs) {
+        if (!href.startsWith('http') && !href.startsWith('#') && !seen.has(href)) queue.push(href)
+      }
+    }
+
+    assert.deepEqual([...seen.keys()].sort(), PAGES.map((p) => p.file).sort(), 'the crawl did not reach every page')
+
+    for (const [file, state] of seen) {
+      assert.equal(state.title, SITE_NAME, `${file}: browser tab`)
+      assert.equal(state.branding, SITE_NAME, `${file}: header branding`)
+      for (const [what, colour] of [['body', state.bodyBg], ['header', state.headerBg], ['nav', state.navBg]]) {
+        assert.ok(isDarkBlue(parseColor(colour)), `${file}: ${what} background is ${colour}, not a dark blue`)
+      }
+      assert.ok(isOrange(parseColor(state.buttonBg)), `${file}: a button is ${state.buttonBg}, not orange`)
+      assert.ok(isOrange(parseColor(state.linkColor)), `${file}: a link is ${state.linkColor}, not orange`)
+      assert.ok(isOrange(parseColor(state.headingColor)), `${file}: the heading is ${state.headingColor}, not orange`)
+      assert.ok(
+        contrastRatio(parseColor(state.buttonLabel), parseColor(state.buttonBg)) >= MIN_CONTRAST,
+        `${file}: the button label is illegible on its fill`,
+      )
+      assert.equal(state.overflow, false, `${file}: the page overflows sideways`)
+      assert.equal(
+        state.paragraphs,
+        file === 'index.html' ? 1 : 0,
+        `${file}: the board advisory paragraph appears ${state.paragraphs} times`,
+      )
+      assert.deepEqual(
+        state.stylesheets.map((href) => href.slice(site.origin.length + 1)),
+        [STYLESHEET],
+        `${file}: unexpected stylesheets`,
+      )
+    }
+  })
+
+  it('serves every page and asset the crawl asked for, with nothing logged', async () => {
+    const { page } = site
+
+    for (const { file } of PAGES) {
+      const response = await fetch(`${site.origin}/${file}`)
+      assert.equal(response.status, 200, `${file} did not serve`)
+    }
+    const stylesheet = await fetch(`${site.origin}/${STYLESHEET}`)
+    assert.equal(stylesheet.status, 200, `${STYLESHEET} did not serve`)
+
+    assert.deepEqual(page.failedRequests, [], 'the crawl produced failed requests')
+    assert.deepEqual(page.consoleMessages, [], 'the crawl logged console errors or warnings')
+    assert.deepEqual(page.pageErrors, [], 'the crawl raised page errors')
+  })
+
+  it('has no build step to run, so the served files are the built site', async () => {
+    const manifest = JSON.parse(await read('package.json'))
+
+    assert.deepEqual(Object.keys(manifest.scripts), ['test'])
+    assert.equal(manifest.dependencies, undefined)
+    assert.equal(manifest.devDependencies, undefined)
   })
 })
 

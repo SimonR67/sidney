@@ -1,25 +1,34 @@
-// Helpers for the "Beta Centuri" site: the three pages, the shared
+// Helpers for the "Alpha Centuri" site: the three pages, the shared
 // stylesheet, and just enough CSS parsing to assert on declared colours.
 import { readdir, readFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
 
 export const repoRoot = join(import.meta.dirname, '..')
 
-export const SITE_NAME = 'Beta Centuri'
+export const SITE_NAME = 'Alpha Centuri'
 
 /** The names this rebuild supersedes; they should survive nowhere on the site. */
-export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds|alpha[- ]?centauri/i
+export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds|alpha[- ]?centauri|beta[- ]?centuri/i
+
+/** The board advisory paragraph the home page has to carry, word for word. */
+export const HOME_PARAGRAPH =
+  'Our board advisory services ensure that your board is composed of the most qualified and diverse ' +
+  'members, driving better decision-making and governance and support in building your businesses ' +
+  'roadmap for growth.'
+
+/** The files a page's `<title>` is generated from — here, the pages themselves. */
+export const TITLE_SOURCES = ['index.html', 'about.html', 'contact.html']
 
 export const STYLESHEET = 'style.css'
 
 /**
- * The colour scheme: two dark greys for the surfaces, light grey for the body
+ * The colour scheme: two dark blues for the surfaces, light grey for the body
  * text, and three oranges — the accent plus the shades its hover and active
  * states brighten and deepen to.
  */
 export const COLOURS = {
-  darkGrey: '#1f1f1f',
-  raisedGrey: '#2e2e2e',
+  darkBlue: '#0c1c38',
+  raisedBlue: '#16294d',
   lightGrey: '#e6e6e6',
   orange: '#ff8c1a',
   orangeBright: '#ffa94d',
@@ -31,8 +40,8 @@ export const COLOURS = {
  * defined in exactly one place.
  */
 export const COLOUR_VARS = {
-  darkGrey: '--dark-grey',
-  raisedGrey: '--raised-grey',
+  darkBlue: '--dark-blue',
+  raisedBlue: '--raised-blue',
   lightGrey: '--light-grey',
   orange: '--orange',
   orangeBright: '--orange-bright',
@@ -40,13 +49,15 @@ export const COLOUR_VARS = {
 }
 
 /**
- * The shades this rebrand supersedes, as bare hex digits so the check catches
- * them however they are written (`#ffd700`, `%23ffd700` inside a data URI, …).
+ * The shades every rebrand so far supersedes — the old dark green, the old
+ * gold, the old dark blue and the two dark greys this one replaces — as bare
+ * hex digits so the check catches them however they are written (`#1f1f1f`,
+ * `%231f1f1f` inside a data URI, …).
  */
-export const OLD_COLOURS = ['0b2e1a', 'ffd700', '0b1e3c']
+export const OLD_COLOURS = ['0b2e1a', 'ffd700', '0b1e3c', '1f1f1f', '2e2e2e']
 
 /** Where the discovery, the palette choice and the flagged gaps are written down. */
-export const NOTES = 'specs/201be276-bbdc-4548-b65d-b0f2c227227f/notes.md'
+export const NOTES = 'specs/392b9d9e-063b-4b5e-80e0-17475eb94210/notes.md'
 
 /** Readability floor for orange-on-blue text: WCAG AA for body copy. */
 export const MIN_CONTRAST = 4.5
