@@ -46,7 +46,7 @@ export const COLOUR_VARS = {
 export const OLD_COLOURS = ['0b2e1a', 'ffd700', '0b1e3c']
 
 /** Where the discovery, the palette choice and the flagged gaps are written down. */
-export const NOTES = 'specs/201be276-bbdc-4548-b65d-b0f2c227227f/notes.md'
+export const NOTES = 'specs/392b9d9e-063b-4b5e-80e0-17475eb94210/notes.md'
 
 /** Readability floor for orange-on-blue text: WCAG AA for body copy. */
 export const MIN_CONTRAST = 4.5

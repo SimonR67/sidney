@@ -835,6 +835,57 @@ describe('Beta rebrand task 1: the superseded name, found and written down', () 
   })
 })
 
+describe('Alpha rebrand task 1: the audit of what has to change', () => {
+  /** The block under a `### Heading` inside the notes, up to the next heading of any level. */
+  const subsection = async (heading) => {
+    const notes = await read(NOTES)
+    return notes.split(new RegExp(`^### ${heading}.*$`, 'm')).at(1)?.split(/^#{2,3} /m).at(0) ?? null
+  }
+
+  /** Every `file.ext:line` reference written in a block of the audit. */
+  const references = (block) => [...block.matchAll(/`([\w./-]+\.\w+):(\d+)`/g)].map(([, file, line]) => `${file}:${line}`)
+
+  const AUDIT = {
+    'Site title occurrences': ['index.html:6', 'about.html:6', 'contact.html:6'],
+    'Background colour declarations': ['style.css:17', 'style.css:23', 'style.css:70', 'style.css:76'],
+    'Button colour declarations': ['style.css:121', 'style.css:122', 'style.css:123'],
+    'Link and text-accent colour declarations': ['style.css:33', 'style.css:39', 'style.css:47', 'style.css:89'],
+    'Home page content source': ['index.html:26', 'index.html:27'],
+  }
+
+  for (const [heading, expected] of Object.entries(AUDIT)) {
+    it(`lists concrete file:line references under "${heading}"`, async () => {
+      const block = await subsection(heading)
+
+      assert.ok(block, `${NOTES} has no "### ${heading}" section`)
+      const found = references(block)
+      for (const reference of expected) {
+        assert.ok(found.includes(reference), `the "${heading}" audit omits ${reference}`)
+      }
+    })
+  }
+
+  it('accounts for every file of the site and its tests, so nothing found is left off the list', async () => {
+    const notes = await read(NOTES)
+    const [, discovery] = notes.split(/^## \d+\. Discovery.*$/m)
+
+    assert.ok(discovery, `${NOTES} has no "Discovery" section`)
+    for (const file of [...(await siteFiles()), 'tests/site.mjs', 'tests/page.test.mjs']) {
+      assert.match(discovery, new RegExp(file.replace(/\./g, '\\.')), `the audit never mentions ${file}`)
+    }
+  })
+
+  it('names the branding text and the home page copy the rebrand has to rewrite', async () => {
+    const branding = await subsection('Site title occurrences')
+    const home = await subsection('Home page content source')
+
+    for (const reference of ['index.html:16', 'about.html:16', 'contact.html:16']) {
+      assert.ok(references(branding).includes(reference), `the audit omits the visible branding at ${reference}`)
+    }
+    assert.match(home, /<main>/, 'the audit does not say where the home page copy lives')
+  })
+})
+
 describe('Beta rebrand task 7: no trace of the superseded shades', () => {
   it('mentions none of the old dark green, old gold or old dark blue anywhere in the site', async () => {
     for (const file of await siteFiles()) {
