@@ -1,8 +1,6 @@
-/* Beta Centuri — dark grey surfaces, orange accents. */
+/* Beta Centuri — dark blue surfaces, orange accents. */
 
 :root {
-  --dark-grey: #1f1f1f;
-  --raised-grey: #2e2e2e;
   --dark-blue: #0c1c38;
   --raised-blue: #16294d;
   --light-grey: #e6e6e6;
@@ -16,13 +14,13 @@
 }
 
 html {
-  background-color: var(--dark-grey);
+  background-color: var(--dark-blue);
 }
 
 body {
   margin: 0;
   padding: 1.5rem;
-  background-color: var(--dark-grey);
+  background-color: var(--dark-blue);
   color: var(--light-grey);
   font-family: Georgia, "Times New Roman", serif;
   line-height: 1.5;
@@ -64,18 +62,18 @@ a:active {
   outline-offset: 2px;
 }
 
-/* Navigation: the header is the one raised surface — a lighter dark grey than
+/* Navigation: the header is the one raised surface — a lighter dark blue than
    the page it sits on — with orange links. */
 
 .site-header {
   padding-bottom: 1rem;
-  background-color: var(--raised-grey);
+  background-color: var(--raised-blue);
   border-bottom: 1px solid var(--orange);
 }
 
 .site-nav {
   margin-top: 1rem;
-  background-color: var(--raised-grey);
+  background-color: var(--raised-blue);
 }
 
 .site-nav__links {
@@ -112,7 +110,7 @@ main {
   padding-top: 1.5rem;
 }
 
-/* Buttons: the orange is the button, with the page's dark grey as its label.
+/* Buttons: the orange is the button, with the page's dark blue as its label.
    No page carries one yet (see the plan notes), so these are the styles the
    first button to appear inherits. */
 
@@ -121,7 +119,7 @@ button {
   padding: 0.5rem 1rem;
   border: 1px solid var(--orange);
   background-color: var(--orange);
-  color: var(--dark-grey);
+  color: var(--dark-blue);
   font: inherit;
   cursor: pointer;
 }

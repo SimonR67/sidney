@@ -1,7 +1,9 @@
 // Tests for the "Beta Centuri" site.
 // Original build plan: specs/8393b537-ac67-46f5-b4e0-0b0d2e416f06/plan.md
-// Rebrand plan (dark grey page, orange accents, new name):
+// Grey rebrand plan (dark grey page, orange accents):
 // specs/201be276-bbdc-4548-b65d-b0f2c227227f/plan.md
+// Alpha rebrand plan (dark blue page, orange accents, new name):
+// specs/392b9d9e-063b-4b5e-80e0-17475eb94210/plan.md
 import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { access } from 'node:fs/promises'
@@ -9,7 +11,6 @@ import { join } from 'node:path'
 import {
   contrastRatio,
   isDarkBlue,
-  isDarkGrey,
   isLightGrey,
   isOrange,
   openPage,
@@ -106,14 +107,14 @@ const clickNav = async (page, label, expectedPath) => {
 }
 
 describe('Task 1: shared stylesheet base colours', () => {
-  it('paints the page a dark grey', async () => {
+  it('paints the page a dark blue', async () => {
     const css = await read(STYLESHEET)
     const background = declaredValue(css, GLOBAL_SELECTORS, 'background-color')
 
     assert.ok(background, `no background-color on any of ${GLOBAL_SELECTORS.join(', ')} in ${STYLESHEET}`)
     assert.ok(
-      isDarkGrey(parseHex(background)),
-      `${STYLESHEET} sets background-color: ${background}, which is not a dark grey`,
+      isDarkBlue(parseHex(background)),
+      `${STYLESHEET} sets background-color: ${background}, which is not a dark blue`,
     )
   })
 
@@ -128,7 +129,7 @@ describe('Task 1: shared stylesheet base colours', () => {
   it('declares the base colours as the values the tests expect', async () => {
     const css = await read(STYLESHEET)
 
-    assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'background-color'), COLOURS.darkGrey)
+    assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'background-color'), COLOURS.darkBlue)
     assert.equal(declaredValue(css, GLOBAL_SELECTORS, 'color'), COLOURS.lightGrey)
   })
 })
@@ -236,13 +237,13 @@ describe('Task 5: the nav menu, styled the same on every page', () => {
     }
   })
 
-  it('paints the nav itself dark grey with orange links, not just the body', async () => {
+  it('paints the nav itself dark blue with orange links, not just the body', async () => {
     const css = await read(STYLESHEET)
     const background = declaredValue(css, ['.site-nav'], 'background-color')
     const linkColour = declaredValue(css, ['.site-nav__links a'], 'color')
 
     assert.ok(background, `${STYLESHEET} sets no background-color on .site-nav`)
-    assert.ok(isDarkGrey(parseHex(background)), `.site-nav background-color is ${background}, not a dark grey`)
+    assert.ok(isDarkBlue(parseHex(background)), `.site-nav background-color is ${background}, not a dark blue`)
     assert.ok(linkColour, `${STYLESHEET} sets no color on the nav links`)
     assert.ok(isOrange(parseHex(linkColour)), `nav link color is ${linkColour}, not an orange`)
   })
@@ -260,7 +261,7 @@ describe('Task 5 (rendered): nav colours in the browser', () => {
   const site = servedInBrowser()
 
   for (const { file } of PAGES) {
-    it(`renders ${file} with a dark grey nav and orange nav links`, async () => {
+    it(`renders ${file} with a dark blue nav and orange nav links`, async () => {
       const { page } = site
       await page.goto(`${site.origin}/${file}`)
       const state = await page.evaluate(`
@@ -274,9 +275,9 @@ describe('Task 5 (rendered): nav colours in the browser', () => {
         }
       `)
 
-      assert.ok(isDarkGrey(parseColor(state.navBg)), `nav background on ${file} is ${state.navBg}`)
+      assert.ok(isDarkBlue(parseColor(state.navBg)), `nav background on ${file} is ${state.navBg}`)
       assert.ok(isOrange(parseColor(state.linkColor)), `nav link colour on ${file} is ${state.linkColor}`)
-      assert.ok(isDarkGrey(parseColor(state.bodyBg)), `body background on ${file} is ${state.bodyBg}`)
+      assert.ok(isDarkBlue(parseColor(state.bodyBg)), `body background on ${file} is ${state.bodyBg}`)
       assert.ok(isLightGrey(parseColor(state.bodyColor)), `body text colour on ${file} is ${state.bodyColor}`)
     })
   }
@@ -433,8 +434,8 @@ describe('Test plan: the visitor journey end to end', () => {
     assert.equal(state.title, SITE_NAME, `${where}: browser tab`)
     assert.equal(state.siteTitle, SITE_NAME, `${where}: visible site title`)
     assert.deepEqual(state.nav, NAV_LINKS, `${where}: nav menu`)
-    assert.ok(isDarkGrey(parseColor(state.bodyBg)), `${where}: body background ${state.bodyBg}`)
-    assert.ok(isDarkGrey(parseColor(state.navBg)), `${where}: nav background ${state.navBg}`)
+    assert.ok(isDarkBlue(parseColor(state.bodyBg)), `${where}: body background ${state.bodyBg}`)
+    assert.ok(isDarkBlue(parseColor(state.navBg)), `${where}: nav background ${state.navBg}`)
     assert.ok(isOrange(parseColor(state.navColor)), `${where}: nav link colour ${state.navColor}`)
     assert.ok(isOrange(parseColor(state.headingColor)), `${where}: heading colour ${state.headingColor}`)
     assert.ok(isLightGrey(parseColor(state.copyColor)), `${where}: body copy colour ${state.copyColor}`)
@@ -482,22 +483,22 @@ describe('Test plan: the visitor journey end to end', () => {
   })
 })
 
-describe('Beta rebrand task 7: two layered dark greys', () => {
+describe('Beta rebrand task 7: two layered surfaces', () => {
   const site = servedInBrowser()
 
-  it('declares a base surface and a raised one, both dark grey and not the same', async () => {
+  it('declares a base surface and a raised one, both dark blue and not the same', async () => {
     const css = await read(STYLESHEET)
     const base = declaredValue(css, GLOBAL_SELECTORS, 'background-color')
     const raised = declaredValue(css, ['.site-header'], 'background-color')
 
     assert.ok(raised, `${STYLESHEET} sets no background-color on .site-header`)
-    assert.ok(isDarkGrey(parseHex(base)), `the page background ${base} is not a dark grey`)
-    assert.ok(isDarkGrey(parseHex(raised)), `the header background ${raised} is not a dark grey`)
+    assert.ok(isDarkBlue(parseHex(base)), `the page background ${base} is not a dark blue`)
+    assert.ok(isDarkBlue(parseHex(raised)), `the header background ${raised} is not a dark blue`)
     assert.notEqual(raised, base, 'the header and the page share one shade, so nothing is layered')
   })
 
   for (const { file } of PAGES) {
-    it(`renders ${file} with the header sitting on a different dark grey to the page`, async () => {
+    it(`renders ${file} with the header sitting on a different dark blue to the page`, async () => {
       const { page } = site
       await page.goto(`${site.origin}/${file}`)
       const state = await page.evaluate(`
@@ -507,8 +508,8 @@ describe('Beta rebrand task 7: two layered dark greys', () => {
         }
       `)
 
-      assert.ok(isDarkGrey(parseColor(state.pageBg)), `page background on ${file} is ${state.pageBg}`)
-      assert.ok(isDarkGrey(parseColor(state.headerBg)), `header background on ${file} is ${state.headerBg}`)
+      assert.ok(isDarkBlue(parseColor(state.pageBg)), `page background on ${file} is ${state.pageBg}`)
+      assert.ok(isDarkBlue(parseColor(state.headerBg)), `header background on ${file} is ${state.headerBg}`)
       assert.notEqual(state.headerBg, state.pageBg, `header and page render the same shade on ${file}`)
     })
   }

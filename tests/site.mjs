@@ -16,14 +16,8 @@ export const STYLESHEET = 'style.css'
  * The colour scheme: two dark blues for the surfaces, light grey for the body
  * text, and three oranges — the accent plus the shades its hover and active
  * states brighten and deepen to.
- *
- * The two greys are the outgoing surfaces. Plan task 2 introduces the blues
- * alongside them without repainting anything, so both pairs are declared for
- * that one step; task 3 switches the surfaces over and drops the greys.
  */
 export const COLOURS = {
-  darkGrey: '#1f1f1f',
-  raisedGrey: '#2e2e2e',
   darkBlue: '#0c1c38',
   raisedBlue: '#16294d',
   lightGrey: '#e6e6e6',
@@ -37,8 +31,6 @@ export const COLOURS = {
  * defined in exactly one place.
  */
 export const COLOUR_VARS = {
-  darkGrey: '--dark-grey',
-  raisedGrey: '--raised-grey',
   darkBlue: '--dark-blue',
   raisedBlue: '--raised-blue',
   lightGrey: '--light-grey',
@@ -48,10 +40,12 @@ export const COLOUR_VARS = {
 }
 
 /**
- * The shades this rebrand supersedes, as bare hex digits so the check catches
- * them however they are written (`#ffd700`, `%23ffd700` inside a data URI, …).
+ * The shades every rebrand so far supersedes — the old dark green, the old
+ * gold, the old dark blue and the two dark greys this one replaces — as bare
+ * hex digits so the check catches them however they are written (`#1f1f1f`,
+ * `%231f1f1f` inside a data URI, …).
  */
-export const OLD_COLOURS = ['0b2e1a', 'ffd700', '0b1e3c']
+export const OLD_COLOURS = ['0b2e1a', 'ffd700', '0b1e3c', '1f1f1f', '2e2e2e']
 
 /** Where the discovery, the palette choice and the flagged gaps are written down. */
 export const NOTES = 'specs/392b9d9e-063b-4b5e-80e0-17475eb94210/notes.md'
