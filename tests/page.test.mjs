@@ -1,4 +1,4 @@
-// Tests for the "Beta Centuri" site.
+// Tests for the "Alpha Centuri" site.
 // Original build plan: specs/8393b537-ac67-46f5-b4e0-0b0d2e416f06/plan.md
 // Grey rebrand plan (dark grey page, orange accents):
 // specs/201be276-bbdc-4548-b65d-b0f2c227227f/plan.md
@@ -28,6 +28,7 @@ import {
   NOTES,
   SITE_NAME,
   STYLESHEET,
+  TITLE_SOURCES,
   declaredValue,
   headingsIn,
   hexColours,
@@ -1107,6 +1108,36 @@ describe('Alpha rebrand task 5: every audited link and text accent is orange', (
     const copy = await page.evaluate(`return getComputedStyle(document.querySelector('main p')).color`)
 
     assert.ok(isLightGrey(parseColor(copy)), `the body copy is ${copy}, which should stay a light grey`)
+  })
+})
+
+describe('Alpha rebrand task 6: the browser tab reads "Alpha Centuri"', () => {
+  const site = servedInBrowser()
+
+  it('names the site "Alpha Centuri", the one value every page titles itself with', () => {
+    assert.equal(SITE_NAME, 'Alpha Centuri')
+  })
+
+  for (const file of TITLE_SOURCES) {
+    it(`renders <title>Alpha Centuri</title> on ${file}`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/${file}`)
+
+      assert.equal(await page.evaluate('return document.title'), 'Alpha Centuri')
+      assert.equal(titleOf(await read(file)), 'Alpha Centuri')
+    })
+  }
+
+  it('leaves the superseded name in none of the title-generating sources', async () => {
+    for (const file of TITLE_SOURCES) {
+      assert.ok(!OLD_SITE_NAME.test(titleOf(await read(file))), `${file}'s <title> still names the old site`)
+    }
+  })
+
+  it('titles every page from the same value, so there is one name to change', async () => {
+    const titles = await Promise.all(TITLE_SOURCES.map(async (file) => titleOf(await read(file))))
+
+    assert.deepEqual([...new Set(titles)], [SITE_NAME])
   })
 })
 

@@ -1,14 +1,17 @@
-// Helpers for the "Beta Centuri" site: the three pages, the shared
+// Helpers for the "Alpha Centuri" site: the three pages, the shared
 // stylesheet, and just enough CSS parsing to assert on declared colours.
 import { readdir, readFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
 
 export const repoRoot = join(import.meta.dirname, '..')
 
-export const SITE_NAME = 'Beta Centuri'
+export const SITE_NAME = 'Alpha Centuri'
 
 /** The names this rebuild supersedes; they should survive nowhere on the site. */
-export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds|alpha[- ]?centauri/i
+export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds|alpha[- ]?centauri|beta[- ]?centuri/i
+
+/** The files a page's `<title>` is generated from — here, the pages themselves. */
+export const TITLE_SOURCES = ['index.html', 'about.html', 'contact.html']
 
 export const STYLESHEET = 'style.css'
 
