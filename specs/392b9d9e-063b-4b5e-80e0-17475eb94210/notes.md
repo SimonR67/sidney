@@ -166,6 +166,12 @@ Inserted verbatim, as its own `<p>` inside `index.html`'s `<main>`:
 > qualified and diverse members, driving better decision-making and governance
 > and support in building your businesses roadmap for growth.
 
+It is the first page on the site to carry two paragraphs, and `p { margin: 0 }`
+left the two running together with a 0px gap between them. A `p + p` rule now
+takes a `0.75rem` top margin, which is the smallest change that reads as a
+paragraph break; a lone `<p>` still sits flush, so `about.html` and
+`contact.html` are pixel-for-pixel where they were.
+
 ## 4. Flagged gaps
 
 For the reviewer. Nothing here was guessed at or silently left half-done.
@@ -179,9 +185,13 @@ For the reviewer. Nothing here was guessed at or silently left half-done.
   focus and active shades) live in `style.css` and now take the new dark blue
   for the primary button's label, but no page uses them: adding a button would
   be new page structure, which the plan excludes. The suite verifies them by
-  injecting a primary and a secondary button into a rendered page and reading
-  the computed colours in each state, and separately pins that the shipped
-  pages stay button-free.
+  injecting a bare `<button>`, a `.btn`, a `.btn` on an `<a>` and a
+  `.btn--secondary` into a rendered page and reading the computed colours in
+  each state, and separately pins that the shipped pages stay button-free.
+  Probing the anchor found a real defect: `a:hover`, `a:focus` and `a:active`
+  outrank `.btn`, so a link styled as a button rendered its label orange on an
+  orange fill. The three button state rules now restate
+  `color: var(--dark-blue)`, which outranks them.
 - **Same for badges/tags and the current-nav-item marker.** `.badge`/`.tag` and
   `.site-nav__links a[aria-current="page"]` are styled orange and covered by
   injected-element tests, but no page ships a badge and no page sets
@@ -203,10 +213,12 @@ For the reviewer. Nothing here was guessed at or silently left half-done.
   the repository at all — no `.svg`, `.png`, `.jpg`, `.ico` or `.webp` — so no
   graphical asset needed regenerating for the new colours.
 - **No README exists**, so there was nothing to update there.
-- **Layout, structure and navigation are untouched.** Only colour
-  declarations, the site name and the one new home page paragraph changed; no
-  padding, margin, font, size, route or nav item was altered, and the suite
-  still checks page structure, byte-identical nav markup across the three pages
-  and the absence of sideways overflow at 1280px and 375px.
+- **Layout, structure and navigation are untouched**, with the one exception
+  above. Beyond the colour declarations, the site name, the new home page
+  paragraph and the `p + p` gap it needs, no padding, font, size, route, nav
+  item or element was altered. The suite diffs every page against the baseline
+  commit and fails on any changed line that is not a name or favicon-colour
+  swap, pins each page's element skeleton and the nav's links, labels and
+  order, and still checks the absence of sideways overflow at 1280px and 375px.
 - **Branding outside this repository is untouched**, per scope: the domain, the
   hosting and any third-party listing still say the old name.

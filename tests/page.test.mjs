@@ -1401,6 +1401,105 @@ describe('Alpha rebrand task 9: nothing changed that was not meant to', () => {
   })
 })
 
+describe('Alpha rebrand task 10: the whole site, crawled and verified', () => {
+  const site = servedInBrowser()
+
+  /** Everything the definition of done asks of a page, read off the rendered document. */
+  const AUDIT_PAGE = `
+    const link = document.createElement('a')
+    link.href = 'about.html'
+    link.className = 'btn'
+    link.textContent = 'Probe'
+    document.querySelector('main').append(link)
+    const wanted = ${JSON.stringify(HOME_PARAGRAPH)}
+    const normalise = (text) => text.replace(/\\s+/g, ' ').trim()
+    return {
+      path: location.pathname,
+      title: document.title,
+      branding: document.querySelector('.site-title').textContent.trim(),
+      bodyBg: getComputedStyle(document.body).backgroundColor,
+      headerBg: getComputedStyle(document.querySelector('.site-header')).backgroundColor,
+      navBg: getComputedStyle(document.querySelector('nav')).backgroundColor,
+      buttonBg: getComputedStyle(link).backgroundColor,
+      buttonLabel: getComputedStyle(link).color,
+      linkColor: getComputedStyle(document.querySelector('nav a')).color,
+      headingColor: getComputedStyle(document.querySelector('main h2')).color,
+      paragraphs: [...document.querySelectorAll('body *')].filter((el) => normalise(el.textContent) === wanted).length,
+      hrefs: [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')),
+      stylesheets: [...document.styleSheets].map((sheet) => sheet.href).filter(Boolean),
+      overflow: document.documentElement.scrollWidth > window.innerWidth,
+    }
+  `
+
+  it('crawls every page reachable from the home page and finds the whole rebrand in place', async () => {
+    const { page } = site
+    const seen = new Map()
+    const queue = ['index.html']
+
+    while (queue.length) {
+      const file = queue.shift()
+      if (seen.has(file)) continue
+      await page.goto(`${site.origin}/${file}`)
+      const state = await page.evaluate(AUDIT_PAGE)
+      seen.set(file, state)
+      for (const href of state.hrefs) {
+        if (!href.startsWith('http') && !href.startsWith('#') && !seen.has(href)) queue.push(href)
+      }
+    }
+
+    assert.deepEqual([...seen.keys()].sort(), PAGES.map((p) => p.file).sort(), 'the crawl did not reach every page')
+
+    for (const [file, state] of seen) {
+      assert.equal(state.title, SITE_NAME, `${file}: browser tab`)
+      assert.equal(state.branding, SITE_NAME, `${file}: header branding`)
+      for (const [what, colour] of [['body', state.bodyBg], ['header', state.headerBg], ['nav', state.navBg]]) {
+        assert.ok(isDarkBlue(parseColor(colour)), `${file}: ${what} background is ${colour}, not a dark blue`)
+      }
+      assert.ok(isOrange(parseColor(state.buttonBg)), `${file}: a button is ${state.buttonBg}, not orange`)
+      assert.ok(isOrange(parseColor(state.linkColor)), `${file}: a link is ${state.linkColor}, not orange`)
+      assert.ok(isOrange(parseColor(state.headingColor)), `${file}: the heading is ${state.headingColor}, not orange`)
+      assert.ok(
+        contrastRatio(parseColor(state.buttonLabel), parseColor(state.buttonBg)) >= MIN_CONTRAST,
+        `${file}: the button label is illegible on its fill`,
+      )
+      assert.equal(state.overflow, false, `${file}: the page overflows sideways`)
+      assert.equal(
+        state.paragraphs,
+        file === 'index.html' ? 1 : 0,
+        `${file}: the board advisory paragraph appears ${state.paragraphs} times`,
+      )
+      assert.deepEqual(
+        state.stylesheets.map((href) => href.slice(site.origin.length + 1)),
+        [STYLESHEET],
+        `${file}: unexpected stylesheets`,
+      )
+    }
+  })
+
+  it('serves every page and asset the crawl asked for, with nothing logged', async () => {
+    const { page } = site
+
+    for (const { file } of PAGES) {
+      const response = await fetch(`${site.origin}/${file}`)
+      assert.equal(response.status, 200, `${file} did not serve`)
+    }
+    const stylesheet = await fetch(`${site.origin}/${STYLESHEET}`)
+    assert.equal(stylesheet.status, 200, `${STYLESHEET} did not serve`)
+
+    assert.deepEqual(page.failedRequests, [], 'the crawl produced failed requests')
+    assert.deepEqual(page.consoleMessages, [], 'the crawl logged console errors or warnings')
+    assert.deepEqual(page.pageErrors, [], 'the crawl raised page errors')
+  })
+
+  it('has no build step to run, so the served files are the built site', async () => {
+    const manifest = JSON.parse(await read('package.json'))
+
+    assert.deepEqual(Object.keys(manifest.scripts), ['test'])
+    assert.equal(manifest.dependencies, undefined)
+    assert.equal(manifest.devDependencies, undefined)
+  })
+})
+
 describe('Beta rebrand task 7: no trace of the superseded shades', () => {
   it('mentions none of the old dark green, old gold or old dark blue anywhere in the site', async () => {
     for (const file of await siteFiles()) {
