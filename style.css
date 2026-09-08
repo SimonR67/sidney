@@ -124,18 +124,24 @@ button {
   cursor: pointer;
 }
 
+/* The label is restated on every state: a `.btn` on an <a> would otherwise take
+   its colour from the `a:hover`/`a:focus`/`a:active` rules above and come out
+   orange on orange. */
+
 .btn:hover,
 button:hover,
 .btn:focus,
 button:focus {
   border-color: var(--orange-bright);
   background-color: var(--orange-bright);
+  color: var(--dark-blue);
 }
 
 .btn:active,
 button:active {
   border-color: var(--orange-deep);
   background-color: var(--orange-deep);
+  color: var(--dark-blue);
 }
 
 /* A secondary button carries the same orange on its border and label alone. */

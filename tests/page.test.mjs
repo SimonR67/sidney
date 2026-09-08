@@ -931,6 +931,100 @@ describe('Alpha rebrand task 2: the new theme values, named and centralised', ()
   })
 })
 
+describe('Alpha rebrand task 4: every audited button style carries the orange', () => {
+  const site = servedInBrowser()
+
+  /**
+   * One probe per distinct button style the task 1 audit turned up: the bare
+   * element, the `.btn` class it shares its rule with, and the secondary
+   * variant. `fills` marks the ones whose orange is the fill rather than just
+   * the border and label.
+   */
+  const BUTTONS = [
+    { id: 'probe-element', tag: 'button', className: '', what: 'a bare <button>', fills: true },
+    { id: 'probe-btn', tag: 'button', className: 'btn', what: 'a .btn', fills: true },
+    { id: 'probe-anchor', tag: 'a', className: 'btn', what: 'a .btn on an <a>', fills: true },
+    { id: 'probe-secondary', tag: 'button', className: 'btn btn--secondary', what: 'a .btn--secondary', fills: false },
+  ]
+
+  const INJECT = `
+    for (const { id, tag, className } of ${JSON.stringify(BUTTONS)}) {
+      const el = document.createElement(tag)
+      el.id = id
+      if (className) el.className = className
+      el.textContent = 'Probe'
+      document.querySelector('main').append(el)
+    }
+    return null
+  `
+
+  const paintOf = (selector) => `
+    const style = getComputedStyle(document.querySelector(${JSON.stringify(selector)}));
+    return { background: style.backgroundColor, border: style.borderTopColor, label: style.color }
+  `
+
+  const STATES = [['rest', []], ['hover', ['hover']], ['focus', ['focus']], ['active', ['active']]]
+
+  for (const button of BUTTONS) {
+    it(`paints ${button.what} orange at rest, on hover, on focus and on press`, async () => {
+      const { page } = site
+      await page.goto(`${site.origin}/index.html`)
+      await page.evaluate(INJECT)
+      const selector = `#${button.id}`
+
+      for (const [state, forced] of STATES) {
+        await page.forcePseudoState(selector, forced)
+        const paint = await page.evaluate(paintOf(selector))
+
+        assert.ok(
+          isOrange(parseColor(paint.border)),
+          `${button.what} under :${state} has a ${paint.border} border, which is not an orange`,
+        )
+        if (button.fills) {
+          assert.ok(
+            isOrange(parseColor(paint.background)),
+            `${button.what} under :${state} is filled ${paint.background}, which is not an orange`,
+          )
+          assert.equal(
+            parseColor(paint.label).r,
+            parseHex(COLOURS.darkBlue).r,
+            `${button.what}'s label under :${state} is ${paint.label}, not the page's dark blue`,
+          )
+        } else {
+          assert.ok(
+            isOrange(parseColor(paint.label)),
+            `${button.what}'s label under :${state} is ${paint.label}, which is not an orange`,
+          )
+        }
+        const ratio = contrastRatio(parseColor(paint.label), parseColor(paint.background))
+        if (parseColor(paint.background).a > 0) {
+          assert.ok(
+            ratio >= MIN_CONTRAST,
+            `${button.what} under :${state} is ${paint.label} on ${paint.background}: ${ratio.toFixed(2)}:1`,
+          )
+        }
+      }
+      await page.forcePseudoState(selector, [])
+    })
+  }
+
+  it('takes the button colours from the palette alone, never a literal', async () => {
+    const css = await read(STYLESHEET)
+    const BUTTON_RULES = [
+      ['.btn', 'background-color', COLOURS.orange],
+      ['.btn', 'border', `1px solid ${COLOURS.orange}`],
+      ['.btn', 'color', COLOURS.darkBlue],
+      ['.btn:hover', 'background-color', COLOURS.orangeBright],
+      ['.btn:active', 'background-color', COLOURS.orangeDeep],
+      ['.btn--secondary', 'color', COLOURS.orange],
+    ]
+
+    for (const [selector, property, expected] of BUTTON_RULES) {
+      assert.equal(declaredValue(css, [selector], property), expected, `${selector} { ${property} }`)
+    }
+  })
+})
+
 describe('Beta rebrand task 7: no trace of the superseded shades', () => {
   it('mentions none of the old dark green, old gold or old dark blue anywhere in the site', async () => {
     for (const file of await siteFiles()) {
