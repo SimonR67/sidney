@@ -1,66 +1,59 @@
-   # Spec: Update site title and global colour scheme
+# Spec: Update site title and site-wide colour scheme
 
 Status: draft
 Job: dfbfe75a-24f1-404d-804f-05a044162974
 Target repo: SimonR67/sidney
-Supersedes (partially): existing site `<title>` value and existing global CSS colour rules — not a new capability
+Supersedes (partially): existing site title and existing site-wide stylesheet/theme (whatever currently sets page title and global background/text colours)
 
 ## 1. What should change and why
 
-The site currently has some existing title text and default/existing colour styling. The request is to:
+The request asks for two changes:
 
-1. Change the site's title (the text shown in the browser tab / `<title>` element, and anywhere else the site title is rendered as a page heading or metadata, e.g. `<meta property="og:title">` if present) to the literal string **"Sid Meyers Alpha Centuri"**.
-2. Update the global site styling so that:
-   - The page background colour is **dark grey**.
-   - All text/lettering on the site is **bright green**.
+1. Change the website's site title (the title shown in the browser tab / `<title>` tag, and any place the site name is rendered as a heading/branding element) to "Sid Meyers Alpha Centuri" — using this exact spelling as given in the request, not the "Sid Meier's Alpha Centauri" spelling of the original game.
+2. Update the site's global styling so the background colour is dark grey and all text/lettering is a distinct, legible colour, applied consistently across the site.
 
-This is a cosmetic/branding change with no functional impact on site behavior. The problem it solves is purely presentational — rebranding the site's title and giving it a new visual theme.
+**Revision note (addressing reviewer feedback on the prior draft):** An earlier draft of this spec specified the text/lettering colour as "bright green," per the literal wording of the feature request. The reviewer declined that draft and requested the text/lettering colour be **Gold** instead. This revision changes the text/lettering colour requirement from bright green to **Gold** everywhere in this spec. The background colour requirement (dark grey) is unchanged. Anywhere "text/lettering" is referenced below, it now means Gold, not green.
 
-**Interpretation notes (ambiguity in the request):**
-- The requested title text "Sid Meyers Alpha Centuri" is used **verbatim** as given, including its non-standard spelling (it differs from the game title "Sid Meier's Alpha Centauri"). This spec assumes the misspelling is intentional. See Open Questions.
-- "Dark grey" and "bright green" are not given as exact hex/RGB values. This spec assumes reasonable, commonly-understood values (e.g. dark grey ≈ `#2b2b2b`, bright green ≈ `#39ff14` or `#00ff00`-family) unless the reviewer specifies exact codes. See Open Questions.
-- "All text/lettering" is interpreted as all body copy, headings, links, and navigation text rendered on the site's pages — i.e. the default text colour and any colour overrides currently in the stylesheet(s), not necessarily images, logos, or icon glyphs that are not text.
+If the original requester still wants bright green specifically, that is a conflict with the reviewer's instruction and should be raised as an open question (see Section 6) rather than silently resolved either way.
 
 ## 2. Scope
 
-- Update the `<title>` tag (and equivalent site-title references, e.g. og:title, page header/banner text that currently duplicates the site name) across all pages/templates to read exactly "Sid Meyers Alpha Centuri".
-- Update the site's CSS (global stylesheet or equivalent styling mechanism used by the repo) so that:
-  - The `background-color` for the page/body (and any major structural containers that currently set a light/contrasting background) is set to a dark grey value.
-  - The default text colour (`color` property) for body text, headings, and other textual elements is set to a bright green value.
-- Apply changes consistently across all existing pages/templates in the site, not just the homepage.
-- Adjust link colours only if leaving them unchanged would make them unreadable against the new dark grey background (minimum change needed for legibility); otherwise links may keep bright green like other text.
+- Update the site title string wherever it is defined as a single source of truth (e.g., site config, `<title>` tag template, header/branding component) to read exactly: `Sid Meyers Alpha Centuri`.
+- Update global/site-wide CSS (or equivalent theming mechanism used by the repo) so that:
+  - The page/body background colour is dark grey (a specific hex value, e.g. `#2b2b2b` or similar, to be finalized during implementation/review — see Open Questions).
+  - All text/lettering colour across the site is Gold (a specific hex value, e.g. `#FFD700` or a close variant, to be finalized during implementation/review).
+- Changes should apply site-wide (all pages/templates that inherit from the global stylesheet/layout), not just the homepage.
+- Ensure sufficient contrast between the Gold text and dark grey background for basic readability.
 
 ## 3. Out of scope
 
-- Redesigning layout, structure, fonts, spacing, or any non-colour visual elements.
-- Changing the site's actual name/branding anywhere other than the title text and site-name display (e.g. no changes to repo name, domain, favicon, logo image, README, or package metadata).
-- Adding a theme switcher, dark/light mode toggle, or making the colours configurable/user-selectable.
-- Accessibility/contrast auditing beyond basic legibility of links mentioned above (no WCAG compliance work, no colour-blind-safe palette selection).
-- Any changes to functionality, content, routing, or data.
-- Creating new pages or components.
-- Editing the favicon or browser tab icon.
+- No changes to site structure, layout, navigation, or content beyond the title string and colour values.
+- No changes to fonts, font sizes, spacing, or other non-colour styling attributes.
+- No per-page or per-section colour overrides (e.g., special styling for buttons, links, code blocks) unless they currently inherit directly from the global text/background colours being changed — no new themed components will be introduced.
+- No dark-mode/light-mode toggle or multiple theme support — this is a single, direct replacement of the current colours.
+- No changes to images, logos, or icons, even if they visually clash with the new colour scheme.
+- No accessibility audit beyond basic contrast sanity-checking; a full WCAG compliance pass is not part of this work.
+- No renaming of the repo, domain, or any internal identifiers/config keys beyond the user-facing title string.
 
 ## 4. Edge cases and error behavior
 
-- **Invalid input:** Not applicable — this is a static content/styling change with no user input to validate.
-- **Dependency unavailable:** If the site uses an external CSS framework/theme (e.g. Bootstrap) with its own colour variables, the change should override those variables/rules rather than fighting them at the component level; if a build step or asset pipeline is unavailable, the change cannot be verified and should be flagged rather than silently skipped.
-- **Inline/hardcoded colours:** If some pages/templates set text or background colours inline (not via the shared stylesheet), those will not be updated by a global CSS change and must be identified and changed individually, or explicitly called out as remaining exceptions.
-- **Elements with colour tied to state or meaning:** If any existing styling uses colour to convey status (e.g. red for errors, green for success), care should be taken not to make error states indistinguishable from normal text now that default text is also green; this should be flagged if found.
-- **Title truncation:** No special handling needed; browsers will truncate long tab titles automatically — "Sid Meyers Alpha Centuri" is short enough not to be an issue.
+- If the site title is defined in multiple places (e.g., hardcoded in several templates instead of one config value), all occurrences intended to represent the site title should be updated consistently; any occurrence deliberately left as the original game name (if used in unrelated content/copy) should not be changed — only branding/title occurrences are in scope.
+- If some page templates use inline styles or component-level colour overrides that don't inherit from the global stylesheet, those will not automatically pick up the new colours; such cases should be flagged during implementation rather than silently left inconsistent.
+- If dark grey background and Gold text are already close to other existing UI elements (e.g., existing gold-ish accent colours, warning states), verify there's no unintended visual collision — but resolving such collisions beyond the two colours specified is out of scope.
+- No external dependency is required for this change (pure title/config + CSS edit), so "dependency unavailable" scenarios do not apply here.
 
 ## 5. Acceptance criteria
 
-- [ ] The browser tab title on every page of the site reads exactly "Sid Meyers Alpha Centuri".
-- [ ] Any on-page rendering of the site name (header/banner, meta tags) also reads "Sid Meyers Alpha Centuri".
-- [ ] The page background colour on every page is a dark grey shade.
-- [ ] All standard body text, headings, and navigation text render in a bright green colour on every page.
-- [ ] Links remain visibly legible against the dark grey background (either bright green matching other text, or another sufficiently contrasting variant, per reviewer preference).
-- [ ] No functional behavior of the site (routing, data, forms, etc.) is altered by this change.
-- [ ] No other branding elements (logo, favicon, domain, repo metadata) are altered.
+- The browser tab title and any rendered site-title/branding text reads exactly "Sid Meyers Alpha Centuri" on all pages.
+- The site-wide background colour is a dark grey across all pages using the shared layout/stylesheet.
+- All body/lettering text across the site renders in Gold, replacing the previous text colour, across all pages using the shared layout/stylesheet.
+- No other visual elements (fonts, layout, images) are altered as part of this change.
+- The change does not reintroduce or reference bright green anywhere in the final styling.
 
 ## 6. Open questions
 
-- Is the spelling "Sid Meyers Alpha Centuri" intentional, or should it actually be "Sid Meier's Alpha Centauri" (the real game title)? Please confirm the exact string to use.
-- Do you want specific exact colour values (hex codes) for "dark grey" and "bright green", or is it acceptable to use reasonable defaults chosen by the implementer?
-- Should link colour and any status/alert colours (errors, warnings, success messages) be left as-is, or also converted to fit the new dark grey/bright green theme, and if so, how should error/success states remain distinguishable from normal text?
-- Are there multiple templates/pages (e.g. admin views, error pages, print styles) that should be included, or should this apply only to the main public-facing pages?
+- The original feature request explicitly asked for "bright green" text; the reviewer's feedback asked for Gold instead. This spec now assumes Gold is the correct, final intended colour. Please confirm this is the desired resolution (i.e., Gold overrides the original "bright green" request) before planning begins.
+- Should "Gold" map to a specific hex/RGB value (e.g., standard web `gold` = `#FFD700`), or is there a specific brand shade of gold intended?
+- Should "dark grey" map to a specific hex/RGB value, or is any reasonably dark grey acceptable?
+- Are links, buttons, and other interactive elements expected to also become Gold, or should they retain a distinct colour for usability (e.g., a different shade to indicate interactivity)?
+- Is the misspelling "Sid Meyers Alpha Centuri" intentional and to be preserved exactly as given, or was it meant to reference the actual game title "Sid Meier's Alpha Centauri"?
