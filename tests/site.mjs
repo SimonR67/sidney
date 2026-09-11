@@ -1,14 +1,18 @@
-// Helpers for the "Alpha Centuri" site: the three pages, the shared
+// Helpers for the "Sid Meyers Alpha Centuri" site: the three pages, the shared
 // stylesheet, and just enough CSS parsing to assert on declared colours.
 import { readdir, readFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
 
 export const repoRoot = join(import.meta.dirname, '..')
 
-export const SITE_NAME = 'Alpha Centuri'
+export const SITE_NAME = 'Sid Meyers Alpha Centuri'
 
-/** The names this rebuild supersedes; they should survive nowhere on the site. */
-export const OLD_SITE_NAME = /sid meyer|brave new worlds|strange new worlds|alpha[- ]?centauri|beta[- ]?centuri/i
+/**
+ * The names this rebuild supersedes; they should survive nowhere on the site.
+ * The last alternative catches the bare name this one grew out of — it only
+ * counts as superseded when it is not the tail of the current name.
+ */
+export const OLD_SITE_NAME = /brave new worlds|strange new worlds|alpha[- ]?centauri|beta[- ]?centuri|(?<!sid meyers )alpha[- ]?centuri/i
 
 /** The board advisory paragraph the home page has to carry, word for word. */
 export const HOME_PARAGRAPH =

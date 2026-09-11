@@ -1,9 +1,11 @@
-// Tests for the "Alpha Centuri" site.
+// Tests for the "Sid Meyers Alpha Centuri" site.
 // Original build plan: specs/8393b537-ac67-46f5-b4e0-0b0d2e416f06/plan.md
 // Grey rebrand plan (dark grey page, orange accents):
 // specs/201be276-bbdc-4548-b65d-b0f2c227227f/plan.md
 // Alpha rebrand plan (dark blue page, orange accents, new name):
 // specs/392b9d9e-063b-4b5e-80e0-17475eb94210/plan.md
+// Gold rebrand plan (new name again, dark grey page, gold lettering):
+// specs/dfbfe75a-24f1-404d-804f-05a044162974/plan.md
 import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { access } from 'node:fs/promises'
@@ -1116,20 +1118,20 @@ describe('Alpha rebrand task 5: every audited link and text accent is orange', (
   })
 })
 
-describe('Alpha rebrand task 6: the browser tab reads "Alpha Centuri"', () => {
+describe('Gold rebrand task 1: the browser tab reads "Sid Meyers Alpha Centuri"', () => {
   const site = servedInBrowser()
 
-  it('names the site "Alpha Centuri", the one value every page titles itself with', () => {
-    assert.equal(SITE_NAME, 'Alpha Centuri')
+  it('names the site "Sid Meyers Alpha Centuri", the one value every page titles itself with', () => {
+    assert.equal(SITE_NAME, 'Sid Meyers Alpha Centuri')
   })
 
   for (const file of TITLE_SOURCES) {
-    it(`renders <title>Alpha Centuri</title> on ${file}`, async () => {
+    it(`renders <title>Sid Meyers Alpha Centuri</title> on ${file}`, async () => {
       const { page } = site
       await page.goto(`${site.origin}/${file}`)
 
-      assert.equal(await page.evaluate('return document.title'), 'Alpha Centuri')
-      assert.equal(titleOf(await read(file)), 'Alpha Centuri')
+      assert.equal(await page.evaluate('return document.title'), 'Sid Meyers Alpha Centuri')
+      assert.equal(titleOf(await read(file)), 'Sid Meyers Alpha Centuri')
     })
   }
 
@@ -1146,7 +1148,7 @@ describe('Alpha rebrand task 6: the browser tab reads "Alpha Centuri"', () => {
   })
 })
 
-describe('Alpha rebrand task 7: the visible branding reads "Alpha Centuri"', () => {
+describe('Gold rebrand task 2: the visible branding reads "Sid Meyers Alpha Centuri"', () => {
   const site = servedInBrowser()
 
   /** The page's `<header>` element, markup and all. */
@@ -1497,6 +1499,50 @@ describe('Alpha rebrand task 10: the whole site, crawled and verified', () => {
     assert.deepEqual(Object.keys(manifest.scripts), ['test'])
     assert.equal(manifest.dependencies, undefined)
     assert.equal(manifest.devDependencies, undefined)
+  })
+})
+
+describe('Gold rebrand task 3: the old name survives in no branding context', () => {
+  /** Every line of every shipped file and of the suite, tagged with where it came from. */
+  const allLines = async () => {
+    const files = [...(await siteFiles()), 'tests/browser.mjs', 'tests/page.test.mjs', 'tests/site.mjs']
+    const lines = []
+    for (const file of files) {
+      for (const [index, text] of (await read(file)).split('\n').entries()) {
+        lines.push({ file, line: index + 1, text })
+      }
+    }
+    return lines
+  }
+
+  it('never writes the bare old name where the full one belongs', async () => {
+    // The old name is the tail of the new one, so only an occurrence without
+    // the "Sid Meyers" prefix is a leftover.
+    const leftovers = (await allLines()).filter(
+      ({ file, text }) => !(file === 'tests/site.mjs' && text.includes('OLD_SITE_NAME')) && OLD_SITE_NAME.test(text),
+    )
+
+    assert.deepEqual(
+      leftovers.map(({ file, line, text }) => `${file}:${line}: ${text.trim()}`),
+      [],
+    )
+  })
+
+  it('writes the new name, in full, everywhere the old one was branding', async () => {
+    const BRANDING = {
+      'index.html': [`<title>${SITE_NAME}</title>`, `<h1 class="site-title">${SITE_NAME}</h1>`, `Welcome to ${SITE_NAME}.`],
+      'about.html': [`<title>${SITE_NAME}</title>`, `<h1 class="site-title">${SITE_NAME}</h1>`],
+      'contact.html': [`<title>${SITE_NAME}</title>`, `<h1 class="site-title">${SITE_NAME}</h1>`],
+      'style.css': [SITE_NAME],
+      'package.json': [SITE_NAME],
+    }
+
+    for (const [file, expected] of Object.entries(BRANDING)) {
+      const contents = await read(file)
+      for (const branding of expected) {
+        assert.ok(contents.includes(branding), `${file} does not carry ${branding}`)
+      }
+    }
   })
 })
 
