@@ -275,20 +275,14 @@ export function isDarkGrey(color) {
   return luminance >= 0.005 && luminance < 0.12 && color.a > 0.9 && spread(color) <= 12
 }
 
-/** True for a light grey (white included): bright, neutral, opaque. */
-export function isLightGrey(color) {
-  return relativeLuminance(color) > 0.5 && color.a > 0.9 && spread(color) <= 12
-}
-
 /**
- * True for a dark blue: dim but not black, opaque, and unmistakably blue —
- * blue leads the channels by a clear margin and green sits between it and red,
- * which rules out a neutral grey, a purple and a teal alike.
+ * True for a gold: bright and opaque, red and green both high with red ahead
+ * by a little, and next to no blue — which rules out a grey, a yellow-white
+ * and the orange below, whose green channel sits far lower.
  */
-export function isDarkBlue(color) {
+export function isGold(color) {
   const { r, g, b, a } = color
-  const luminance = relativeLuminance(color)
-  return luminance >= 0.005 && luminance < 0.12 && a > 0.9 && b - g >= 12 && g >= r && b - r >= 24
+  return a > 0.9 && r > 200 && g >= 180 && g < r && b < 90 && r - g <= 90
 }
 
 /** True for an orange hue: full red, mid green, next to no blue — not a gold. */

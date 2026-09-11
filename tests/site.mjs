@@ -26,14 +26,14 @@ export const TITLE_SOURCES = ['index.html', 'about.html', 'contact.html']
 export const STYLESHEET = 'style.css'
 
 /**
- * The colour scheme: two dark blues for the surfaces, light grey for the body
- * text, and three oranges — the accent plus the shades its hover and active
- * states brighten and deepen to.
+ * The colour scheme: two dark greys for the surfaces, gold for the body text
+ * and lettering, and three oranges — the accent plus the shades its hover and
+ * active states brighten and deepen to.
  */
 export const COLOURS = {
-  darkBlue: '#0c1c38',
-  raisedBlue: '#16294d',
-  lightGrey: '#e6e6e6',
+  darkGrey: '#2b2b2b',
+  raisedGrey: '#333333',
+  gold: '#ffd700',
   orange: '#ff8c1a',
   orangeBright: '#ffa94d',
   orangeDeep: '#e8820f',
@@ -44,26 +44,33 @@ export const COLOURS = {
  * defined in exactly one place.
  */
 export const COLOUR_VARS = {
-  darkBlue: '--dark-blue',
-  raisedBlue: '--raised-blue',
-  lightGrey: '--light-grey',
+  darkGrey: '--dark-grey',
+  raisedGrey: '--raised-grey',
+  gold: '--gold',
   orange: '--orange',
   orangeBright: '--orange-bright',
   orangeDeep: '--orange-deep',
 }
 
 /**
- * The shades every rebrand so far supersedes — the old dark green, the old
- * gold, the old dark blue and the two dark greys this one replaces — as bare
- * hex digits so the check catches them however they are written (`#1f1f1f`,
- * `%231f1f1f` inside a data URI, …).
+ * The shades every rebrand so far supersedes — the old dark green, the two
+ * older dark blues, the two dark greys of the grey scheme before this one, and
+ * the light grey this rebrand replaces as the lettering colour — as bare hex
+ * digits so the check catches them however they are written (`#0c1c38`,
+ * `%230c1c38` inside a data URI, …).
  */
-export const OLD_COLOURS = ['0b2e1a', 'ffd700', '0b1e3c', '1f1f1f', '2e2e2e']
+export const OLD_COLOURS = ['0b2e1a', '0b1e3c', '1f1f1f', '2e2e2e', '0c1c38', '16294d', 'e6e6e6']
+
+/** Words for shades this rebrand rules out, in the stylesheet and the markup. */
+export const OLD_COLOUR_WORDS = [/\bgreen\b/i, /\blight[- ]?grey\b/i, /\bblue\b/i]
 
 /** Where the discovery, the palette choice and the flagged gaps are written down. */
 export const NOTES = 'specs/392b9d9e-063b-4b5e-80e0-17475eb94210/notes.md'
 
-/** Readability floor for orange-on-blue text: WCAG AA for body copy. */
+/** Where this rebrand's palette and its flagged colour overrides are written down. */
+export const GOLD_NOTES = 'specs/dfbfe75a-24f1-404d-804f-05a044162974/notes.md'
+
+/** Readability floor for gold- and orange-on-grey text: WCAG AA for body copy. */
 export const MIN_CONTRAST = 4.5
 
 /** The nav menu, in the order it is written. */
