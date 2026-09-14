@@ -25,6 +25,12 @@ export const TITLE_SOURCES = ['index.html', 'about.html', 'contact.html']
 
 export const STYLESHEET = 'style.css'
 
+/** The file served at the site root — the "Softpapaya Services" page. */
+export const HOMEPAGE = 'index.html'
+
+/** Where the Softpapaya Services build's discovery and decisions are written down. */
+export const SERVICES_NOTES = 'specs/24ad0907-f4a5-4d87-9555-0239522ef9df/notes.md'
+
 /**
  * The colour scheme: two dark greys for the surfaces, gold for the body text
  * and lettering, and three oranges — the accent plus the shades its hover and

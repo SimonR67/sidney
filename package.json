@@ -3,6 +3,6 @@
   "private": true,
   "description": "Static Sid Meyers Alpha Centuri site — Home, About Us and Contact, no build step.",
   "scripts": {
-    "test": "node --test tests/page.test.mjs"
+    "test": "node --test tests/page.test.mjs tests/services-page.test.mjs"
   }
 }
