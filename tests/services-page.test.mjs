@@ -226,3 +226,52 @@ describe('Services task 4: the hero statement', () => {
     assert.ok(!hero.lede.includes(hero.heading), 'the subheading only repeats the heading')
   })
 })
+
+describe('Services task 5: the eight service cards', () => {
+  const site = servedInBrowser()
+
+  const CARDS = `
+    const section = document.querySelector('#services')
+    const cards = [...section.querySelectorAll('h3')].map((h3) => {
+      const card = h3.parentElement
+      const copy = h3.nextElementSibling
+      const tags = copy?.nextElementSibling
+      return {
+        title: h3.textContent.replace(/\\s+/g, ' ').trim(),
+        copyTag: copy?.tagName.toLowerCase() ?? null,
+        copy: copy?.textContent.replace(/\\s+/g, ' ').trim() ?? '',
+        tagsTag: tags?.tagName.toLowerCase() ?? null,
+        tags: tags ? [...tags.children].map((el) => el.textContent.trim()) : [],
+        inGrid: card.parentElement === section.querySelector('.services__grid'),
+      }
+    })
+    return { cards, headings: document.querySelectorAll('h3').length }
+  `
+
+  it('lists exactly the eight named services, in order', async () => {
+    const { cards, headings } = await site.page.evaluate(CARDS)
+
+    assert.deepEqual(cards.map((card) => card.title), SERVICES)
+    assert.equal(headings, SERVICES.length, `the page carries ${headings} <h3>, not just the service titles`)
+  })
+
+  it('gives every card a description and a tag list, all in one grid', async () => {
+    const { cards } = await site.page.evaluate(CARDS)
+
+    for (const card of cards) {
+      assert.equal(card.copyTag, 'p', `"${card.title}" is described by a <${card.copyTag}>`)
+      assert.ok(card.copy.length > 40, `"${card.title}" has only a ${card.copy.length}-character description`)
+      assert.equal(card.tagsTag, 'ul', `"${card.title}" lists its tags in a <${card.tagsTag}>`)
+      assert.ok(card.tags.length >= 2, `"${card.title}" lists ${card.tags.length} tags`)
+      for (const tag of card.tags) assert.ok(tag.length > 0, `"${card.title}" has an empty tag`)
+      assert.equal(card.inGrid, true, `"${card.title}" sits outside the services grid`)
+    }
+  })
+
+  it('writes a description of its own for every service', async () => {
+    const { cards } = await site.page.evaluate(CARDS)
+    const copy = cards.map((card) => card.copy)
+
+    assert.equal(new Set(copy).size, copy.length, 'two service cards share a description')
+  })
+})
