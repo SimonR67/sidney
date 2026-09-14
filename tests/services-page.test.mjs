@@ -188,3 +188,41 @@ describe('Services task 3: the header, its nav and the "TALK TO US" call to acti
     assert.deepEqual(header.cta, [CONTACT])
   })
 })
+
+describe('Services task 4: the hero statement', () => {
+  const site = servedInBrowser()
+
+  const HERO = `
+    const heading = document.querySelector('main h1')
+    const lede = heading.nextElementSibling
+    return {
+      heading: heading.textContent.replace(/\\s+/g, ' ').trim(),
+      inHero: !!heading.closest('section'),
+      first: heading.closest('section') === document.querySelector('main section'),
+      ledeTag: lede?.tagName.toLowerCase() ?? null,
+      lede: lede?.textContent.replace(/\\s+/g, ' ').trim() ?? '',
+    }
+  `
+
+  it('states the hero heading word for word', async () => {
+    const hero = await site.page.evaluate(HERO)
+
+    assert.equal(hero.heading, 'WHAT WE DO. AND WE DO IT REALLY WELL.')
+  })
+
+  it('opens <main> with it, inside its own section', async () => {
+    const hero = await site.page.evaluate(HERO)
+
+    assert.equal(hero.inHero, true, 'the hero heading sits outside a <section>')
+    assert.equal(hero.first, true, 'the hero is not the first section of <main>')
+  })
+
+  it('follows it with a subheading paragraph of original copy', async () => {
+    const hero = await site.page.evaluate(HERO)
+
+    assert.equal(hero.ledeTag, 'p', `the hero heading is followed by a <${hero.ledeTag}>`)
+    assert.ok(hero.lede.length > 40, `the subheading is only ${hero.lede.length} characters long`)
+    assert.doesNotMatch(hero.lede, /lorem ipsum/i, 'the subheading is filler text')
+    assert.ok(!hero.lede.includes(hero.heading), 'the subheading only repeats the heading')
+  })
+})
