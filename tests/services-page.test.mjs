@@ -3,15 +3,18 @@
 // One describe per numbered task in that plan.
 import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
-import { openPage, serveStatic } from './browser.mjs'
+import { contrastRatio, openPage, parseColor, serveStatic } from './browser.mjs'
 import {
   HOMEPAGE,
   HOME_PARAGRAPH,
+  MIN_CONTRAST,
   SERVICES_NOTES,
   SERVICES_STYLESHEET,
   SERVICES_TITLE,
   SITE_NAME,
   STYLESHEET,
+  declaredValue,
+  hexColours,
   read,
   repoRoot,
   tagsIn,
@@ -21,6 +24,29 @@ import {
 
 /** The email every contact route on the page points at. */
 const CONTACT = 'mailto:hello@softpapaya.com'
+
+/** The one accent colour the page is allowed to spend. */
+const ACCENT = '#0a66ff'
+
+/** Every text-bearing element's colour against the background it actually sits on. */
+const TEXT_ON_BACKGROUND = `
+  const opaque = (colour) => {
+    const [, , , a = '1'] = colour.match(/[\\d.]+/g) ?? []
+    return Number(a) > 0
+  }
+  return [...document.querySelectorAll('body, body *')]
+    .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
+    .map((el) => {
+      let node = el
+      let background = 'rgba(0, 0, 0, 0)'
+      while (node) {
+        const candidate = getComputedStyle(node).backgroundColor
+        if (opaque(candidate)) { background = candidate; break }
+        node = node.parentElement
+      }
+      return { text: el.textContent.trim().slice(0, 40), color: getComputedStyle(el).color, background }
+    })
+`
 
 /** The eight nav links, in the order the header writes them. */
 const NAV_LABELS = ['About', 'Services', 'Values', 'Team', 'Case Studies', 'Careers', 'Blog', 'Contact']
@@ -385,5 +411,113 @@ describe('Services task 7: the footer', () => {
       { label: 'Privacy', href: '#' },
       { label: 'Terms of Service', href: '#' },
     ])
+  })
+})
+
+describe('Services task 8: the base visual system', () => {
+  const site = servedInBrowser()
+
+  const STYLE = `
+    const of = (selector) => {
+      const el = document.querySelector(selector)
+      const style = getComputedStyle(el)
+      return {
+        color: style.color,
+        background: style.backgroundColor,
+        fontFamily: style.fontFamily,
+        fontWeight: Number(style.fontWeight),
+        letterSpacing: style.letterSpacing,
+        borderRadius: style.borderTopLeftRadius,
+        padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
+        maxWidth: style.maxWidth,
+      }
+    }
+    return {
+      body: of('body'),
+      h1: of('h1'),
+      h2: of('h2'),
+      button: of('.button--accent'),
+      container: of('.container'),
+    }
+  `
+
+  it('writes near-black copy on a white page', async () => {
+    const { body } = await site.page.evaluate(STYLE)
+
+    assert.equal(body.background, 'rgb(255, 255, 255)', `the page is ${body.background}`)
+    const { r, g, b } = parseColor(body.color)
+    for (const channel of [r, g, b]) {
+      assert.ok(channel >= 0x1a && channel <= 0x22, `the body copy is ${body.color}, outside #1A1A1A–#222222`)
+    }
+  })
+
+  it('sets a sans-serif stack that falls back past Inter', async () => {
+    const { body } = await site.page.evaluate(STYLE)
+    const stack = body.fontFamily.split(',').map((name) => name.trim().replace(/^["']|["']$/g, ''))
+
+    assert.deepEqual(stack, ['Inter', 'Helvetica Neue', 'Arial', 'sans-serif'])
+  })
+
+  it('sets the headings bold and tracked out', async () => {
+    const { h1, h2 } = await site.page.evaluate(STYLE)
+
+    for (const [what, heading] of [['h1', h1], ['h2', h2]]) {
+      assert.ok(heading.fontWeight >= 600, `the ${what} is only weight ${heading.fontWeight}`)
+      assert.ok(
+        parseFloat(heading.letterSpacing) > 0,
+        `the ${what} has ${heading.letterSpacing} of letter-spacing, so it is not tracked out`,
+      )
+    }
+  })
+
+  it('rounds the accent button and pads it to the specified size', async () => {
+    const { button } = await site.page.evaluate(STYLE)
+    const radius = parseFloat(button.borderRadius)
+
+    assert.deepEqual(parseColor(button.background), { r: 0x0a, g: 0x66, b: 0xff, a: 1 }, `the button is ${button.background}`)
+    assert.ok(radius >= 6 && radius <= 8, `the button's corner radius is ${button.borderRadius}`)
+    assert.deepEqual(button.padding, ['12px', '24px', '12px', '24px'], 'the button is not padded 12px 24px')
+    assert.ok(
+      contrastRatio(parseColor(button.color), parseColor(button.background)) >= MIN_CONTRAST,
+      `the button label ${button.color} is illegible on ${button.background}`,
+    )
+  })
+
+  it('centres the page on a 1200px container', async () => {
+    const { container } = await site.page.evaluate(STYLE)
+
+    assert.equal(container.maxWidth, '1200px')
+  })
+
+  it('takes the accent from one custom property, written once', async () => {
+    const css = await read(SERVICES_STYLESHEET)
+
+    assert.equal(declaredValue(css, [':root'], '--accent'), ACCENT)
+    assert.equal(
+      hexColours(css).filter((colour) => colour === ACCENT).length,
+      1,
+      `${ACCENT} is written more than once in ${SERVICES_STYLESHEET}; it should come from --accent`,
+    )
+  })
+
+  it('paints every accent on the page with that one colour', async () => {
+    const accents = await site.page.evaluate(`
+      return [...document.querySelectorAll('.button--accent')].map((el) => getComputedStyle(el).backgroundColor)
+    `)
+
+    assert.ok(accents.length >= 2, `only ${accents.length} accent buttons on the page`)
+    for (const accent of accents) {
+      assert.deepEqual(parseColor(accent), { r: 0x0a, g: 0x66, b: 0xff, a: 1 }, `an accent renders as ${accent}`)
+    }
+  })
+
+  it('keeps every line of text legible against the surface it sits on', async () => {
+    const lines = await site.page.evaluate(TEXT_ON_BACKGROUND)
+
+    assert.ok(lines.length > 0, 'no text found on the page')
+    for (const line of lines) {
+      const ratio = contrastRatio(parseColor(line.color), parseColor(line.background))
+      assert.ok(ratio >= MIN_CONTRAST, `"${line.text}": ${line.color} on ${line.background} is ${ratio.toFixed(2)}:1`)
+    }
   })
 })

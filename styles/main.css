@@ -1,1 +1,323 @@
-/* Softpapaya Services — see specs/24ad0907-f4a5-4d87-9555-0239522ef9df/plan.md */
+/* Softpapaya Services — see specs/24ad0907-f4a5-4d87-9555-0239522ef9df/plan.md
+   Written mobile-first: the base rules are the narrow layout, and the media
+   queries at the foot widen it. */
+
+/* The whole palette, each shade written exactly once. */
+:root {
+  --page: #ffffff;
+  --ink: #1a1a1a;
+  --deep: #111111;
+  --muted: #4a4a4a;
+  --accent: #0a66ff;
+  --accent-pressed: #0850cc;
+  --band: #f7f7f7;
+  --line: #dcdfe4;
+  --chip: #f1f3f5;
+  --inverse-ink: #e9e9e9;
+  --inverse-muted: #b9b9b9;
+
+  --container: 1200px;
+  --gutter: 20px;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  background-color: var(--page);
+  color: var(--ink);
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The one centred measure every band lays its content out on. */
+.container {
+  width: 100%;
+  max-width: var(--container);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+h1,
+h2,
+h3 {
+  margin: 0;
+  color: var(--deep);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+h1 {
+  font-size: 40px;
+  letter-spacing: 0.02em;
+}
+
+h2 {
+  font-size: 26px;
+  letter-spacing: 0.08em;
+}
+
+h3 {
+  font-size: 19px;
+  letter-spacing: 0.01em;
+}
+
+p {
+  margin: 0;
+}
+
+ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+/* Buttons ------------------------------------------------------------- */
+
+.button {
+  display: inline-block;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 12px 24px;
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
+}
+
+.button--accent {
+  background-color: var(--accent);
+  border-color: var(--accent);
+  color: var(--page);
+}
+
+.button--accent:hover,
+.button--accent:active {
+  background-color: var(--accent-pressed);
+  border-color: var(--accent-pressed);
+}
+
+.button--large {
+  font-size: 15px;
+}
+
+/* Header -------------------------------------------------------------- */
+
+.masthead {
+  border-bottom: 1px solid var(--line);
+}
+
+.masthead__inner {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 28px;
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.masthead__logo {
+  margin-right: auto;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--deep);
+}
+
+/* Narrow screens drop the nav onto a row of its own, below the logo and the
+   call to action, so the two can never clip each other. */
+.masthead__nav {
+  order: 3;
+  flex: 1 1 100%;
+}
+
+.masthead__links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 22px;
+  font-size: 14px;
+}
+
+.masthead__links a:hover {
+  color: var(--accent);
+}
+
+/* Hero ---------------------------------------------------------------- */
+
+.hero {
+  padding: 64px 0 40px;
+}
+
+.hero__heading {
+  max-width: 20ch;
+}
+
+.hero__lede {
+  max-width: 62ch;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+/* Services ------------------------------------------------------------ */
+
+.services {
+  padding: 24px 0 72px;
+}
+
+.section__heading {
+  margin-bottom: 24px;
+  font-size: 14px;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+
+.services__grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 26px 24px;
+  background-color: var(--page);
+  box-shadow: 0 1px 2px rgba(17, 17, 17, 0.06);
+}
+
+.card__copy {
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.card__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: auto;
+}
+
+.tag {
+  border-radius: 999px;
+  padding: 4px 10px;
+  background-color: var(--chip);
+  color: var(--muted);
+  font-size: 12px;
+  letter-spacing: 0.02em;
+}
+
+/* Call-to-action band -------------------------------------------------- */
+
+.invitation {
+  background-color: var(--band);
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  padding: 64px 0;
+}
+
+.invitation__copy {
+  max-width: 62ch;
+  margin: 18px 0 28px;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+/* Footer --------------------------------------------------------------- */
+
+.footer {
+  background-color: var(--deep);
+  color: var(--inverse-ink);
+}
+
+.footer h2 {
+  color: var(--page);
+}
+
+.footer__inner {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  padding-top: 56px;
+  padding-bottom: 48px;
+}
+
+.footer__logo {
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: var(--page);
+}
+
+.footer__blurb {
+  max-width: 42ch;
+  margin-top: 12px;
+  color: var(--inverse-muted);
+  font-size: 15px;
+}
+
+.footer__heading {
+  font-size: 13px;
+  letter-spacing: 0.16em;
+}
+
+.footer__links,
+.footer__contact p {
+  margin-top: 14px;
+  font-size: 15px;
+}
+
+.footer__links li + li {
+  margin-top: 8px;
+}
+
+.footer a:hover {
+  color: var(--page);
+  text-decoration: underline;
+}
+
+.footer__bottom {
+  border-top: 1px solid var(--muted);
+}
+
+.footer__bottom-inner {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 24px;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  font-size: 13px;
+  color: var(--inverse-muted);
+}
+
+.footer__copyright {
+  margin-right: auto;
+}
+
+.footer__legal {
+  display: flex;
+  gap: 20px;
+}
