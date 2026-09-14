@@ -16,6 +16,13 @@
   --inverse-ink: #e9e9e9;
   --inverse-muted: #b9b9b9;
 
+  /* The papaya the header's call to action and the nav hover now take, and the
+     two shades that join it around the service cards.
+     See specs/35b5ae80-1213-4bd7-8102-4c3e12e97bc2/notes.md. */
+  --papaya: #e56717;
+  --lime: #32cd32;
+  --black: #000000;
+
   --container: 1200px;
   --gutter: 20px;
 }
@@ -159,7 +166,15 @@ a {
 }
 
 .masthead__links a:hover {
-  color: var(--accent);
+  color: var(--papaya);
+  font-weight: 700;
+}
+
+/* The call to action is the one header link painted rather than highlighted:
+   papaya in its base state, and — deliberately, per the spec — still carrying
+   the accent border and the accent-pressed hover it already had. */
+.masthead__cta {
+  background-color: var(--papaya);
 }
 
 /* Hero ---------------------------------------------------------------- */
@@ -207,6 +222,21 @@ a {
   padding: 26px 24px;
   background-color: var(--page);
   box-shadow: 0 1px 2px rgba(17, 17, 17, 0.06);
+}
+
+/* The cards' borders run papaya, lime, black and round again. Set by position
+   rather than per card, so the sequence holds if the grid is reordered or grows
+   past the eight services written today. */
+.services__grid > .card:nth-child(3n + 1) {
+  border-color: var(--papaya);
+}
+
+.services__grid > .card:nth-child(3n + 2) {
+  border-color: var(--lime);
+}
+
+.services__grid > .card:nth-child(3n) {
+  border-color: var(--black);
 }
 
 .card__copy {

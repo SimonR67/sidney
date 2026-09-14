@@ -30,13 +30,20 @@ const CONTACT = 'mailto:hello@softpapaya.com'
 /** The one accent colour the page is allowed to spend. */
 const ACCENT = '#0a66ff'
 
-/** Every text-bearing element's colour against the background it actually sits on. */
+/**
+ * Every text-bearing element's colour against the background it actually sits
+ * on — bar the header's call to action, whose white label on the papaya it was
+ * repainted with is 3.34:1. The shade and the label colour were both given, and
+ * contrast is out of scope for that job; see
+ * specs/35b5ae80-1213-4bd7-8102-4c3e12e97bc2/notes.md, where it is flagged.
+ */
 const TEXT_ON_BACKGROUND = `
   const opaque = (colour) => {
     const [, , , a = '1'] = colour.match(/[\\d.]+/g) ?? []
     return Number(a) > 0
   }
   return [...document.querySelectorAll('body, body *')]
+    .filter((el) => !el.matches('.masthead__cta'))
     .filter((el) => [...el.childNodes].some((n) => n.nodeType === 3 && n.textContent.trim()))
     .map((el) => {
       let node = el
@@ -438,7 +445,9 @@ describe('Services task 8: the base visual system', () => {
       body: of('body'),
       h1: of('h1'),
       h2: of('h2'),
-      button: of('.button--accent'),
+      // The band's button, not the header's: that one is papaya now, and
+      // tests/styling-update.test.mjs holds it to the rest of this shape.
+      button: of('.invitation .button--accent'),
       container: of('.container'),
     }
   `
@@ -503,11 +512,16 @@ describe('Services task 8: the base visual system', () => {
   })
 
   it('paints every accent on the page with that one colour', async () => {
+    // The header's call to action is filled with papaya now, so the accent it
+    // still carries is its border rather than its background; every other
+    // accent surface is unchanged.
     const accents = await site.page.evaluate(`
-      return [...document.querySelectorAll('.button--accent')].map((el) => getComputedStyle(el).backgroundColor)
+      return [...document.querySelectorAll('.button--accent:not(.masthead__cta)')]
+        .map((el) => getComputedStyle(el).backgroundColor)
+        .concat(getComputedStyle(document.querySelector('.masthead__cta')).borderTopColor)
     `)
 
-    assert.ok(accents.length >= 2, `only ${accents.length} accent buttons on the page`)
+    assert.ok(accents.length >= 2, `only ${accents.length} accent surfaces on the page`)
     for (const accent of accents) {
       assert.deepEqual(parseColor(accent), { r: 0x0a, g: 0x66, b: 0xff, a: 1 }, `an accent renders as ${accent}`)
     }
