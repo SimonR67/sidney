@@ -5,9 +5,11 @@ import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { contrastRatio, openPage, parseColor, serveStatic } from './browser.mjs'
 import {
+  BOXES,
   HOMEPAGE,
   HOME_PARAGRAPH,
   MIN_CONTRAST,
+  MIN_CONTRAST_LARGE,
   SERVICES_NOTES,
   SERVICES_STYLESHEET,
   SERVICES_TITLE,
@@ -16,6 +18,8 @@ import {
   declaredValue,
   hexColours,
   htmlFiles,
+  isLargeText,
+  LOGO_ASSET,
   read,
   repoRoot,
   siteFiles,
@@ -53,24 +57,26 @@ const TEXT_ON_BACKGROUND = `
         if (opaque(candidate)) { background = candidate; break }
         node = node.parentElement
       }
-      return { text: el.textContent.trim().slice(0, 40), color: getComputedStyle(el).color, background }
+      const style = getComputedStyle(el)
+      return {
+        text: el.textContent.trim().slice(0, 40),
+        color: style.color,
+        background,
+        fontSize: parseFloat(style.fontSize),
+        fontWeight: style.fontWeight,
+      }
     })
 `
 
 /** The eight nav links, in the order the header writes them. */
 const NAV_LABELS = ['About', 'Services', 'Values', 'Team', 'Case Studies', 'Careers', 'Blog', 'Contact']
 
-/** The eight services, in the order the grid writes them. */
-const SERVICES = [
-  'Custom Software',
-  'Team Augmentation',
-  'Cloud & Infrastructure',
-  'AI & Automation',
-  'Data Engineering',
-  'Project Governance',
-  'Rapid Proof of Concept',
-  'UI/UX Design',
-]
+/**
+ * The services, in the order the grid writes them. The eight this page opened
+ * with were replaced by these six in
+ * specs/7931a152-83fe-4f91-8093-e167e642681a/plan.md.
+ */
+const SERVICES = BOXES.map((box) => box.title)
 
 /**
  * Serves the repo and opens one headless-Chrome page on the home page for the
@@ -182,8 +188,10 @@ describe('Services task 3: the header, its nav and the "TALK TO US" call to acti
     const logo = header.querySelector('a')
     const nav = header.querySelector('nav')
     const cta = [...header.querySelectorAll('a')].filter((a) => a.textContent.trim() === 'TALK TO US')
+    const mark = logo.querySelector('img')
     return {
       logo: { text: logo.textContent.trim(), href: logo.getAttribute('href') },
+      mark: mark && { src: mark.getAttribute('src'), alt: mark.getAttribute('alt') },
       navCount: document.querySelectorAll('nav').length,
       navLabel: nav.getAttribute('aria-label'),
       links: [...nav.querySelectorAll('a')].map((a) => a.textContent.trim()),
@@ -192,10 +200,14 @@ describe('Services task 3: the header, its nav and the "TALK TO US" call to acti
     }
   `
 
-  it('opens with a "SoftPapaya" logo linked home', async () => {
+  // The brand slot set the words "SoftPapaya" until
+  // specs/7931a152-83fe-4f91-8093-e167e642681a/plan.md swapped them for the
+  // logo image; the link it sits in is unchanged.
+  it('opens with the SoftPapaya logo, linked home', async () => {
     const header = await site.page.evaluate(HEADER)
 
-    assert.deepEqual(header.logo, { text: 'SoftPapaya', href: '#' })
+    assert.deepEqual(header.logo, { text: '', href: '#' })
+    assert.deepEqual(header.mark, { src: LOGO_ASSET, alt: 'SoftPapaya' })
   })
 
   it('carries the eight nav links, in order, in one labelled nav', async () => {
@@ -262,7 +274,7 @@ describe('Services task 4: the hero statement', () => {
   })
 })
 
-describe('Services task 5: the eight service cards', () => {
+describe('Services task 5: the service cards', () => {
   const site = servedInBrowser()
 
   const CARDS = `
@@ -283,7 +295,7 @@ describe('Services task 5: the eight service cards', () => {
     return { cards, headings: document.querySelectorAll('h3').length }
   `
 
-  it('lists exactly the eight named services, in order', async () => {
+  it('lists exactly the named services, in order', async () => {
     const { cards, headings } = await site.page.evaluate(CARDS)
 
     assert.deepEqual(cards.map((card) => card.title), SERVICES)
@@ -533,7 +545,14 @@ describe('Services task 8: the base visual system', () => {
     assert.ok(lines.length > 0, 'no text found on the page')
     for (const line of lines) {
       const ratio = contrastRatio(parseColor(line.color), parseColor(line.background))
-      assert.ok(ratio >= MIN_CONTRAST, `"${line.text}": ${line.color} on ${line.background} is ${ratio.toFixed(2)}:1`)
+      const large = isLargeText(line.fontSize, line.fontWeight)
+      const floor = large ? MIN_CONTRAST_LARGE : MIN_CONTRAST
+
+      assert.ok(
+        ratio >= floor,
+        `"${line.text}": ${line.color} on ${line.background} is ${ratio.toFixed(2)}:1, ` +
+          `under the ${floor}:1 AA asks of ${large ? 'large' : 'body'} text`,
+      )
     }
   })
 })
