@@ -1,8 +1,9 @@
 // Tests for the "Softpapaya Services" home page.
 // Plan: specs/24ad0907-f4a5-4d87-9555-0239522ef9df/plan.md
 // One describe per numbered task in that plan.
-import { describe, it } from 'node:test'
+import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
+import { openPage, serveStatic } from './browser.mjs'
 import {
   HOMEPAGE,
   HOME_PARAGRAPH,
@@ -12,10 +13,48 @@ import {
   SITE_NAME,
   STYLESHEET,
   read,
+  repoRoot,
   tagsIn,
   textOf,
   titleOf,
 } from './site.mjs'
+
+/** The email every contact route on the page points at. */
+const CONTACT = 'mailto:hello@softpapaya.com'
+
+/** The eight nav links, in the order the header writes them. */
+const NAV_LABELS = ['About', 'Services', 'Values', 'Team', 'Case Studies', 'Careers', 'Blog', 'Contact']
+
+/** The eight services, in the order the grid writes them. */
+const SERVICES = [
+  'Custom Software',
+  'Team Augmentation',
+  'Cloud & Infrastructure',
+  'AI & Automation',
+  'Data Engineering',
+  'Project Governance',
+  'Rapid Proof of Concept',
+  'UI/UX Design',
+]
+
+/**
+ * Serves the repo and opens one headless-Chrome page on the home page for the
+ * enclosing suite. `page`/`origin` are filled in by the time tests run.
+ */
+const servedInBrowser = () => {
+  const handle = {}
+  before(async () => {
+    handle.server = await serveStatic(repoRoot)
+    handle.origin = handle.server.origin
+    handle.url = `${handle.origin}/${HOMEPAGE}`
+    handle.page = await openPage(handle.url)
+  })
+  after(async () => {
+    await handle.page?.close()
+    await handle.server?.close()
+  })
+  return handle
+}
 
 describe('Services task 1: the served home page, identified and written down', () => {
   /** The section of the notes under the given `## n. Heading`, up to the next heading. */
@@ -97,5 +136,55 @@ describe('Services task 2: the page skeleton and its title', () => {
       const close = [...html.matchAll(new RegExp(`</${tag}>`, 'gi'))].length
       assert.equal(open, close, `${HOMEPAGE} has ${open} <${tag}> against ${close} </${tag}>`)
     }
+  })
+})
+
+describe('Services task 3: the header, its nav and the "TALK TO US" call to action', () => {
+  const site = servedInBrowser()
+
+  const HEADER = `
+    const header = document.querySelector('header')
+    const logo = header.querySelector('a')
+    const nav = header.querySelector('nav')
+    const cta = [...header.querySelectorAll('a')].filter((a) => a.textContent.trim() === 'TALK TO US')
+    return {
+      logo: { text: logo.textContent.trim(), href: logo.getAttribute('href') },
+      navCount: document.querySelectorAll('nav').length,
+      navLabel: nav.getAttribute('aria-label'),
+      links: [...nav.querySelectorAll('a')].map((a) => a.textContent.trim()),
+      hrefs: [...nav.querySelectorAll('a')].map((a) => a.getAttribute('href')),
+      cta: cta.map((a) => a.getAttribute('href')),
+    }
+  `
+
+  it('opens with a "SoftPapaya" logo linked home', async () => {
+    const header = await site.page.evaluate(HEADER)
+
+    assert.deepEqual(header.logo, { text: 'SoftPapaya', href: '#' })
+  })
+
+  it('carries the eight nav links, in order, in one labelled nav', async () => {
+    const header = await site.page.evaluate(HEADER)
+
+    assert.equal(header.navCount, 1, `${HOMEPAGE} has ${header.navCount} navigations`)
+    assert.equal(header.navLabel, 'Primary')
+    assert.deepEqual(header.links, NAV_LABELS)
+  })
+
+  it('points every nav link at a placeholder or an in-page section, never a dead route', async () => {
+    const header = await site.page.evaluate(HEADER)
+    const sections = await site.page.evaluate(
+      `return [...document.querySelectorAll('[id]')].map((el) => '#' + el.id)`,
+    )
+
+    for (const href of header.hrefs) {
+      assert.ok(href === '#' || sections.includes(href), `the nav links ${href}, which is on no section`)
+    }
+  })
+
+  it('ends the header with exactly one "TALK TO US" button, pointed at the contact address', async () => {
+    const header = await site.page.evaluate(HEADER)
+
+    assert.deepEqual(header.cta, [CONTACT])
   })
 })

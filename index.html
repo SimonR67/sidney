@@ -13,12 +13,29 @@
   </head>
   <body>
     <header class="masthead">
-      <nav class="masthead__nav" aria-label="Primary"></nav>
+      <div class="container masthead__inner">
+        <a class="masthead__logo" href="#">SoftPapaya</a>
+        <nav class="masthead__nav" aria-label="Primary">
+          <ul class="masthead__links">
+            <li><a href="#">About</a></li>
+            <li><a href="#services">Services</a></li>
+            <li><a href="#">Values</a></li>
+            <li><a href="#">Team</a></li>
+            <li><a href="#">Case Studies</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="#contact">Contact</a></li>
+          </ul>
+        </nav>
+        <a class="button button--accent masthead__cta" href="mailto:hello@softpapaya.com">TALK TO US</a>
+      </div>
     </header>
     <main>
       <section class="hero">
         <h1 class="hero__heading">WHAT WE DO. AND WE DO IT REALLY WELL.</h1>
       </section>
+      <section class="services" id="services" aria-labelledby="services-heading"></section>
+      <section class="invitation" id="contact" aria-labelledby="invitation-heading"></section>
     </main>
     <footer class="footer"></footer>
   </body>
