@@ -275,3 +275,44 @@ describe('Services task 5: the eight service cards', () => {
     assert.equal(new Set(copy).size, copy.length, 'two service cards share a description')
   })
 })
+
+describe('Services task 6: the call-to-action band', () => {
+  const site = servedInBrowser()
+
+  const BAND = `
+    const band = document.querySelector('#contact')
+    const heading = band.querySelector('h2')
+    const copy = band.querySelector('p')
+    const button = band.querySelector('a')
+    return {
+      heading: heading?.textContent.replace(/\\s+/g, ' ').trim() ?? null,
+      copy: copy?.textContent.replace(/\\s+/g, ' ').trim() ?? '',
+      button: button ? { label: button.textContent.trim(), href: button.getAttribute('href') } : null,
+      buttons: band.querySelectorAll('a').length,
+      last: band === [...document.querySelectorAll('main section')].at(-1),
+    }
+  `
+
+  it('asks "HAVE A PROJECT TO DISCUSS?" at the foot of <main>', async () => {
+    const band = await site.page.evaluate(BAND)
+
+    assert.equal(band.heading, 'HAVE A PROJECT TO DISCUSS?')
+    assert.equal(band.last, true, 'the call-to-action band is not the last section of <main>')
+  })
+
+  it('invites the visitor in a paragraph of its own', async () => {
+    const band = await site.page.evaluate(BAND)
+
+    assert.ok(band.copy.length > 40, `the invitation is only ${band.copy.length} characters long`)
+    assert.notEqual(band.copy, band.heading)
+  })
+
+  it('offers one button, and it goes somewhere', async () => {
+    const band = await site.page.evaluate(BAND)
+
+    assert.equal(band.buttons, 1, `the band carries ${band.buttons} links`)
+    assert.ok(band.button.label.length > 0, 'the button has no label')
+    assert.match(band.button.href, /^(mailto:|#)/, `the button points at ${band.button.href}`)
+    assert.equal(band.button.href, CONTACT, 'the band points somewhere other than the one contact address')
+  })
+})
