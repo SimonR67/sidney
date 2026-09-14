@@ -321,3 +321,44 @@ a {
   display: flex;
   gap: 20px;
 }
+
+/* Breakpoints ---------------------------------------------------------- */
+
+/* Tablet: the cards pair up and the footer's columns sit beside each other. */
+@media (min-width: 768px) {
+  .services__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .footer__inner {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  h1 {
+    font-size: 56px;
+  }
+}
+
+/* Desktop: three service columns, and the nav moves back onto the logo's row. */
+@media (min-width: 1024px) {
+  .services__grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .masthead__nav {
+    order: 0;
+    flex: 0 1 auto;
+  }
+
+  .footer__inner {
+    grid-template-columns: 2fr repeat(4, 1fr) 1.2fr;
+  }
+
+  .footer__brand {
+    padding-right: 24px;
+  }
+
+  h1 {
+    font-size: 64px;
+  }
+}

@@ -521,3 +521,82 @@ describe('Services task 8: the base visual system', () => {
     }
   })
 })
+
+describe('Services task 9: the layout at every breakpoint', () => {
+  const site = servedInBrowser()
+
+  const LAYOUT = `
+    const box = (selector) => {
+      const rect = document.querySelector(selector).getBoundingClientRect()
+      return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left }
+    }
+    return {
+      columns: getComputedStyle(document.querySelector('.services__grid')).gridTemplateColumns.split(' ').length,
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      viewport: window.innerWidth,
+      logo: box('.masthead__logo'),
+      nav: box('.masthead__nav'),
+      cta: box('.masthead__cta'),
+      cards: [...document.querySelectorAll('.card')].map((card) => {
+        const rect = card.getBoundingClientRect()
+        return { top: rect.top, right: rect.right, bottom: rect.bottom, left: rect.left }
+      }),
+    }
+  `
+
+  const overlap = (a, b) => a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom
+
+  const measure = async (width) => {
+    await site.page.setViewport(width, 900)
+    await site.page.goto(site.url)
+    return site.page.evaluate(LAYOUT)
+  }
+
+  it('stacks the services into one column on a 375px screen', async () => {
+    const layout = await measure(375)
+
+    assert.equal(layout.columns, 1, `the grid is ${layout.columns} columns wide at 375px`)
+  })
+
+  it('opens the services out to three columns from 1200px up', async () => {
+    for (const width of [1200, 1440]) {
+      const layout = await measure(width)
+
+      assert.equal(layout.columns, 3, `the grid is ${layout.columns} columns wide at ${width}px`)
+    }
+  })
+
+  it('never overflows sideways, at any of the three breakpoints', async () => {
+    for (const width of [375, 768, 1200]) {
+      const layout = await measure(width)
+
+      assert.equal(layout.overflow, 0, `the page overflows by ${layout.overflow}px at ${width}px`)
+      for (const card of layout.cards) {
+        assert.ok(card.left >= 0, `a card starts at ${card.left}px at ${width}px, off the left edge`)
+        assert.ok(card.right <= layout.viewport, `a card runs to ${card.right}px past ${width}px`)
+      }
+    }
+  })
+
+  it('keeps the nav clear of the logo and the call to action on a narrow screen', async () => {
+    const layout = await measure(375)
+
+    assert.equal(overlap(layout.nav, layout.cta), false, 'the nav overlaps the TALK TO US button')
+    assert.equal(overlap(layout.nav, layout.logo), false, 'the nav overlaps the logo')
+    assert.equal(overlap(layout.logo, layout.cta), false, 'the logo overlaps the TALK TO US button')
+    for (const [what, part] of [['nav', layout.nav], ['button', layout.cta], ['logo', layout.logo]]) {
+      assert.ok(part.right <= layout.viewport, `the ${what} is clipped: it runs to ${part.right}px`)
+      assert.ok(part.left >= 0, `the ${what} starts at ${part.left}px, off the left edge`)
+    }
+  })
+
+  it('lets cards differ in height without letting them overlap each other', async () => {
+    const layout = await measure(1200)
+
+    for (const [index, card] of layout.cards.entries()) {
+      for (const other of layout.cards.slice(index + 1)) {
+        assert.equal(overlap(card, other), false, `card ${index + 1} overlaps a neighbour at 1200px`)
+      }
+    }
+  })
+})
