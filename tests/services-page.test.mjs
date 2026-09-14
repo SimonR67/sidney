@@ -15,8 +15,10 @@ import {
   STYLESHEET,
   declaredValue,
   hexColours,
+  htmlFiles,
   read,
   repoRoot,
+  siteFiles,
   tagsIn,
   textOf,
   titleOf,
@@ -690,5 +692,63 @@ describe('Services task 10: the page without JavaScript, and without the webfont
     assert.deepEqual(page.consoleMessages, [], 'the page logged console errors or warnings')
     assert.deepEqual(page.pageErrors, [], 'the page raised errors')
     assert.deepEqual(page.failedRequests, [], 'the page produced failed requests')
+  })
+})
+
+describe('Services task 11: one home page, and nothing orphaned behind it', () => {
+  const site = servedInBrowser()
+
+  it('serves the Softpapaya Services page at the site root', async () => {
+    const { page } = site
+    await page.goto(`${site.origin}/`)
+    const served = await page.evaluate(`
+      return { title: document.title, heading: document.querySelector('h1').textContent.replace(/\\s+/g, ' ').trim() }
+    `)
+
+    assert.equal(served.title, SERVICES_TITLE)
+    assert.equal(served.heading, 'WHAT WE DO. AND WE DO IT REALLY WELL.')
+  })
+
+  it('holds exactly one file a static host can serve as the root', async () => {
+    const roots = (await siteFiles()).filter((file) => /^index\.[a-z]+$/.test(file) || file.includes('/index.'))
+
+    assert.deepEqual(roots, [HOMEPAGE])
+  })
+
+  it('leaves no second page carrying home page content', async () => {
+    for (const file of await htmlFiles()) {
+      if (file === HOMEPAGE) continue
+      const html = await read(file)
+
+      assert.ok(!html.includes(SERVICES_TITLE), `${file} also carries the Softpapaya Services title`)
+      assert.ok(!html.includes('WHAT WE DO.'), `${file} also carries the hero statement`)
+      assert.ok(!html.includes(SERVICES_STYLESHEET), `${file} also links the home page stylesheet`)
+    }
+  })
+
+  it('orphans no stylesheet: every one shipped is linked by a page that ships', async () => {
+    const stylesheets = (await siteFiles()).filter((file) => file.endsWith('.css'))
+    const pages = await Promise.all((await htmlFiles()).map((file) => read(file)))
+
+    assert.deepEqual(stylesheets, [STYLESHEET, SERVICES_STYLESHEET])
+    for (const stylesheet of stylesheets) {
+      assert.ok(
+        pages.some((html) => html.includes(`href="${stylesheet}"`)),
+        `${stylesheet} is linked by no page, so it is orphaned`,
+      )
+    }
+  })
+
+  it('loads that one stylesheet and no other on the home page', async () => {
+    const { page } = site
+    await page.goto(site.url)
+    const loaded = await page.evaluate(`
+      return [...document.styleSheets].map((sheet) => sheet.href).filter(Boolean)
+    `)
+
+    assert.deepEqual(
+      loaded.map((href) => href.slice(site.origin.length + 1)),
+      [SERVICES_STYLESHEET],
+    )
   })
 })

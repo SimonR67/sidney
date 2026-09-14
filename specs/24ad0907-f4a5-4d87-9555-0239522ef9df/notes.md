@@ -65,3 +65,10 @@ Its home page assertions are superseded by this plan, so the suite was retargete
 at the two legacy pages it still describes (`about.html`, `contact.html`), and the
 describes whose whole subject was the old home page were removed. The new page is
 covered by `tests/services-page.test.mjs`, one describe per plan task.
+
+Two assertions in that suite already failed on `main` before this branch and
+still do — "changes nothing but the title and branding strings on about.html"
+and the same for `contact.html`. They diff those files against the `BASELINE`
+ref, which is `main`; `main` is now the rebranded state those tests were written
+to check, so the diff is empty and the check is vacuous. Both are about an
+earlier job's work, neither touches the home page, and both were left alone.

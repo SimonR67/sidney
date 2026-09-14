@@ -1,7 +1,7 @@
 {
   "name": "strange-new-worlds",
   "private": true,
-  "description": "Static Sid Meyers Alpha Centuri site — Home, About Us and Contact, no build step.",
+  "description": "Static site: the Softpapaya Services home page, plus the Sid Meyers Alpha Centuri About Us and Contact pages. No build step.",
   "scripts": {
     "test": "node --test tests/page.test.mjs tests/services-page.test.mjs"
   }
