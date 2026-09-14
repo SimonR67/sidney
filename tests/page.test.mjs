@@ -1,4 +1,8 @@
-// Tests for the "Sid Meyers Alpha Centuri" site.
+// Tests for the legacy "Sid Meyers Alpha Centuri" pages — about.html and
+// contact.html. The home page they were built alongside has been replaced by
+// the Softpapaya Services page (specs/24ad0907-f4a5-4d87-9555-0239522ef9df),
+// which tests/services-page.test.mjs covers; the describes whose whole subject
+// was that home page have gone with it.
 // Original build plan: specs/8393b537-ac67-46f5-b4e0-0b0d2e416f06/plan.md
 // Grey rebrand plan (dark grey page, orange accents):
 // specs/201be276-bbdc-4548-b65d-b0f2c227227f/plan.md
@@ -24,14 +28,15 @@ import {
   COLOURS,
   COLOUR_VARS,
   GOLD_NOTES,
+  HOMEPAGE,
   OLD_COLOURS,
   OLD_COLOUR_WORDS,
   PAGES,
   NAV_LINKS,
   MIN_CONTRAST,
-  HOME_PARAGRAPH,
   OLD_SITE_NAME,
   NOTES,
+  SERVICES_STYLESHEET,
   SITE_NAME,
   STYLESHEET,
   TITLE_SOURCES,
@@ -39,6 +44,7 @@ import {
   headingsIn,
   hexColours,
   htmlFiles,
+  legacySiteFiles,
   linksIn,
   mainOf,
   navBlock,
@@ -67,7 +73,7 @@ const servedInBrowser = () => {
   before(async () => {
     handle.server = await serveStatic(repoRoot)
     handle.origin = handle.server.origin
-    handle.page = await openPage(`${handle.origin}/index.html`)
+    handle.page = await openPage(`${handle.origin}/${PAGES[0].file}`)
   })
   after(async () => {
     await handle.page?.close()
@@ -145,38 +151,6 @@ describe('Task 1: shared stylesheet base colours', () => {
   })
 })
 
-describe('Task 2: the Home page', () => {
-  it('carries the site title in the browser tab', async () => {
-    assert.equal(titleOf(await read('index.html')), SITE_NAME)
-  })
-
-  it('links the shared stylesheet', async () => {
-    const html = await read('index.html')
-
-    assert.match(html, new RegExp(`<link[^>]*rel="stylesheet"[^>]*href="${STYLESHEET}"`))
-  })
-
-  it('shows the site title as the page heading', async () => {
-    const headings = headingsIn(await read('index.html'))
-
-    assert.deepEqual(headings.at(0), { level: 1, text: SITE_NAME })
-  })
-
-  it('offers the three-item nav menu', async () => {
-    const nav = navBlock(await read('index.html'))
-
-    assert.ok(nav, 'index.html has no <nav>')
-    assert.deepEqual(linksIn(nav), NAV_LINKS)
-  })
-
-  it('welcomes the visitor to the site by name', async () => {
-    const main = mainOf(await read('index.html'))
-
-    assert.match(textOf(main), /welcome/i)
-    assert.match(textOf(main), new RegExp(SITE_NAME))
-  })
-})
-
 describe('Task 3: the About Us page', () => {
   it('carries the site title and the shared stylesheet', async () => {
     const html = await read('about.html')
@@ -240,11 +214,11 @@ describe('Task 4: the Contact page', () => {
 })
 
 describe('Task 5: the nav menu, styled the same on every page', () => {
-  it('uses byte-identical nav markup on all three pages', async () => {
-    const [home, ...rest] = await Promise.all(PAGES.map(async (p) => navBlock(await read(p.file))))
+  it('uses byte-identical nav markup on every legacy page', async () => {
+    const [first, ...rest] = await Promise.all(PAGES.map(async (p) => navBlock(await read(p.file))))
 
     for (const [index, nav] of rest.entries()) {
-      assert.equal(nav, home, `${PAGES[index + 1].file} nav markup differs from index.html`)
+      assert.equal(nav, first, `${PAGES[index + 1].file} nav markup differs from ${PAGES[0].file}`)
     }
   })
 
@@ -344,8 +318,15 @@ describe('Task 7: nothing left of the superseded site', () => {
     assert.deepEqual(await htmlFiles(), ['about.html', 'contact.html', 'index.html'])
   })
 
-  it('is built from those pages and the one stylesheet, nothing else', async () => {
-    assert.deepEqual(await siteFiles(), ['about.html', 'contact.html', 'index.html', 'package.json', 'style.css'])
+  it('is built from those pages and their stylesheets, nothing else', async () => {
+    assert.deepEqual(await siteFiles(), [
+      'about.html',
+      'contact.html',
+      'index.html',
+      'package.json',
+      'style.css',
+      SERVICES_STYLESHEET,
+    ])
   })
 
   it('leaves no old pages, stylesheets or asset folders in the repository root', async () => {
@@ -357,12 +338,19 @@ describe('Task 7: nothing left of the superseded site', () => {
       'package.json',
       'specs',
       'style.css',
+      'styles',
       'tests',
     ])
   })
 
   it('mentions the superseded site name nowhere in the site or its tests', async () => {
-    const files = [...(await siteFiles()), 'tests/browser.mjs', 'tests/page.test.mjs', 'tests/site.mjs']
+    const files = [
+      ...(await siteFiles()),
+      'tests/browser.mjs',
+      'tests/page.test.mjs',
+      'tests/services-page.test.mjs',
+      'tests/site.mjs',
+    ]
 
     for (const file of files) {
       const contents = await read(file)
@@ -455,24 +443,23 @@ describe('Test plan: the visitor journey end to end', () => {
   }
 
   for (const width of [1280, 375]) {
-    it(`walks Home → About Us → Contact → Home at ${width}px`, async () => {
+    it(`walks About Us → Contact → About Us at ${width}px`, async () => {
       const { page } = site
       await page.setViewport(width, 900)
-      await page.goto(`${site.origin}/index.html`)
+      await page.goto(`${site.origin}/about.html`)
 
-      const home = await page.evaluate(VISITOR_STATE)
-      assertHouseStyle(home, `Home at ${width}px`)
-      assert.equal(home.heading, 'Home')
-      assert.match(home.copy, /welcome/i)
+      const first = await page.evaluate(VISITOR_STATE)
+      assertHouseStyle(first, `About Us at ${width}px`)
+      assert.equal(first.heading, 'About Us')
 
-      for (const label of ['About Us', 'Contact', 'Home']) {
+      for (const label of ['Contact', 'About Us']) {
         const { file, heading } = PAGES.find((p) => p.label === label)
         await clickNav(page, label, `/${file}`)
         const state = await page.evaluate(VISITOR_STATE)
 
         assertHouseStyle(state, `${label} at ${width}px`)
         assert.equal(state.heading, heading)
-        assert.match(state.copy, label === 'Home' ? /welcome/i : /coming soon/i)
+        assert.match(state.copy, /coming soon/i)
       }
     })
   }
@@ -604,7 +591,7 @@ describe('Beta rebrand task 8: buttons carry the orange, hover and active includ
 
   it('paints a primary button orange, in a visibly different shade on hover and on press', async () => {
     const { page } = site
-    await page.goto(`${site.origin}/index.html`)
+    await page.goto(`${site.origin}/${PAGES[0].file}`)
     await page.evaluate(INJECT_BUTTONS)
     const paint = await paintByState(page, '#probe-primary')
 
@@ -630,7 +617,7 @@ describe('Beta rebrand task 8: buttons carry the orange, hover and active includ
 
   it('carries the orange on a secondary button through its border and label', async () => {
     const { page } = site
-    await page.goto(`${site.origin}/index.html`)
+    await page.goto(`${site.origin}/${PAGES[0].file}`)
     await page.evaluate(INJECT_BUTTONS)
     const paint = await paintByState(page, '#probe-secondary')
 
@@ -654,7 +641,7 @@ describe('Beta rebrand task 9: links, the current nav item, badges and the focus
 
   it('paints a link outside the nav and a badge in orange', async () => {
     const { page } = site
-    await page.goto(`${site.origin}/index.html`)
+    await page.goto(`${site.origin}/${PAGES[0].file}`)
     const paint = await page.evaluate(`
       const link = document.createElement('a')
       link.href = 'about.html'
@@ -677,7 +664,7 @@ describe('Beta rebrand task 9: links, the current nav item, badges and the focus
 
   it('sets the current nav item apart from its neighbours, in orange', async () => {
     const { page } = site
-    await page.goto(`${site.origin}/index.html`)
+    await page.goto(`${site.origin}/${PAGES[0].file}`)
     const paint = await page.evaluate(`
       const [current, other] = document.querySelectorAll('nav a')
       current.setAttribute('aria-current', 'page')
@@ -773,9 +760,12 @@ describe('Beta rebrand task 9 (rendered): every accent is orange, in every state
   }
 })
 
-describe('Beta rebrand tasks 5-6: the metadata and footer this site does not carry', () => {
+describe('Beta rebrand tasks 5-6: the metadata and footer these pages do not carry', () => {
+  /** The legacy pages only: the Softpapaya Services home page does ship a footer. */
+  const legacyPages = () => PAGES.map(({ file }) => file)
+
   it('carries no meta tag beyond charset and viewport, so none can name the site', async () => {
-    for (const file of await htmlFiles()) {
+    for (const file of legacyPages()) {
       const metas = [...(await read(file)).matchAll(/<meta\b[^>]*>/gi)].map(([tag]) => tag)
 
       assert.equal(metas.length, 2, `${file} has meta tags this rebrand has not accounted for:\n${metas.join('\n')}`)
@@ -794,7 +784,7 @@ describe('Beta rebrand tasks 5-6: the metadata and footer this site does not car
   })
 
   it('renders no footer or copyright line to rename', async () => {
-    for (const file of await htmlFiles()) {
+    for (const file of legacyPages()) {
       const html = await read(file)
 
       assert.ok(!tagsIn(html).includes('footer'), `${file} contains a <footer>`)
@@ -883,7 +873,7 @@ describe('Alpha rebrand task 1: the audit of what has to change', () => {
     const [, discovery] = notes.split(/^## \d+\. Discovery.*$/m)
 
     assert.ok(discovery, `${NOTES} has no "Discovery" section`)
-    for (const file of [...(await siteFiles()), 'tests/site.mjs', 'tests/page.test.mjs']) {
+    for (const file of [...(await legacySiteFiles()), 'tests/site.mjs', 'tests/page.test.mjs']) {
       assert.match(discovery, new RegExp(file.replace(/\./g, '\\.')), `the audit never mentions ${file}`)
     }
   })
@@ -979,7 +969,7 @@ describe('Alpha rebrand task 4: every audited button style carries the orange', 
   for (const button of BUTTONS) {
     it(`paints ${button.what} orange at rest, on hover, on focus and on press`, async () => {
       const { page } = site
-      await page.goto(`${site.origin}/index.html`)
+      await page.goto(`${site.origin}/${PAGES[0].file}`)
       await page.evaluate(INJECT)
       const selector = `#${button.id}`
 
@@ -1114,7 +1104,7 @@ describe('Alpha rebrand task 5: every audited link and text accent is orange', (
 
   it('keeps the body copy out of the accents, so the orange still stands out', async () => {
     const { page } = site
-    await page.goto(`${site.origin}/index.html`)
+    await page.goto(`${site.origin}/${PAGES[0].file}`)
     const copy = await page.evaluate(`return getComputedStyle(document.querySelector('main p')).color`)
 
     assert.ok(isGold(parseColor(copy)), `the body copy is ${copy}, which should stay the gold lettering colour`)
@@ -1189,135 +1179,10 @@ describe('Gold rebrand task 2: the visible branding reads "Sid Meyers Alpha Cent
     })
   }
 
-  it('brands all three pages identically, so the header is one string to change', async () => {
+  it('brands every legacy page identically, so the header is one string to change', async () => {
     const headers = await Promise.all(PAGES.map(async ({ file }) => headerBlock(await read(file))))
 
-    assert.deepEqual([...new Set(headers)].length, 1, 'the three pages carry different header markup')
-  })
-})
-
-describe('Alpha rebrand task 8: the board advisory paragraph on the home page', () => {
-  const site = servedInBrowser()
-
-  /** Locates the paragraph in the rendered page and measures it against its neighbours. */
-  const MEASURE = `
-    const wanted = ${JSON.stringify(HOME_PARAGRAPH)}
-    const normalise = (text) => text.replace(/\\s+/g, ' ').trim()
-    const matches = [...document.querySelectorAll('body *')].filter((el) => normalise(el.textContent) === wanted)
-    const el = matches.at(-1)
-    if (!el) return { matches: matches.length, found: false }
-    const style = getComputedStyle(el)
-    const rect = el.getBoundingClientRect()
-    const box = (node) => {
-      if (!node) return null
-      const r = node.getBoundingClientRect()
-      return { top: r.top, bottom: r.bottom, left: r.left, right: r.right }
-    }
-    return {
-      matches: matches.length,
-      found: true,
-      tag: el.tagName.toLowerCase(),
-      inMain: !!el.closest('main'),
-      display: style.display,
-      visibility: style.visibility,
-      opacity: style.opacity,
-      color: style.color,
-      rect: box(el),
-      previous: box(el.previousElementSibling),
-      next: box(el.nextElementSibling),
-      main: box(document.querySelector('main')),
-      viewport: window.innerWidth,
-      documentWidth: document.documentElement.scrollWidth,
-    }
-  `
-
-  it('writes the paragraph into the home page source, word for word, in its own <p>', async () => {
-    const main = mainOf(await read('index.html'))
-
-    assert.ok(main.includes(HOME_PARAGRAPH), 'index.html does not carry the paragraph verbatim inside <main>')
-    assert.match(main, new RegExp(`<p>${HOME_PARAGRAPH.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}</p>`))
-  })
-
-  it('keeps the welcome line the paragraph follows', async () => {
-    const main = mainOf(await read('index.html'))
-
-    assert.ok(main.indexOf('Welcome to') < main.indexOf(HOME_PARAGRAPH), 'the paragraph does not follow the welcome line')
-  })
-
-  for (const width of [1280, 375]) {
-    it(`renders it once, visibly and without breaking the layout at ${width}px`, async () => {
-      const { page } = site
-      await page.setViewport(width, 900)
-      await page.goto(`${site.origin}/index.html`)
-      const state = await page.evaluate(MEASURE)
-
-      assert.ok(state.found, 'the paragraph is not in the rendered home page')
-      assert.equal(state.tag, 'p', `the paragraph renders as a <${state.tag}>`)
-      assert.ok(state.inMain, 'the paragraph renders outside <main>')
-      assert.notEqual(state.display, 'none')
-      assert.notEqual(state.visibility, 'hidden')
-      assert.notEqual(state.opacity, '0')
-      assert.ok(isGold(parseColor(state.color)), `the paragraph is ${state.color}, not the body copy colour`)
-      assert.ok(state.rect.bottom - state.rect.top > 0, 'the paragraph has no height')
-
-      // Nothing around the insertion point overlaps, overflows or is clipped.
-      assert.ok(state.rect.left >= 0, `the paragraph starts at ${state.rect.left}px, off the left edge`)
-      assert.ok(state.rect.right <= state.viewport, `the paragraph runs to ${state.rect.right}px past ${state.viewport}px`)
-      assert.equal(state.documentWidth <= state.viewport, true, 'the page now overflows sideways')
-      assert.ok(state.rect.right <= state.main.right + 1, 'the paragraph spills out of <main>')
-      if (state.previous) {
-        assert.ok(state.rect.top >= state.previous.bottom, 'the paragraph overlaps the element above it')
-      }
-      if (state.next) {
-        assert.ok(state.rect.bottom <= state.next.top, 'the paragraph overlaps the element below it')
-      }
-    })
-  }
-
-  it('sets the paragraph off from the welcome line instead of running the two together', async () => {
-    const { page } = site
-    await page.setViewport(1280, 900)
-    await page.goto(`${site.origin}/index.html`)
-    const spacing = await page.evaluate(`
-      const [welcome, advisory] = document.querySelectorAll('main p')
-      const line = parseFloat(getComputedStyle(advisory).lineHeight)
-      return { gap: advisory.getBoundingClientRect().top - welcome.getBoundingClientRect().bottom, line }
-    `)
-
-    assert.ok(
-      spacing.gap > 0,
-      `the two home page paragraphs sit ${spacing.gap}px apart, so they read as one block of text`,
-    )
-    assert.ok(spacing.gap < spacing.line * 2, `the gap of ${spacing.gap}px is a layout change, not a paragraph break`)
-  })
-
-  it('leaves the single-paragraph pages spaced exactly as they were', async () => {
-    const { page } = site
-    const css = await read(STYLESHEET)
-
-    assert.equal(declaredValue(css, ['p'], 'margin'), '0', 'a bare <p> no longer sits flush, so the other pages moved')
-    for (const file of ['about.html', 'contact.html']) {
-      await page.goto(`${site.origin}/${file}`)
-      const margin = await page.evaluate(`
-        const style = getComputedStyle(document.querySelector('main p'))
-        return { top: style.marginTop, bottom: style.marginBottom }
-      `)
-
-      assert.deepEqual(margin, { top: '0px', bottom: '0px' }, `the lone paragraph on ${file} has gained a margin`)
-    }
-  })
-
-  it('renders it exactly once, and on the home page only', async () => {
-    const { page } = site
-    await page.setViewport(1280, 900)
-    await page.goto(`${site.origin}/index.html`)
-    const home = await page.evaluate(MEASURE)
-
-    // <main> and <body> would also match if the page held nothing else.
-    assert.equal(home.matches, 1, `the paragraph appears ${home.matches} times on the home page`)
-    for (const file of ['about.html', 'contact.html']) {
-      assert.ok(!(await read(file)).includes(HOME_PARAGRAPH), `${file} carries the home page paragraph`)
-    }
+    assert.deepEqual([...new Set(headers)].length, 1, 'the legacy pages carry different header markup')
   })
 })
 
@@ -1353,23 +1218,11 @@ describe('Alpha rebrand task 9: nothing changed that was not meant to', () => {
     })
   }
 
-  it('changes nothing on the home page but the branding and the new paragraph', () => {
-    const lines = changedLines('index.html')
-
-    if (lines === null) return
-    for (const line of lines) {
-      assert.ok(
-        isBrandingOnly(line) || line.includes(HOME_PARAGRAPH),
-        `index.html has a change beyond the branding swap and the new paragraph:\n  ${line}`,
-      )
-    }
-  })
-
   it('leaves the navigation structure alone on every page', async () => {
     const { page } = site
     const source = await Promise.all(PAGES.map(async ({ file }) => navBlock(await read(file))))
 
-    assert.equal(new Set(source).size, 1, 'the three pages no longer share one nav markup')
+    assert.equal(new Set(source).size, 1, 'the legacy pages no longer share one nav markup')
     for (const { file } of PAGES) {
       await page.goto(`${site.origin}/${file}`)
       const nav = await page.evaluate(`
@@ -1389,7 +1242,6 @@ describe('Alpha rebrand task 9: nothing changed that was not meant to', () => {
 
   it('leaves the element skeleton of every page as it was', async () => {
     const SKELETON = {
-      'index.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p', 'p'],
       'about.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p'],
       'contact.html': ['html', 'head', 'meta', 'meta', 'title', 'link', 'link', 'body', 'header', 'h1', 'nav', 'ul', 'li', 'a', 'li', 'a', 'li', 'a', 'main', 'h2', 'p'],
     }
@@ -1416,8 +1268,6 @@ describe('Alpha rebrand task 10: the whole site, crawled and verified', () => {
     link.className = 'btn'
     link.textContent = 'Probe'
     document.querySelector('main').append(link)
-    const wanted = ${JSON.stringify(HOME_PARAGRAPH)}
-    const normalise = (text) => text.replace(/\\s+/g, ' ').trim()
     return {
       path: location.pathname,
       title: document.title,
@@ -1429,17 +1279,16 @@ describe('Alpha rebrand task 10: the whole site, crawled and verified', () => {
       buttonLabel: getComputedStyle(link).color,
       linkColor: getComputedStyle(document.querySelector('nav a')).color,
       headingColor: getComputedStyle(document.querySelector('main h2')).color,
-      paragraphs: [...document.querySelectorAll('body *')].filter((el) => normalise(el.textContent) === wanted).length,
       hrefs: [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')),
       stylesheets: [...document.styleSheets].map((sheet) => sheet.href).filter(Boolean),
       overflow: document.documentElement.scrollWidth > window.innerWidth,
     }
   `
 
-  it('crawls every page reachable from the home page and finds the whole rebrand in place', async () => {
+  it('crawls every legacy page reachable from the first and finds the whole rebrand in place', async () => {
     const { page } = site
     const seen = new Map()
-    const queue = ['index.html']
+    const queue = [PAGES[0].file]
 
     while (queue.length) {
       const file = queue.shift()
@@ -1448,6 +1297,9 @@ describe('Alpha rebrand task 10: the whole site, crawled and verified', () => {
       const state = await page.evaluate(AUDIT_PAGE)
       seen.set(file, state)
       for (const href of state.hrefs) {
+        // The nav still links the root, which is now the Softpapaya Services
+        // page; tests/services-page.test.mjs audits that one.
+        if (href === HOMEPAGE) continue
         if (!href.startsWith('http') && !href.startsWith('#') && !seen.has(href)) queue.push(href)
       }
     }
@@ -1468,11 +1320,6 @@ describe('Alpha rebrand task 10: the whole site, crawled and verified', () => {
         `${file}: the button label is illegible on its fill`,
       )
       assert.equal(state.overflow, false, `${file}: the page overflows sideways`)
-      assert.equal(
-        state.paragraphs,
-        file === 'index.html' ? 1 : 0,
-        `${file}: the board advisory paragraph appears ${state.paragraphs} times`,
-      )
       assert.deepEqual(
         state.stylesheets.map((href) => href.slice(site.origin.length + 1)),
         [STYLESHEET],
@@ -1508,7 +1355,13 @@ describe('Alpha rebrand task 10: the whole site, crawled and verified', () => {
 describe('Gold rebrand task 3: the old name survives in no branding context', () => {
   /** Every line of every shipped file and of the suite, tagged with where it came from. */
   const allLines = async () => {
-    const files = [...(await siteFiles()), 'tests/browser.mjs', 'tests/page.test.mjs', 'tests/site.mjs']
+    const files = [
+      ...(await siteFiles()),
+      'tests/browser.mjs',
+      'tests/page.test.mjs',
+      'tests/services-page.test.mjs',
+      'tests/site.mjs',
+    ]
     const lines = []
     for (const file of files) {
       for (const [index, text] of (await read(file)).split('\n').entries()) {
@@ -1533,7 +1386,6 @@ describe('Gold rebrand task 3: the old name survives in no branding context', ()
 
   it('writes the new name, in full, everywhere the old one was branding', async () => {
     const BRANDING = {
-      'index.html': [`<title>${SITE_NAME}</title>`, `<h1 class="site-title">${SITE_NAME}</h1>`, `Welcome to ${SITE_NAME}.`],
       'about.html': [`<title>${SITE_NAME}</title>`, `<h1 class="site-title">${SITE_NAME}</h1>`],
       'contact.html': [`<title>${SITE_NAME}</title>`, `<h1 class="site-title">${SITE_NAME}</h1>`],
       'style.css': [SITE_NAME],
@@ -1661,8 +1513,8 @@ describe('Gold rebrand task 7: the colour overrides that bypass the global rule'
     }
   })
 
-  it('ships one stylesheet, so there is no second source of colour', async () => {
-    const css = (await siteFiles()).filter((file) => file.endsWith('.css'))
+  it('ships one stylesheet for these pages, so there is no second source of colour', async () => {
+    const css = (await legacySiteFiles()).filter((file) => file.endsWith('.css'))
 
     assert.deepEqual(css, [STYLESHEET])
     for (const file of await htmlFiles()) {

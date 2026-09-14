@@ -1,4 +1,5 @@
-// Helpers for the "Sid Meyers Alpha Centuri" site: the three pages, the shared
+// Helpers for the two sites this repository now holds: the "Softpapaya Services"
+// home page served at the root, and the legacy pages behind it — their shared
 // stylesheet, and just enough CSS parsing to assert on declared colours.
 import { readdir, readFile } from 'node:fs/promises'
 import { join, sep } from 'node:path'
@@ -20,10 +21,24 @@ export const HOME_PARAGRAPH =
   'members, driving better decision-making and governance and support in building your businesses ' +
   'roadmap for growth.'
 
-/** The files a page's `<title>` is generated from — here, the pages themselves. */
-export const TITLE_SOURCES = ['index.html', 'about.html', 'contact.html']
+/**
+ * The files a legacy page's `<title>` is generated from — the pages themselves.
+ * The home page is no longer one of them: it is now the Softpapaya Services
+ * page, titled from `SERVICES_TITLE`.
+ */
+export const TITLE_SOURCES = ['about.html', 'contact.html']
 
 export const STYLESHEET = 'style.css'
+
+/** The file served at the site root — the "Softpapaya Services" page. */
+export const HOMEPAGE = 'index.html'
+
+/** Where the Softpapaya Services build's discovery and decisions are written down. */
+export const SERVICES_NOTES = 'specs/24ad0907-f4a5-4d87-9555-0239522ef9df/notes.md'
+
+/** The home page's `<title>`, and the stylesheet it is styled from. */
+export const SERVICES_TITLE = 'Softpapaya Services'
+export const SERVICES_STYLESHEET = 'styles/main.css'
 
 /**
  * The colour scheme: two dark greys for the surfaces, gold for the body text
@@ -73,16 +88,19 @@ export const GOLD_NOTES = 'specs/dfbfe75a-24f1-404d-804f-05a044162974/notes.md'
 /** Readability floor for gold- and orange-on-grey text: WCAG AA for body copy. */
 export const MIN_CONTRAST = 4.5
 
-/** The nav menu, in the order it is written. */
+/** The legacy nav menu, in the order it is written. */
 export const NAV_LINKS = [
   { label: 'Home', href: 'index.html' },
   { label: 'About Us', href: 'about.html' },
   { label: 'Contact', href: 'contact.html' },
 ]
 
-/** The whole site: one page per nav item, plus the heading each one shows. */
+/**
+ * The legacy pages, plus the heading each one shows. The home page they were
+ * built alongside has been replaced by the Softpapaya Services page, so it is
+ * no longer one of them — `tests/services-page.test.mjs` covers that page.
+ */
 export const PAGES = [
-  { file: 'index.html', label: 'Home', heading: 'Home' },
   { file: 'about.html', label: 'About Us', heading: 'About Us' },
   { file: 'contact.html', label: 'Contact', heading: 'Contact' },
 ]
@@ -108,6 +126,12 @@ export async function siteFiles() {
     .map((entry) => join(entry.parentPath, entry.name).slice(repoRoot.length + 1).split(sep).join('/'))
     .filter((name) => !NOT_THE_SITE.some((dir) => name.startsWith(`${dir}/`)))
     .sort()
+}
+
+/** Every site file except the Softpapaya Services page and its stylesheet. */
+export async function legacySiteFiles() {
+  const replaced = new Set([HOMEPAGE, SERVICES_STYLESHEET])
+  return (await siteFiles()).filter((name) => !replaced.has(name))
 }
 
 /**
