@@ -12,7 +12,6 @@
   --accent-pressed: #0850cc;
   --band: #f7f7f7;
   --line: #dcdfe4;
-  --chip: #f1f3f5;
   --inverse-ink: #e9e9e9;
   --inverse-muted: #b9b9b9;
 
@@ -143,12 +142,19 @@ a {
   padding-bottom: 18px;
 }
 
+/* The brand slot now holds the logo image rather than the words it used to set;
+   `display: flex` keeps the link exactly as tall as the mark inside it. */
 .masthead__logo {
+  display: flex;
   margin-right: auto;
-  font-size: 20px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  color: var(--deep);
+}
+
+/* Capped to the height the 20px text title sat at, and left to find its own
+   width from the file's 655×198 aspect ratio. */
+.masthead__mark {
+  display: block;
+  width: auto;
+  height: 28px;
 }
 
 /* Narrow screens drop the nav onto a row of its own, below the logo and the
@@ -185,6 +191,12 @@ a {
 
 .hero__heading {
   max-width: 20ch;
+}
+
+/* The one span of the headline painted papaya. At 40px and up, and at weight
+   700, it is large text by WCAG's reckoning, so 3.34:1 on white clears AA. */
+.hero__papaya {
+  color: var(--papaya);
 }
 
 .hero__lede {
@@ -224,18 +236,37 @@ a {
   box-shadow: 0 1px 2px rgba(17, 17, 17, 0.06);
 }
 
-/* The cards' borders run papaya, lime, black and round again. Set by position
-   rather than per card, so the sequence holds if the grid is reordered or grows
-   past the eight services written today. */
-.services__grid > .card:nth-child(3n + 1) {
+/* The cards' borders run papaya, lime, black, black, papaya, lime, and round
+   again — and each card's tags are ringed in the same shade as the card. Set by
+   position rather than per card, so the sequence holds if the grid is reordered
+   or grows past the six services written today. */
+.services__grid > .card:nth-child(6n + 1),
+.services__grid > .card:nth-child(6n + 5) {
   border-color: var(--papaya);
 }
 
-.services__grid > .card:nth-child(3n + 2) {
+.services__grid > .card:nth-child(6n + 1) .tag,
+.services__grid > .card:nth-child(6n + 5) .tag {
+  border-color: var(--papaya);
+}
+
+.services__grid > .card:nth-child(6n + 2),
+.services__grid > .card:nth-child(6n) {
   border-color: var(--lime);
 }
 
-.services__grid > .card:nth-child(3n) {
+.services__grid > .card:nth-child(6n + 2) .tag,
+.services__grid > .card:nth-child(6n) .tag {
+  border-color: var(--lime);
+}
+
+.services__grid > .card:nth-child(6n + 3),
+.services__grid > .card:nth-child(6n + 4) {
+  border-color: var(--black);
+}
+
+.services__grid > .card:nth-child(6n + 3) .tag,
+.services__grid > .card:nth-child(6n + 4) .tag {
   border-color: var(--black);
 }
 
@@ -251,10 +282,14 @@ a {
   margin-top: auto;
 }
 
+/* The tags carry their card's shade in the ring rather than in the lettering:
+   at 12px, papaya and lime as text or as a fill both fall under the 4.5:1 the
+   rest of the page holds to. See the PR notes. */
 .tag {
+  border: 1px solid var(--line);
   border-radius: 999px;
   padding: 4px 10px;
-  background-color: var(--chip);
+  background-color: var(--page);
   color: var(--muted);
   font-size: 12px;
   letter-spacing: 0.02em;

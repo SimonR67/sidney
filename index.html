@@ -14,7 +14,11 @@
   <body>
     <header class="masthead">
       <div class="container masthead__inner">
-        <a class="masthead__logo" href="#">SoftPapaya</a>
+        <a class="masthead__logo" href="#">
+          <!-- Intrinsic size given so the header reserves the space before the
+               image arrives and nothing below it shifts on load. -->
+          <img class="masthead__mark" src="SoftPapaya-logo.png" alt="SoftPapaya" width="655" height="198" />
+        </a>
         <nav class="masthead__nav" aria-label="Primary">
           <ul class="masthead__links">
             <li><a href="#">About</a></li>
@@ -33,10 +37,11 @@
     <main>
       <section class="hero">
         <div class="container">
-          <h1 class="hero__heading">WHAT WE DO. AND WE DO IT REALLY WELL.</h1>
+          <h1 class="hero__heading">WHAT WE DO. AND WE DO IT <span class="hero__papaya">REALLY WELL</span>.</h1>
           <p class="hero__lede">
-            We are a small, senior studio that designs, builds and runs software for teams who need it working in
-            production rather than described in a deck. Pick a single service or hand us the whole delivery.
+            We are a senior technology partner: advisers in the boardroom, engineers in the repository, and the people
+            who stay until the thing is running. Take a single service, a whole delivery team, or the specialists your
+            own team is missing.
           </p>
         </div>
       </section>
@@ -45,102 +50,77 @@
           <h2 class="section__heading" id="services-heading">WHAT WE OFFER</h2>
           <ul class="services__grid">
             <li class="card">
-              <h3 class="card__title">Custom Software</h3>
+              <h3 class="card__title">C-Suite Advisory</h3>
               <p class="card__copy">
-                Product and platform work built to your domain rather than bent out of an off-the-shelf tool, from the
-                first release through to the version your customers depend on.
+                Board-level counsel on the technology decisions that carry real cost — what to build, what to buy and
+                what to retire — with the roadmap and the governance that keep the answer honest quarter after quarter.
+              </p>
+              <ul class="card__tags">
+                <li class="tag">Roadmap</li>
+                <li class="tag">Governance</li>
+                <li class="tag">CTO Advisory</li>
+              </ul>
+            </li>
+            <li class="card">
+              <h3 class="card__title">Software Development</h3>
+              <p class="card__copy">
+                Applications and services designed, built and shipped by the same senior people from the first commit
+                to the release your customers rely on, in the stack your team already runs rather than the one we would
+                pick.
               </p>
               <ul class="card__tags">
                 <li class="tag">TypeScript</li>
-                <li class="tag">Go</li>
+                <li class="tag">Java</li>
                 <li class="tag">Python</li>
-                <li class="tag">PostgreSQL</li>
+                <li class="tag">React</li>
               </ul>
             </li>
             <li class="card">
-              <h3 class="card__title">Team Augmentation</h3>
+              <h3 class="card__title">Subject Matter Expertise</h3>
               <p class="card__copy">
-                Senior engineers who join your standups, your repository and your review queue, and who leave your team
-                faster than they found it rather than dependent on ours.
+                Deep specialists dropped into the problem your team is stuck on — an architecture call, a performance
+                wall, a review queue nobody can clear — for as long as that problem lasts and no longer.
               </p>
               <ul class="card__tags">
-                <li class="tag">Embedded squads</li>
-                <li class="tag">Code review</li>
-                <li class="tag">Mentoring</li>
+                <li class="tag">Architecture Review</li>
+                <li class="tag">Code Review</li>
+                <li class="tag">Augmentation</li>
               </ul>
             </li>
             <li class="card">
-              <h3 class="card__title">Cloud &amp; Infrastructure</h3>
+              <h3 class="card__title">Data, AI &amp; Automation</h3>
               <p class="card__copy">
-                Environments described in code, deployed on a pipeline anyone on the team can run, and sized so the
-                bill matches the traffic instead of the worst week of the year.
+                Models, agents and pipelines wired into the systems you already run, on a data architecture that holds
+                them up and with measurement around them, so you can see what the automation is actually doing.
               </p>
               <ul class="card__tags">
-                <li class="tag">AWS</li>
-                <li class="tag">Kubernetes</li>
-                <li class="tag">Terraform</li>
-                <li class="tag">CI/CD</li>
+                <li class="tag">LLMs</li>
+                <li class="tag">AI Agents</li>
+                <li class="tag">Data Architecture</li>
               </ul>
             </li>
             <li class="card">
-              <h3 class="card__title">AI &amp; Automation</h3>
+              <h3 class="card__title">UI/UX Design and Rapid POC</h3>
               <p class="card__copy">
-                Assistants, extraction and routing wired into the systems you already run, with evaluations in place so
-                you can tell an improvement from a regression before your customers do.
+                Research, interface design and a clickable build in weeks, so an idea can be put in front of real users
+                and then funded, reshaped or dropped on evidence rather than on argument.
               </p>
               <ul class="card__tags">
-                <li class="tag">LLM integration</li>
-                <li class="tag">Retrieval</li>
-                <li class="tag">Evaluation harnesses</li>
-              </ul>
-            </li>
-            <li class="card">
-              <h3 class="card__title">Data Engineering</h3>
-              <p class="card__copy">
-                Pipelines, warehouses and contracts that turn scattered operational tables into numbers your analysts
-                and your board can both agree on.
-              </p>
-              <ul class="card__tags">
-                <li class="tag">dbt</li>
-                <li class="tag">Airflow</li>
-                <li class="tag">Snowflake</li>
-                <li class="tag">Streaming</li>
-              </ul>
-            </li>
-            <li class="card">
-              <h3 class="card__title">Project Governance</h3>
-              <p class="card__copy">
-                Delivery oversight for work already underway: scope held steady, risks surfaced early, and a weekly
-                read on progress that survives contact with the schedule.
-              </p>
-              <ul class="card__tags">
-                <li class="tag">Discovery</li>
-                <li class="tag">Roadmapping</li>
-                <li class="tag">Delivery reviews</li>
-              </ul>
-            </li>
-            <li class="card">
-              <h3 class="card__title">Rapid Proof of Concept</h3>
-              <p class="card__copy">
-                A working, throwaway-if-need-be build in weeks rather than quarters, so the decision to invest is taken
-                against something you can click rather than something you can only imagine.
-              </p>
-              <ul class="card__tags">
-                <li class="tag">Prototyping</li>
-                <li class="tag">Spike work</li>
-                <li class="tag">Feasibility</li>
-              </ul>
-            </li>
-            <li class="card">
-              <h3 class="card__title">UI/UX Design</h3>
-              <p class="card__copy">
-                Interface and interaction design done next to the engineers building it, shipped as a component library
-                your team can extend instead of a set of screens they have to interpret.
-              </p>
-              <ul class="card__tags">
-                <li class="tag">Design systems</li>
+                <li class="tag">Figma</li>
+                <li class="tag">Design Systems</li>
                 <li class="tag">Prototypes</li>
-                <li class="tag">Accessibility</li>
+              </ul>
+            </li>
+            <li class="card">
+              <h3 class="card__title">Technology Teams &amp; Resourcing</h3>
+              <p class="card__copy">
+                Whole teams or single hires — permanent, contract or nearshore — sourced against your standards rather
+                than a keyword search, and set up to work inside your process from the first sprint.
+              </p>
+              <ul class="card__tags">
+                <li class="tag">Staffing</li>
+                <li class="tag">Nearshore</li>
+                <li class="tag">Contract</li>
               </ul>
             </li>
           </ul>

@@ -40,6 +40,93 @@ export const SERVICES_NOTES = 'specs/24ad0907-f4a5-4d87-9555-0239522ef9df/notes.
 export const SERVICES_TITLE = 'Softpapaya Services'
 export const SERVICES_STYLESHEET = 'styles/main.css'
 
+/** Where the home page refresh — hero, logo and the six boxes — is specified. */
+export const REFRESH_PLAN = 'specs/7931a152-83fe-4f91-8093-e167e642681a/plan.md'
+
+/** The brand mark the header now renders in place of its text title. */
+export const LOGO_ASSET = 'SoftPapaya-logo.png'
+
+/** The one span of the hero headline painted papaya; the rest stays as it was. */
+export const HERO_ACCENT = 'REALLY WELL'
+
+/** The paragraph under the headline, word for word. */
+export const HERO_LEDE =
+  'We are a senior technology partner: advisers in the boardroom, engineers in the repository, and the ' +
+  'people who stay until the thing is running. Take a single service, a whole delivery team, or the ' +
+  'specialists your own team is missing.'
+
+/**
+ * The six "what we offer" boxes, in the order the grid writes them, each with
+ * the copy it is described by. The border sequence and the tags are held
+ * alongside in `BOX_BORDERS` and `BOX_TAGS`, one entry per box.
+ */
+export const BOXES = [
+  {
+    title: 'C-Suite Advisory',
+    copy:
+      'Board-level counsel on the technology decisions that carry real cost — what to build, what to buy and ' +
+      'what to retire — with the roadmap and the governance that keep the answer honest quarter after quarter.',
+  },
+  {
+    title: 'Software Development',
+    copy:
+      'Applications and services designed, built and shipped by the same senior people from the first commit ' +
+      'to the release your customers rely on, in the stack your team already runs rather than the one we would pick.',
+  },
+  {
+    title: 'Subject Matter Expertise',
+    copy:
+      'Deep specialists dropped into the problem your team is stuck on — an architecture call, a performance ' +
+      'wall, a review queue nobody can clear — for as long as that problem lasts and no longer.',
+  },
+  {
+    title: 'Data, AI & Automation',
+    copy:
+      'Models, agents and pipelines wired into the systems you already run, on a data architecture that holds ' +
+      'them up and with measurement around them, so you can see what the automation is actually doing.',
+  },
+  {
+    title: 'UI/UX Design and Rapid POC',
+    copy:
+      'Research, interface design and a clickable build in weeks, so an idea can be put in front of real users ' +
+      'and then funded, reshaped or dropped on evidence rather than on argument.',
+  },
+  {
+    title: 'Technology Teams & Resourcing',
+    copy:
+      'Whole teams or single hires — permanent, contract or nearshore — sourced against your standards rather ' +
+      'than a keyword search, and set up to work inside your process from the first sprint.',
+  },
+]
+
+/** Which shade outlines each box, in order: papaya, lime, black, black, papaya, lime. */
+export const BOX_BORDERS = ['papaya', 'lime', 'black', 'black', 'papaya', 'lime']
+
+/** The tags each box carries, in the order it writes them. */
+export const BOX_TAGS = [
+  ['Roadmap', 'Governance', 'CTO Advisory'],
+  ['TypeScript', 'Java', 'Python', 'React'],
+  ['Architecture Review', 'Code Review', 'Augmentation'],
+  ['LLMs', 'AI Agents', 'Data Architecture'],
+  ['Figma', 'Design Systems', 'Prototypes'],
+  ['Staffing', 'Nearshore', 'Contract'],
+]
+
+/**
+ * The eight boxes this refresh supersedes: each one's title, a phrase unique to
+ * its copy, and one of its tags — enough to catch any of them surviving.
+ */
+export const OLD_BOXES = [
+  { title: 'Custom Software', phrase: 'bent out of an off-the-shelf tool', tag: 'PostgreSQL' },
+  { title: 'Team Augmentation', phrase: 'faster than they found it', tag: 'Embedded squads' },
+  { title: 'Cloud &amp; Infrastructure', phrase: 'Environments described in code', tag: 'Kubernetes' },
+  { title: 'AI &amp; Automation', phrase: 'Assistants, extraction and routing', tag: 'Retrieval' },
+  { title: 'Data Engineering', phrase: 'Pipelines, warehouses and contracts', tag: 'Snowflake' },
+  { title: 'Project Governance', phrase: 'Delivery oversight for work already underway', tag: 'Delivery reviews' },
+  { title: 'Rapid Proof of Concept', phrase: 'throwaway-if-need-be build', tag: 'Spike work' },
+  { title: 'UI/UX Design', phrase: 'shipped as a component library', tag: 'Accessibility' },
+]
+
 /**
  * The colour scheme: two dark greys for the surfaces, gold for the body text
  * and lettering, and three oranges — the accent plus the shades its hover and
@@ -87,6 +174,17 @@ export const GOLD_NOTES = 'specs/dfbfe75a-24f1-404d-804f-05a044162974/notes.md'
 
 /** Readability floor for gold- and orange-on-grey text: WCAG AA for body copy. */
 export const MIN_CONTRAST = 4.5
+
+/**
+ * WCAG AA's floor for large text — 24px and up, or 18.66px and up when bold.
+ * The papaya "REALLY WELL" in the hero headline is set at 40–64px and weight
+ * 700, so 3.34:1 on white clears it; at body size it would not.
+ */
+export const MIN_CONTRAST_LARGE = 3
+
+/** True when text of this size and weight counts as "large" to WCAG. */
+export const isLargeText = (fontSize, fontWeight) =>
+  fontSize >= 24 || (fontSize >= 18.66 && Number(fontWeight) >= 700)
 
 /** The legacy nav menu, in the order it is written. */
 export const NAV_LINKS = [

@@ -25,8 +25,13 @@ const BLACK = '#000000'
 const ACCENT = '#0a66ff'
 const ACCENT_PRESSED = '#0850cc'
 
-/** The border colour of each of the eight boxes, in the order the grid writes them. */
-const BOX_BORDERS = [PAPAYA, LIME, BLACK, PAPAYA, LIME, BLACK, PAPAYA, LIME]
+/**
+ * The border colour of each box, in the order the grid writes them. The section
+ * was cut from eight boxes to six, and the cycle from papaya-lime-black to
+ * papaya-lime-black-black-papaya-lime, by
+ * specs/7931a152-83fe-4f91-8093-e167e642681a/plan.md.
+ */
+const BOX_BORDERS = [PAPAYA, LIME, BLACK, BLACK, PAPAYA, LIME]
 
 /** The same hex written the way `getComputedStyle` reports it. */
 const rgb = (hex) => {
@@ -123,6 +128,7 @@ const BORDERS = `
     .map(({ el, style }) => ({
       what: el.tagName.toLowerCase() + (el.className ? '.' + [...el.classList].join('.') : ''),
       card: el.matches('.services__grid > .card'),
+      tag: el.matches('.services__grid .tag'),
       colours: [...new Set([
         style.borderTopColor,
         style.borderRightColor,
@@ -302,10 +308,10 @@ describe('Styling task 4: the hover reverting when the mouse leaves', () => {
   })
 })
 
-describe('Styling task 5: the eight "what we offer" boxes and their border colours', () => {
+describe('Styling task 5: the "what we offer" boxes and their border colours', () => {
   const site = servedInBrowser()
 
-  it('borders the eight boxes papaya, lime, black, repeating, in order', async () => {
+  it('borders the boxes papaya, lime, black, black, papaya, lime, in order', async () => {
     const boxes = await site.page.evaluate(BOXES)
 
     assert.equal(boxes.length, BOX_BORDERS.length, `the section holds ${boxes.length} boxes`)
@@ -331,7 +337,7 @@ describe('Styling task 5: the eight "what we offer" boxes and their border colou
   it('sets the pattern by position, so it survives the grid being rewritten', async () => {
     const css = await read(SERVICES_STYLESHEET)
 
-    assert.match(css, /:nth-child\(\s*3n\b/, `${SERVICES_STYLESHEET} hardcodes the boxes instead of repeating by position`)
+    assert.match(css, /:nth-child\(\s*6n\b/, `${SERVICES_STYLESHEET} hardcodes the boxes instead of repeating by position`)
     for (const [property, colour] of [['--lime', LIME], ['--black', BLACK]]) {
       assert.equal(declaredValue(css, [':root'], property), colour)
       assert.equal(
@@ -360,12 +366,16 @@ describe('Styling task 5: the eight "what we offer" boxes and their border colou
 describe('Styling task 6: nothing else on the page moved', () => {
   const site = servedInBrowser()
 
-  it('touches no border outside the eight boxes', async () => {
+  // The boxes' own tags were brought into the sequence by
+  // specs/7931a152-83fe-4f91-8093-e167e642681a/plan.md, so they are exempt too;
+  // tests/homepage-refresh.test.mjs holds each one to its own box's shade.
+  it('touches no border outside the boxes and the tags inside them', async () => {
     const borders = await site.page.evaluate(BORDERS)
     const introduced = [PAPAYA, LIME, BLACK].map(rgb)
 
     assert.ok(borders.some((border) => border.card), 'no bordered boxes found, so the check proves nothing')
-    for (const border of borders.filter((b) => !b.card)) {
+    assert.ok(borders.some((border) => border.tag), 'no bordered tags found, so the check proves nothing')
+    for (const border of borders.filter((b) => !b.card && !b.tag)) {
       for (const colour of border.colours) {
         assert.ok(
           !introduced.includes(colour),
@@ -390,11 +400,14 @@ describe('Styling task 6: nothing else on the page moved', () => {
     assert.equal(accents.ctaBorder, rgb(ACCENT), `the call to action's border is ${accents.ctaBorder}`)
   })
 
-  it('changes the stylesheet only, leaving the markup as it was', async () => {
+  // The markup did change afterwards — the section was cut to six boxes by
+  // specs/7931a152-83fe-4f91-8093-e167e642681a/plan.md — but the shades are
+  // still spent from the stylesheet alone, which is what this check is for.
+  it('keeps the shades in the stylesheet, never in the markup', async () => {
     const html = await read(HOMEPAGE)
     const grid = html.match(/<ul class="services__grid">[\s\S]*?\n {10}<\/ul>/)?.[0] ?? ''
 
-    assert.equal([...grid.matchAll(/<li class="card">/g)].length, 8, 'the boxes no longer carry the bare card class')
+    assert.equal([...grid.matchAll(/<li class="card">/g)].length, 6, 'the boxes no longer carry the bare card class')
     assert.doesNotMatch(html, /style="/, `${HOMEPAGE} carries an inline style`)
     assert.doesNotMatch(html, new RegExp(PAPAYA.slice(1) + '|' + LIME.slice(1), 'i'), `${HOMEPAGE} hardcodes a shade`)
   })
