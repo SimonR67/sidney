@@ -316,3 +316,74 @@ describe('Services task 6: the call-to-action band', () => {
     assert.equal(band.button.href, CONTACT, 'the band points somewhere other than the one contact address')
   })
 })
+
+describe('Services task 7: the footer', () => {
+  const site = servedInBrowser()
+
+  const FOOTER = `
+    const footer = document.querySelector('footer')
+    const columns = [...footer.querySelectorAll('.footer__column')].map((column) => ({
+      heading: column.querySelector('h2')?.textContent.trim() ?? null,
+      hrefs: [...column.querySelectorAll('a')].map((a) => a.getAttribute('href')),
+      links: [...column.querySelectorAll('a')].map((a) => a.textContent.trim()),
+    }))
+    const contact = footer.querySelector('.footer__contact')
+    const bottom = footer.querySelector('.footer__bottom')
+    return {
+      columns,
+      blurb: footer.querySelector('.footer__blurb')?.textContent.replace(/\\s+/g, ' ').trim() ?? null,
+      contact: {
+        heading: contact?.querySelector('h2')?.textContent.trim() ?? null,
+        mailto: [...(contact?.querySelectorAll('a') ?? [])]
+          .map((a) => a.getAttribute('href'))
+          .filter((href) => href.startsWith('mailto:')),
+      },
+      bottom: {
+        text: bottom?.textContent.replace(/\\s+/g, ' ').trim() ?? '',
+        links: [...(bottom?.querySelectorAll('a') ?? [])].map((a) => ({
+          label: a.textContent.trim(),
+          href: a.getAttribute('href'),
+        })),
+      },
+    }
+  `
+
+  it('offers the four link columns, each with placeholder links', async () => {
+    const footer = await site.page.evaluate(FOOTER)
+
+    assert.deepEqual(footer.columns.map((column) => column.heading), ['Services', 'Work', 'About', 'Careers'])
+    for (const column of footer.columns) {
+      assert.ok(column.links.length >= 3, `the ${column.heading} column offers ${column.links.length} links`)
+      assert.deepEqual(
+        [...new Set(column.hrefs)],
+        ['#'],
+        `the ${column.heading} column links somewhere other than a placeholder`,
+      )
+    }
+  })
+
+  it('carries a contact block with the email address in it', async () => {
+    const footer = await site.page.evaluate(FOOTER)
+
+    assert.equal(footer.contact.heading, 'Contact')
+    assert.deepEqual(footer.contact.mailto, [CONTACT])
+  })
+
+  it('says who SoftPapaya is in a short blurb', async () => {
+    const footer = await site.page.evaluate(FOOTER)
+
+    assert.ok(footer.blurb, 'the footer carries no company blurb')
+    assert.ok(footer.blurb.length > 40, `the blurb is only ${footer.blurb.length} characters long`)
+  })
+
+  it('closes with a copyright line and the two legal links', async () => {
+    const footer = await site.page.evaluate(FOOTER)
+
+    assert.match(footer.bottom.text, /©/, 'the bottom bar carries no copyright notice')
+    assert.match(footer.bottom.text, /SoftPapaya/)
+    assert.deepEqual(footer.bottom.links, [
+      { label: 'Privacy', href: '#' },
+      { label: 'Terms of Service', href: '#' },
+    ])
+  })
+})
