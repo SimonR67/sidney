@@ -600,3 +600,95 @@ describe('Services task 9: the layout at every breakpoint', () => {
     }
   })
 })
+
+describe('Services task 10: the page without JavaScript, and without the webfont', () => {
+  const site = servedInBrowser()
+
+  /** Enough of the rendered page to tell whether anything moved or disappeared. */
+  const RENDERED = `
+    const sections = [...document.querySelectorAll('header, main section, footer')].map((el) => {
+      const rect = el.getBoundingClientRect()
+      return { tag: el.tagName.toLowerCase(), height: Math.round(rect.height), text: el.textContent.trim().length }
+    })
+    return {
+      sections,
+      font: getComputedStyle(document.body).fontFamily,
+      overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
+      links: [...document.querySelectorAll('a[href]')].map((a) => a.getAttribute('href')),
+      documentHeight: Math.round(document.documentElement.getBoundingClientRect().height),
+    }
+  `
+
+  it('depends on no script at all', async () => {
+    const html = await read(HOMEPAGE)
+
+    assert.ok(!tagsIn(html).includes('script'), `${HOMEPAGE} carries a <script>`)
+    assert.doesNotMatch(html, /\son[a-z]+="/i, `${HOMEPAGE} carries an inline event handler`)
+    assert.doesNotMatch(html, /href="javascript:/i, `${HOMEPAGE} carries a javascript: link`)
+  })
+
+  it('renders the same page with JavaScript disabled', async () => {
+    const { page } = site
+    await page.setViewport(1280, 900)
+    await page.goto(site.url)
+    const withScripts = await page.evaluate(RENDERED)
+
+    await page.setScriptExecution(false)
+    await page.goto(site.url)
+    const withoutScripts = await page.evaluate(RENDERED)
+    await page.setScriptExecution(true)
+
+    assert.deepEqual(withoutScripts.sections, withScripts.sections, 'a section moved or emptied without JavaScript')
+    assert.equal(withoutScripts.documentHeight, withScripts.documentHeight)
+    assert.equal(withoutScripts.overflow, 0)
+    for (const section of withoutScripts.sections) {
+      assert.ok(section.text > 0, `the <${section.tag}> renders no text without JavaScript`)
+    }
+  })
+
+  it('leaves every link inert rather than broken', async () => {
+    const { links } = await site.page.evaluate(RENDERED)
+
+    assert.ok(links.length > 0, 'the page carries no links')
+    for (const href of links) {
+      assert.match(href, /^(#|mailto:)/, `${href} needs a destination this page does not have`)
+    }
+  })
+
+  it('asks the network for nothing but its own files', async () => {
+    const external = site.page.requests.filter((url) => !url.startsWith(site.origin) && !url.startsWith('data:'))
+
+    assert.deepEqual(external, [], 'the page loads something from outside the site')
+  })
+
+  it('names Inter but loads no webfont, so the fallback stack is the default path', async () => {
+    const css = await read(SERVICES_STYLESHEET)
+    const html = await read(HOMEPAGE)
+
+    assert.doesNotMatch(css, /@import|@font-face/i, `${SERVICES_STYLESHEET} pulls in a font file`)
+    assert.doesNotMatch(html, /rel="preconnect"|fonts\.googleapis|fonts\.gstatic/i, `${HOMEPAGE} links a font CDN`)
+  })
+
+  it('renders identically with the font CDNs blocked', async () => {
+    const { page } = site
+    await page.goto(site.url)
+    const before = await page.evaluate(RENDERED)
+
+    await page.blockUrls(['*fonts.googleapis.com*', '*fonts.gstatic.com*', '*.woff', '*.woff2'])
+    await page.goto(site.url)
+    const after = await page.evaluate(RENDERED)
+
+    assert.deepEqual(after.sections, before.sections, 'the layout moved when the font CDNs were blocked')
+    assert.equal(after.font, before.font)
+    assert.equal(after.overflow, 0)
+    assert.deepEqual(page.failedRequests, [], 'blocking the font CDNs failed a request the page needed')
+  })
+
+  it('logs nothing to the console and drops no request along the way', async () => {
+    const { page } = site
+
+    assert.deepEqual(page.consoleMessages, [], 'the page logged console errors or warnings')
+    assert.deepEqual(page.pageErrors, [], 'the page raised errors')
+    assert.deepEqual(page.failedRequests, [], 'the page produced failed requests')
+  })
+})
