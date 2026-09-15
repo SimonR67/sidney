@@ -32,6 +32,7 @@ import {
   LOGO_ASSET,
   OLD_COLOURS,
   OLD_COLOUR_WORDS,
+  ORIGIN_IMAGE,
   PAGES,
   NAV_LINKS,
   MIN_CONTRAST,
@@ -321,6 +322,7 @@ describe('Task 7: nothing left of the superseded site', () => {
 
   it('is built from those pages and their stylesheets, nothing else', async () => {
     assert.deepEqual(await siteFiles(), [
+      ORIGIN_IMAGE,
       LOGO_ASSET,
       'about.html',
       'contact.html',
@@ -334,6 +336,7 @@ describe('Task 7: nothing left of the superseded site', () => {
   it('leaves no old pages, stylesheets or asset folders in the repository root', async () => {
     assert.deepEqual(await rootEntries(), [
       '.github',
+      ORIGIN_IMAGE,
       LOGO_ASSET,
       'about.html',
       'contact.html',

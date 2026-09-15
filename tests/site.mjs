@@ -67,6 +67,26 @@ export const ORIGIN_PARAGRAPHS = [
     'team, advisory, skills and people.',
 ]
 
+/** Where the origin band's 50/50 text-and-photograph layout is specified, and its discovery written down. */
+export const ORIGIN_IMAGE_PLAN = 'specs/1416c200-4729-4c71-8e75-e674bd0519d5/plan.md'
+export const ORIGIN_IMAGE_NOTES = 'specs/1416c200-4729-4c71-8e75-e674bd0519d5/notes.md'
+
+/** The photograph the origin band now sets beside its copy, at the path it already sits on. */
+export const ORIGIN_IMAGE = 'Sofia.jpg'
+
+/** Its intrinsic size, which the rendered photograph's aspect ratio is held to. */
+export const ORIGIN_IMAGE_SIZE = { width: 1080, height: 719 }
+
+/**
+ * The frame the "C-Suite Advisory" box carries — `.card`'s `border-radius` and
+ * `1px solid`, with the papaya its position in the grid gives it — which the
+ * photograph reuses value for value. See `ORIGIN_IMAGE_NOTES`.
+ */
+export const CARD_FRAME = { radius: '10px', width: '1px', style: 'solid', colour: '#e56717' }
+
+/** The box the frame above is read off, and the section it sits in. */
+export const FRAME_SOURCE = { box: 'C-Suite Advisory', section: 'WHAT WE OFFER' }
+
 /** The one span of the hero headline painted papaya; the rest stays as it was. */
 export const HERO_ACCENT = 'REALLY WELL'
 
@@ -247,9 +267,13 @@ export async function siteFiles() {
     .sort()
 }
 
-/** Every site file except the Softpapaya Services page and its stylesheet. */
+/**
+ * Every site file except the Softpapaya Services page, its stylesheet and the
+ * two images it carries — all four arrived with that page, after the audits the
+ * legacy pages are held to were written, so none of them appears in those.
+ */
 export async function legacySiteFiles() {
-  const replaced = new Set([HOMEPAGE, SERVICES_STYLESHEET])
+  const replaced = new Set([HOMEPAGE, SERVICES_STYLESHEET, LOGO_ASSET, ORIGIN_IMAGE])
   return (await siteFiles()).filter((name) => !replaced.has(name))
 }
 

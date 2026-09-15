@@ -11,7 +11,14 @@ import { setTimeout as sleep } from 'node:timers/promises'
 /** Serves `root` over http so tests can exercise the page as a static site. */
 export async function serveStatic(root) {
   const { createServer } = await import('node:http')
-  const types = { '.html': 'text/html', '.css': 'text/css', '.js': 'text/javascript', '.png': 'image/png' }
+  const types = {
+    '.html': 'text/html',
+    '.css': 'text/css',
+    '.js': 'text/javascript',
+    '.png': 'image/png',
+    '.jpg': 'image/jpeg',
+    '.jpeg': 'image/jpeg',
+  }
   const server = createServer(async (req, res) => {
     const path = decodeURIComponent(new URL(req.url, 'http://localhost').pathname)
     const file = join(root, path === '/' ? '/index.html' : path)

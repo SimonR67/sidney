@@ -129,6 +129,7 @@ const BORDERS = `
       what: el.tagName.toLowerCase() + (el.className ? '.' + [...el.classList].join('.') : ''),
       card: el.matches('.services__grid > .card'),
       tag: el.matches('.services__grid .tag'),
+      photo: el.matches('.origin__photo'),
       colours: [...new Set([
         style.borderTopColor,
         style.borderRightColor,
@@ -369,13 +370,18 @@ describe('Styling task 6: nothing else on the page moved', () => {
   // The boxes' own tags were brought into the sequence by
   // specs/7931a152-83fe-4f91-8093-e167e642681a/plan.md, so they are exempt too;
   // tests/homepage-refresh.test.mjs holds each one to its own box's shade.
-  it('touches no border outside the boxes and the tags inside them', async () => {
+  // The origin band's photograph is exempt for the same reason: it was given the
+  // "C-Suite Advisory" box's papaya frame, deliberately, by
+  // specs/1416c200-4729-4c71-8e75-e674bd0519d5/plan.md, and
+  // tests/origin-image.test.mjs holds it to that box's exact border.
+  it('touches no border outside the boxes, their tags and the origin photograph', async () => {
     const borders = await site.page.evaluate(BORDERS)
     const introduced = [PAPAYA, LIME, BLACK].map(rgb)
 
     assert.ok(borders.some((border) => border.card), 'no bordered boxes found, so the check proves nothing')
     assert.ok(borders.some((border) => border.tag), 'no bordered tags found, so the check proves nothing')
-    for (const border of borders.filter((b) => !b.card && !b.tag)) {
+    assert.ok(borders.some((border) => border.photo), 'no bordered photograph found, so the check proves nothing')
+    for (const border of borders.filter((b) => !b.card && !b.tag && !b.photo)) {
       for (const colour of border.colours) {
         assert.ok(
           !introduced.includes(colour),
