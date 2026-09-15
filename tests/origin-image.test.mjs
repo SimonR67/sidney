@@ -595,7 +595,15 @@ describe('Image task 9: the copy and the "WHAT WE OFFER" band untouched', () => 
     const before = atBaseline(BASELINE, HOMEPAGE)
     if (before === null) return
     const html = await read(HOMEPAGE)
-    const without = (markup) => markup.replace(/<section class="origin"[\s\S]*?\n {6}<\/section>/, '<!-- origin -->')
+    // The values band and the "Values" href it repointed are blanked out the
+    // same way the origin band is: they are the whole of what
+    // specs/e9bbd504-8f82-4e38-83fa-3eecbfd1d7ce/plan.md added, and
+    // tests/values-section.test.mjs holds them to their own byte-exact diff.
+    const without = (markup) =>
+      markup
+        .replace(/<section class="origin"[\s\S]*?\n {6}<\/section>/, '<!-- origin -->')
+        .replace(/\n {6}<!-- The "Values" nav entry's target\.[\s\S]*?\n {6}<\/section>/, '')
+        .replace('<li><a href="#values">Values</a></li>', '<li><a href="#">Values</a></li>')
 
     assert.equal(without(html), without(before), `${HOMEPAGE} was edited outside the origin band`)
   })

@@ -292,14 +292,17 @@ describe('Services task 5: the service cards', () => {
         inGrid: card.parentElement === section.querySelector('.services__grid'),
       }
     })
-    return { cards, headings: document.querySelectorAll('h3').length }
+    return { cards, headings: section.querySelectorAll('h3').length }
   `
 
   it('lists exactly the named services, in order', async () => {
     const { cards, headings } = await site.page.evaluate(CARDS)
 
     assert.deepEqual(cards.map((card) => card.title), SERVICES)
-    assert.equal(headings, SERVICES.length, `the page carries ${headings} <h3>, not just the service titles`)
+    // Counted inside the band rather than across the page: the values band
+    // specs/e9bbd504-8f82-4e38-83fa-3eecbfd1d7ce/plan.md added titles its own
+    // six boxes with the same `<h3 class="card__title">`, deliberately.
+    assert.equal(headings, SERVICES.length, `the band carries ${headings} <h3>, not just the service titles`)
   })
 
   it('gives every card a description and a tag list, all in one grid', async () => {

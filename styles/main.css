@@ -343,6 +343,16 @@ a {
   border-radius: 10px;
 }
 
+/* Values --------------------------------------------------------------- */
+
+/* The band the "Values" nav entry lands on. Its heading is the shared
+   `.section__heading` and its boxes are the services band's `.services__grid`
+   and `.card`, both untouched; the only thing declared here is the vertical
+   rhythm the two bands above it already carry. */
+.values {
+  padding: 24px 0 72px;
+}
+
 /* Call-to-action band -------------------------------------------------- */
 
 .invitation {

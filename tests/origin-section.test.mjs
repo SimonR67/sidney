@@ -232,14 +232,17 @@ describe('Origin task 4: the section directly after "WHAT WE OFFER"', () => {
     const order = await site.page.evaluate(ORDER)
 
     assert.equal(order.previousId, 'services', `the new band follows "#${order.previousId}"`)
-    assert.deepEqual(order.ids, ['', 'services', ORIGIN_ANCHOR, 'contact'])
+    // The values band was inserted directly below this one by
+    // specs/e9bbd504-8f82-4e38-83fa-3eecbfd1d7ce/plan.md; what this task owns
+    // is that the origin band still follows the services band, which it does.
+    assert.deepEqual(order.ids, ['', 'services', ORIGIN_ANCHOR, 'values', 'contact'])
   })
 
   it('leaves the invitation band last, where it was', async () => {
     const order = await site.page.evaluate(ORDER)
 
-    assert.equal(order.nextId, 'contact', 'the invitation band no longer follows the new one')
-    assert.equal(order.index, order.ids.length - 2)
+    assert.equal(order.nextId, 'values', 'the values band no longer follows the origin one')
+    assert.equal(order.ids.at(-1), 'contact', 'the invitation band is no longer last')
   })
 
   it('renders it between the two, not overlapping either', async () => {
@@ -445,6 +448,9 @@ describe('Origin task 7: "Services", "WHAT WE OFFER" and everything else, untouc
     assert.equal((html.match(/id="services"/g) ?? []).length, 1)
   })
 
+  // "Values" was repointed at the band
+  // specs/e9bbd504-8f82-4e38-83fa-3eecbfd1d7ce/plan.md added, by the same
+  // one-attribute change this job made to "About". The other five are still inert.
   it('leaves the eight nav entries, in order, and every other one inert', async () => {
     const links = await site.page.evaluate(`
       return [...document.querySelectorAll('.masthead__links a')].map((a) => ({
@@ -456,7 +462,7 @@ describe('Origin task 7: "Services", "WHAT WE OFFER" and everything else, untouc
     assert.deepEqual(links, [
       { label: 'About', href: `#${ORIGIN_ANCHOR}` },
       { label: 'Services', href: '#services' },
-      { label: 'Values', href: '#' },
+      { label: 'Values', href: '#values' },
       { label: 'Team', href: '#' },
       { label: 'Case Studies', href: '#' },
       { label: 'Careers', href: '#' },
