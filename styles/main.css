@@ -316,6 +316,33 @@ a {
   margin-top: 18px;
 }
 
+/* The band's two columns. Written narrow-first like everything above it: one
+   column, so the copy stacks above the photograph in document order, and the
+   768px breakpoint below pairs them up. The gap is the footer's own. */
+.origin__split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* Fills whatever its column is and derives its own height, so the 1080×719 file
+   keeps its ratio at every width and a longer or shorter copy column cannot
+   stretch it.
+   The frame is the "C-Suite Advisory" box's: the papaya comes from the same
+   custom property that box's border-colour does, while the 10px radius and the
+   1px solid are duplicated from `.card` — sharing them would mean editing the
+   services styles, which this change leaves alone. See
+   specs/1416c200-4729-4c71-8e75-e674bd0519d5/notes.md. */
+.origin__photo {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  border: 1px solid var(--papaya);
+  border-radius: 10px;
+}
+
 /* Call-to-action band -------------------------------------------------- */
 
 .invitation {
@@ -413,6 +440,12 @@ a {
 /* Tablet: the cards pair up and the footer's columns sit beside each other. */
 @media (min-width: 768px) {
   .services__grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  /* Two tracks of equal width, so the copy and the photograph split the band
+     50/50 by construction rather than by a pair of percentages. */
+  .origin__split {
     grid-template-columns: repeat(2, 1fr);
   }
 
