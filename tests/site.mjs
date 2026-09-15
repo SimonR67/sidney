@@ -541,6 +541,100 @@ export const CASE_STUDIES = [
   },
 ]
 
+/* Team page ------------------------------------------------------------- */
+
+/** Where the Team page is specified, and this job's discovery written down. */
+export const TEAM_PLAN = 'specs/755b1c19-a364-4f06-bf29-a35998f8da76/plan.md'
+export const TEAM_NOTES = 'specs/755b1c19-a364-4f06-bf29-a35998f8da76/notes.md'
+
+/**
+ * The page the "Team" nav entry — inert since the header was written — now
+ * reaches. The slug is the site's only convention: a flat `.html` at the root.
+ */
+export const TEAM_PAGE = 'team.html'
+
+/** Its `<title>`, and the two lines its headline is broken over. */
+export const TEAM_TITLE = 'Team — Softpapaya'
+export const TEAM_HEADING = ['MEET', 'THE TEAM']
+
+/** The second of those lines is the one painted papaya, as the hero's is. */
+export const TEAM_ACCENT = 'THE TEAM'
+
+/** The paragraph under the headline, word for word as the spec supplied it. */
+export const TEAM_LEDE =
+  'Engineers who know the context, talk to the client, and make decisions. No middlemen.'
+
+/**
+ * The three images the spec names, at the paths they already sit on, with the
+ * intrinsic size each file was saved at. The plan writes the folder as
+ * `images/team/`; it is `team/` on disk, where all three were committed
+ * alongside the plan. See `TEAM_NOTES`.
+ */
+export const TEAM_IMAGES = {
+  top: { src: 'team/team1.jpg', width: 2048, height: 1365 },
+  second: { src: 'team/team2.png', width: 512, height: 288 },
+  banner: { src: 'team/banner.png', width: 1384, height: 418 },
+}
+
+/** The size every placeholder avatar is drawn at, until a real photograph replaces it. */
+export const TEAM_AVATAR_SIZE = { width: 480, height: 480 }
+
+/**
+ * The ten team members, in the order the spec lists them: the name and the role
+ * its caption reads, and the placeholder file standing in for the photograph.
+ * "Principle Engineer" and the single-name "Slaw" are the spec's own words, kept
+ * as supplied and flagged in `TEAM_NOTES` rather than tidied.
+ */
+export const TEAM_MEMBERS = [
+  { name: 'Simon Raitt', role: 'CEO', image: 'team/placeholder-simon-raitt.png' },
+  { name: 'Jason Hill', role: 'COO', image: 'team/placeholder-jason-hill.png' },
+  { name: 'Pete Callaghan', role: 'CTO', image: 'team/placeholder-pete-callaghan.png' },
+  { name: 'Ania Balicka', role: 'Director', image: 'team/placeholder-ania-balicka.png' },
+  { name: 'Slawek Panic', role: 'Principle Engineer', image: 'team/placeholder-slawek-panic.png' },
+  { name: 'Grygorii L', role: 'Front End Lead', image: 'team/placeholder-grygorii-l.png' },
+  { name: 'Marcin S', role: 'Back End Lead', image: 'team/placeholder-marcin-s.png' },
+  { name: 'Oskar S', role: 'Lead Engineer', image: 'team/placeholder-oskar-s.png' },
+  { name: 'Slaw', role: 'Lead Engineer and AI Lead', image: 'team/placeholder-slaw.png' },
+  { name: 'Marcin B', role: 'Mobile iOS and Android Lead Engineer', image: 'team/placeholder-marcin-b.png' },
+]
+
+/**
+ * Everything the page ships out of `team/`, in the order `siteFiles()` returns
+ * it. `.gitkeep` is the marker the folder was created with, kept where it is.
+ */
+export const TEAM_ASSETS = [
+  'team/.gitkeep',
+  ...Object.values(TEAM_IMAGES).map((image) => image.src),
+  ...TEAM_MEMBERS.map((member) => member.image),
+].sort()
+
+/** The caption a member's box carries: the name and the role, one em dash between them. */
+export const teamCaption = ({ name, role }) => `${name} — ${role}`
+
+/**
+ * Which shade outlines each avatar box, in order. The spec asks for papaya,
+ * lime, black and round again, so the tenth box is papaya — 10 mod 3 = 1.
+ */
+export const TEAM_BORDERS = TEAM_MEMBERS.map(
+  (_, index) => ['papaya', 'lime', 'black'][index % 3],
+)
+
+/**
+ * The home page with this job's one repointed href put back the way it was, for
+ * the same reason `beforeCaseStudies` exists. The nav's "Team" tab — inert since
+ * the header was written — is the whole of what this job changed on a page that
+ * already existed.
+ */
+export const beforeTeamPage = (markup) =>
+  markup.replace(`<li><a href="${TEAM_PAGE}">Team</a></li>`, '<li><a href="#">Team</a></li>')
+
+/**
+ * The shared stylesheet with the Team page's block taken back out. Same purpose
+ * as `beforeCaseStudiesStyles`: the audits earlier jobs wrote diff the sheet
+ * byte for byte, so each later job rewinds itself out of them.
+ */
+export const beforeTeamStyles = (css) => css.replace(/\/\* Team page -+ \*\/\n[\s\S]*?\n(?=\/\* Footer)/, '')
+
 /* The sticky masthead, and the mark inside it --------------------------- */
 
 /**
@@ -719,10 +813,10 @@ export async function siteFiles() {
 
 /**
  * Every site file except the Softpapaya Services page, its stylesheet, the two
- * images it carries, the Contact Us page and scripts that arrived with it, and
- * the Case Studies page with its sources and graphics — all of them landed after
- * the audits the legacy pages are held to were written, so none of them appears
- * in those.
+ * images it carries, the Contact Us page and scripts that arrived with it, the
+ * Case Studies page with its sources and graphics, and the Team page with its
+ * photographs and placeholder avatars — all of them landed after the audits the
+ * legacy pages are held to were written, so none of them appears in those.
  */
 export async function legacySiteFiles() {
   const replaced = new Set([
@@ -735,6 +829,8 @@ export async function legacySiteFiles() {
     CASE_STUDIES_PAGE,
     ...CASE_SOURCES,
     ...CASE_STUDIES.map((study) => study.graphic),
+    TEAM_PAGE,
+    ...TEAM_ASSETS,
   ])
   return (await siteFiles()).filter((name) => !replaced.has(name))
 }
