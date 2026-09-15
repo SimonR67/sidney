@@ -23,7 +23,7 @@
           <ul class="masthead__links">
             <li><a href="#about">About</a></li>
             <li><a href="#services">Services</a></li>
-            <li><a href="#">Values</a></li>
+            <li><a href="#values">Values</a></li>
             <li><a href="#">Team</a></li>
             <li><a href="#">Case Studies</a></li>
             <li><a href="#">Careers</a></li>
@@ -160,6 +160,85 @@
               />
             </div>
           </div>
+        </div>
+      </section>
+      <!-- The "Values" nav entry's target. Its boxes are the services band's own
+           component — `.services__grid` and `.card`, reused class for class so the
+           border rotation and the breakpoints come with them rather than being
+           approximated. See specs/e9bbd504-8f82-4e38-83fa-3eecbfd1d7ce/notes.md. -->
+      <section class="values" id="values" aria-labelledby="values-heading">
+        <div class="container">
+          <h2 class="section__heading" id="values-heading">VALUES</h2>
+          <ul class="services__grid">
+            <li class="card">
+              <h3 class="card__title">PEOPLE OVER PROCESS</h3>
+              <p class="card__copy">
+                Processes exist to help. When a process gets in the way - we change it. When a meeting is pointless -
+                we cancel it. We're not attached to rituals.
+              </p>
+              <p class="card__copy">
+                We trust the people we hire to organize their own work. We don't track desk time, monitor screens, or
+                count commits. What matters is what you deliver - not what your calendar looks like.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">NO OVERTIME CULTURE</h3>
+              <p class="card__copy">This isn't an "aspiration." It's a hard rule.</p>
+              <p class="card__copy">
+                Nobody will expect you to stay late. You won't get an "urgent" Slack at 7pm. Your team lead won't send
+                weekend emails with a silent expectation that you'll respond.
+              </p>
+              <p class="card__copy">
+                Want to stay longer because something's got you hooked? By all means. But that's your choice, not a
+                default expectation.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">SMALL TEAMS, BIG OWNERSHIP</h3>
+              <p class="card__copy">
+                We work in collegiate teams of small agile squads. You know everyone's context. You can still make
+                decisions fast without endless meetings.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">GROWTH ON YOUR TERMS</h3>
+              <p class="card__copy">
+                We don't push "career paths." Not everyone needs to become a manager. Not everyone needs to give
+                conference talks.
+              </p>
+              <!-- The supplied copy carries its own bullet characters, and the
+                   stylesheet's `ul` reset already strips list markers, so the
+                   items read exactly as written with no second bullet beside
+                   them. `.card__copy` gives them the body the paragraphs take. -->
+              <ul>
+                <li class="card__copy">• Learning time during work hours</li>
+                <li class="card__copy">
+                  • Mentoring from senior engineers (not a "mentoring program" - just people you can talk to)
+                </li>
+                <li class="card__copy">• Space to experiment with new technologies</li>
+              </ul>
+              <p class="card__copy">
+                Want to grow toward architecture? We'll help. Prefer to stay a specialist? That's fine too. It's your
+                career.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">TRANSPARENCY</h3>
+              <p class="card__copy">
+                We're open about where the company is heading. What we're planning, where we are, what's not working.
+                You don't learn about changes through hallway gossip (especially since there's no hallway).
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">RESPECT FOR TIME</h3>
+              <p class="card__copy">
+                Meetings have agendas and last as long as they need to. We don't do meetings that "could have been an
+                email." We don't do standups where 8 people take turns saying they're "working on the same thing as
+                yesterday."
+              </p>
+              <p class="card__copy">We protect your time - from clients and from ourselves.</p>
+            </li>
+          </ul>
         </div>
       </section>
       <section class="invitation" id="contact" aria-labelledby="invitation-heading">

@@ -67,6 +67,79 @@ export const ORIGIN_PARAGRAPHS = [
     'team, advisory, skills and people.',
 ]
 
+/** Where the "VALUES" section is specified, and this job's discovery written down. */
+export const VALUES_PLAN = 'specs/e9bbd504-8f82-4e38-83fa-3eecbfd1d7ce/plan.md'
+export const VALUES_NOTES = 'specs/e9bbd504-8f82-4e38-83fa-3eecbfd1d7ce/notes.md'
+
+/** Its heading, and the anchor the "Values" nav link now points at. */
+export const VALUES_HEADING = 'VALUES'
+export const VALUES_ANCHOR = 'values'
+
+/**
+ * The six value boxes, in the order the grid writes them. Each `body` is the
+ * lines of the supplied copy in order — a string for a paragraph, an array for
+ * a run of bullets. `tests/values-section.test.mjs` checks every one of them
+ * back against the request itself, which is recorded in the commit that added
+ * `VALUES_PLAN`.
+ */
+export const VALUES_BOXES = [
+  {
+    title: 'PEOPLE OVER PROCESS',
+    body: [
+      "Processes exist to help. When a process gets in the way - we change it. When a meeting is pointless - " +
+        "we cancel it. We're not attached to rituals.",
+      "We trust the people we hire to organize their own work. We don't track desk time, monitor screens, or " +
+        'count commits. What matters is what you deliver - not what your calendar looks like.',
+    ],
+  },
+  {
+    title: 'NO OVERTIME CULTURE',
+    body: [
+      'This isn\'t an "aspiration." It\'s a hard rule.',
+      'Nobody will expect you to stay late. You won\'t get an "urgent" Slack at 7pm. Your team lead won\'t ' +
+        'send weekend emails with a silent expectation that you\'ll respond.',
+      "Want to stay longer because something's got you hooked? By all means. But that's your choice, not a " +
+        'default expectation.',
+    ],
+  },
+  {
+    title: 'SMALL TEAMS, BIG OWNERSHIP',
+    body: [
+      "We work in collegiate teams of small agile squads. You know everyone's context. You can still make " +
+        'decisions fast without endless meetings.',
+    ],
+  },
+  {
+    title: 'GROWTH ON YOUR TERMS',
+    body: [
+      'We don\'t push "career paths." Not everyone needs to become a manager. Not everyone needs to give ' +
+        'conference talks.',
+      [
+        '• Learning time during work hours',
+        '• Mentoring from senior engineers (not a "mentoring program" - just people you can talk to)',
+        '• Space to experiment with new technologies',
+      ],
+      "Want to grow toward architecture? We'll help. Prefer to stay a specialist? That's fine too. It's your career.",
+    ],
+  },
+  {
+    title: 'TRANSPARENCY',
+    body: [
+      "We're open about where the company is heading. What we're planning, where we are, what's not working. " +
+        "You don't learn about changes through hallway gossip (especially since there's no hallway).",
+    ],
+  },
+  {
+    title: 'RESPECT FOR TIME',
+    body: [
+      'Meetings have agendas and last as long as they need to. We don\'t do meetings that "could have been an ' +
+        'email." We don\'t do standups where 8 people take turns saying they\'re "working on the same thing as ' +
+        'yesterday."',
+      'We protect your time - from clients and from ourselves.',
+    ],
+  },
+]
+
 /** Where the origin band's 50/50 text-and-photograph layout is specified, and its discovery written down. */
 export const ORIGIN_IMAGE_PLAN = 'specs/1416c200-4729-4c71-8e75-e674bd0519d5/plan.md'
 export const ORIGIN_IMAGE_NOTES = 'specs/1416c200-4729-4c71-8e75-e674bd0519d5/notes.md'
