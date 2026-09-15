@@ -580,12 +580,16 @@ export const TEAM_IMAGES = {
 export const TEAM_AVATAR_SIZE = { width: 480, height: 480 }
 
 /**
- * The ten team members, in the order the spec lists them: the name and the role
- * its caption reads, and the placeholder file standing in for the photograph.
- * "Principle Engineer" is the spec's own word, kept as supplied and flagged in
- * `TEAM_NOTES` rather than tidied. The eighth and ninth entries — "Oskar S" and
- * the single-name "Slaw" — were replaced by the two real people in
- * `TEAM_ADDITIONS`; `TEAM_REPLACED` holds what stood there before.
+ * The twelve team members, in the order the spec lists them: the name and the
+ * role its caption reads, and the placeholder file standing in for the
+ * photograph. "Principle Engineer" is the spec's own word, kept as supplied and
+ * flagged in `TEAM_NOTES` rather than tidied.
+ *
+ * The page shipped with ten. The eighth and ninth entries — "Oskar S" and the
+ * single-name "Slaw" — were replaced by job f5053a8e (`TEAM_REPLACED` /
+ * `TEAM_ADDITIONS`) and put back by job 282a4e1c (`TEAM_RESTORED`), which is
+ * what takes the roster to twelve. `TEAM_ROSTER_BEFORE` holds the ten as they
+ * stood immediately before that.
  */
 export const TEAM_MEMBERS = [
   { name: 'Simon Raitt', role: 'CEO', image: 'team/placeholder-simon-raitt.png' },
@@ -595,10 +599,13 @@ export const TEAM_MEMBERS = [
   { name: 'Slawek Panic', role: 'Principle Engineer', image: 'team/placeholder-slawek-panic.png' },
   { name: 'Grygorii L', role: 'Front End Lead', image: 'team/placeholder-grygorii-l.png' },
   { name: 'Marcin S', role: 'Back End Lead', image: 'team/placeholder-marcin-s.png' },
-  // Replaced by job f5053a8e; see TEAM_REPLACED and TEAM_UPDATE_NOTES.
+  // Put back by job 282a4e1c; see TEAM_RESTORED and TEAM_RESTORE_NOTES.
+  { name: 'Oskar S', role: 'Lead Engineer', image: 'team/placeholder-oskar-s.png' },
+  { name: 'Slaw', role: 'Lead Engineer and AI Lead', image: 'team/placeholder-slaw.png' },
+  { name: 'Marcin B', role: 'Mobile iOS and Android Lead Engineer', image: 'team/placeholder-marcin-b.png' },
+  // Added by job f5053a8e; see TEAM_ADDITIONS and TEAM_UPDATE_NOTES.
   { name: 'Paula S', role: 'Agile Delivery Lead', image: 'team/placeholder-paula-s.png' },
   { name: 'Nino A', role: 'Power BI and Data Analyst', image: 'team/placeholder-nino-a.png' },
-  { name: 'Marcin B', role: 'Mobile iOS and Android Lead Engineer', image: 'team/placeholder-marcin-b.png' },
 ]
 
 /* Team page: the two entries replaced by real people --------------------- */
@@ -625,9 +632,48 @@ export const TEAM_REPLACED = [
  * is the naming convention the rest of the grid holds to.
  */
 export const TEAM_ADDITIONS = [
-  { position: 8, name: 'Paula S', role: 'Agile Delivery Lead', image: 'team/placeholder-paula-s.png' },
-  { position: 9, name: 'Nino A', role: 'Power BI and Data Analyst', image: 'team/placeholder-nino-a.png' },
+  { position: 11, name: 'Paula S', role: 'Agile Delivery Lead', image: 'team/placeholder-paula-s.png' },
+  { position: 12, name: 'Nino A', role: 'Power BI and Data Analyst', image: 'team/placeholder-nino-a.png' },
 ]
+
+/* Team page: the two entries put back ------------------------------------ */
+
+/** Where this job — the two members added back — is written down. */
+export const TEAM_RESTORE_PLAN = 'specs/282a4e1c-1c11-4ac6-bb3c-31ade6a0bbde/plan.md'
+export const TEAM_RESTORE_NOTES = 'specs/282a4e1c-1c11-4ac6-bb3c-31ade6a0bbde/notes.md'
+
+/**
+ * The two members job f5053a8e dropped and this job adds back, with the 1-based
+ * position each takes in the grid — the slots the spec's twelve-person roster
+ * gives them, between "Marcin S" and "Marcin B". Each keeps the markup and the
+ * placeholder artwork every other box carries, in a file named for them, which
+ * is the naming convention the rest of the grid holds to.
+ */
+export const TEAM_RESTORED = [
+  { position: 8, name: 'Oskar S', role: 'Lead Engineer', image: 'team/placeholder-oskar-s.png' },
+  { position: 9, name: 'Slaw', role: 'Lead Engineer and AI Lead', image: 'team/placeholder-slaw.png' },
+]
+
+/**
+ * The ten members as they stood in the grid immediately before this job, in the
+ * order they stood in — the baseline the restored roster is checked back
+ * against. The spec's roster puts "Marcin B" ahead of "Paula S" and "Nino A",
+ * where the page had them the other way round, so the three move relative to
+ * each other; nothing about any of the ten changes but its position. See
+ * `TEAM_RESTORE_NOTES`.
+ */
+export const TEAM_ROSTER_BEFORE = [
+  'Simon Raitt',
+  'Jason Hill',
+  'Pete Callaghan',
+  'Ania Balicka',
+  'Slawek Panic',
+  'Grygorii L',
+  'Marcin S',
+  'Paula S',
+  'Nino A',
+  'Marcin B',
+].map((name) => TEAM_MEMBERS.find((member) => member.name === name))
 
 /**
  * Everything the page ships out of `team/`, in the order `siteFiles()` returns
@@ -644,7 +690,9 @@ export const teamCaption = ({ name, role }) => `${name} — ${role}`
 
 /**
  * Which shade outlines each avatar box, in order. The spec asks for papaya,
- * lime, black and round again, so the tenth box is papaya — 10 mod 3 = 1.
+ * lime, black and round again, so with twelve boxes the last is black — 12 mod
+ * 3 = 0. The rotation is `nth-child` in the sheet, so the two boxes job
+ * 282a4e1c put back at 8 and 9 take their shades from it like any other.
  */
 export const TEAM_BORDERS = TEAM_MEMBERS.map(
   (_, index) => ['papaya', 'lime', 'black'][index % 3],
