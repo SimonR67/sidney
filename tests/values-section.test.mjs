@@ -7,7 +7,10 @@ import { spawnSync } from 'node:child_process'
 import { openPage, serveStatic } from './browser.mjs'
 import {
   BOXES,
+  CASE_STUDIES_PAGE,
   CONTACT_PAGE,
+  beforeCaseStudies,
+  beforeCaseStudiesStyles,
   beforeContactPage,
   BOX_BORDERS,
   HOMEPAGE,
@@ -77,6 +80,7 @@ const clickTo = (label) => `
           before,
           after: window.scrollY,
           top: Math.round(section.getBoundingClientRect().top) + 0,
+          head: Math.round(document.querySelector('.masthead').getBoundingClientRect().bottom),
           id: section.id,
         }),
       ),
@@ -259,7 +263,10 @@ describe('Values task 2: the band itself, directly after "WHERE WE\'VE COME FROM
     assert.equal(values.id, VALUES_ANCHOR, `clicking "Values" reached #${values.id}`)
     assert.equal(values.hash, `#${VALUES_ANCHOR}`)
     assert.ok(values.after > values.before, `clicking "Values" moved the page ${values.after - values.before}px`)
-    assert.equal(values.top, 0, `the band landed ${values.top}px from the top of the viewport`)
+    // The masthead is sticky since specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md,
+    // and `scroll-padding-top` offsets the jump by its height, so the band now
+    // lands just below the header rather than under it at the fold.
+    assert.ok(values.top >= values.head, `the band landed ${values.top}px down, under a masthead ending at ${values.head}px`)
   })
 
   it('needs no script to do it, and no smooth scroll the other bands do not have', async () => {
@@ -522,8 +529,10 @@ describe('Values task 5: the two bands above it, untouched', () => {
     if (was === null) return
     // The three contact destinations are rewound alongside the values band, the
     // way tests/origin-image.test.mjs rewinds them: they belong to
-    // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md, not to this one.
-    const withoutValues = beforeContactPage(now)
+    // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md, not to this one. The
+    // "Case Studies" tab is rewound on the same footing — it belongs to
+    // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md.
+    const withoutValues = beforeCaseStudies(beforeContactPage(now))
       .replace(/\n {6}<!-- The "Values" nav entry's target\.[\s\S]*?\n {6}<\/section>/, '')
       .replace('<li><a href="#values">Values</a></li>', '<li><a href="#">Values</a></li>')
     assert.equal(withoutValues, was, `${HOMEPAGE} carries a change beyond the new band and the "Values" href`)
@@ -534,7 +543,10 @@ describe('Values task 5: the two bands above it, untouched', () => {
     const now = await read(SERVICES_STYLESHEET)
 
     if (was === null) return
-    const withoutValues = withoutContactStyles(now).replace(
+    // The sticky masthead, the taller mark and the Case Studies block are taken
+    // back out for the same reason the contact styles are: they arrived after
+    // this band did, with specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md.
+    const withoutValues = beforeCaseStudiesStyles(withoutContactStyles(now)).replace(
       /\/\* Values -+ \*\/\n[\s\S]*?\.values \{\n {2}padding: [^;]+;\n\}\n\n/,
       '',
     )
@@ -572,7 +584,10 @@ describe('Values task 5: the two bands above it, untouched', () => {
       { label: 'Services', href: '#services' },
       { label: 'Values', href: `#${VALUES_ANCHOR}` },
       { label: 'Team', href: '#' },
-      { label: 'Case Studies', href: '#' },
+      // Repointed at the Case Studies page by
+      // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md; the tab's wording and
+      // position are unchanged, and tests/case-studies.test.mjs holds it to that.
+      { label: 'Case Studies', href: CASE_STUDIES_PAGE },
       { label: 'Careers', href: '#' },
       { label: 'Blog', href: '#' },
       // Repointed at the Contact Us page by

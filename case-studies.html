@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Case Studies — Softpapaya</title>
+    <!-- Inline icon: keeps the browser from requesting (and 404-ing on) /favicon.ico. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ffffff'/%3E%3Ccircle cx='8' cy='8' r='4' fill='%230a66ff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="container masthead__inner">
+        <a class="masthead__logo" href="index.html">
+          <!-- Intrinsic size given so the header reserves the space before the
+               image arrives and nothing below it shifts on load. -->
+          <img class="masthead__mark" src="SoftPapaya-logo.png" alt="SoftPapaya" width="655" height="198" />
+        </a>
+        <!-- The home page's nav, with each in-page anchor qualified by the page
+             it lives on so the tabs still work from here. -->
+        <nav class="masthead__nav" aria-label="Primary">
+          <ul class="masthead__links">
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="index.html#values">Values</a></li>
+            <li><a href="#">Team</a></li>
+            <li><a href="case-studies.html">Case Studies</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="contact-us.html">Contact</a></li>
+          </ul>
+        </nav>
+        <a class="button button--accent masthead__cta" href="contact-us.html">TALK TO US</a>
+      </div>
+    </header>
+    <main>
+      <!-- Three boxes, one per PDF in cases/, stacked ComixIT → Learning →
+           Professional Services. The component is the "WHAT WE OFFER" band's own
+           — `.services__grid` and `.card`, class for class — run one box to a row
+           by `.case-studies .services__grid`. Every word of copy below is taken
+           from its source PDF verbatim, and each panel is that PDF's own graphic
+           recoloured. See specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/notes.md. -->
+      <section class="case-studies" aria-labelledby="case-studies-heading">
+        <div class="container">
+          <h1 class="case-studies__heading" id="case-studies-heading">CASE STUDIES</h1>
+          <ul class="services__grid">
+            <li class="card">
+              <p class="case-study__eyebrow">CASE STUDY</p>
+              <h3 class="card__title">Building Comixit</h3>
+              <p class="case-study__subtitle">a Children's Reading App</p>
+              <p class="case-study__meta">Sector: Media and Publishing · Client: Comixit</p>
+              <div class="case-study__split">
+                <div class="case-study__text">
+                  <h4 class="case-study__heading">Challenge</h4>
+                  <p class="card__copy">
+                    Comixit's founder, a scriptwriter and publisher from the film and book world, wanted to tackle a
+                    problem he kept seeing firsthand: children spending hours watching videos on their parents' phones
+                    instead of reading. It's a bigger issue than it sounds — a significant number of children in the UK
+                    leave primary school without the basic literacy skills they need for secondary education, and this
+                    was happening in the same year the government was actively promoting reading in schools. The founder
+                    had an initial idea and an early proof of concept for a children's comics app, but it needed real
+                    product thinking and engineering behind it to become something investors and major publishers would
+                    take seriously.
+                  </p>
+                  <h4 class="case-study__heading">Solution</h4>
+                  <p class="card__copy">
+                    We built a fully functioning Android and iOS app with free and subscription tiers, giving parents the
+                    ability to monitor and control their children's access while letting kids read comics from major
+                    publishers including exclusive content from Disney and the Beano. Behind the app sits an extensive
+                    backend for onboarding new publishers and a system that lets children safely create and upload their
+                    own comics and characters. One of the harder technical problems was using AI to take a publisher's
+                    source files and turn them into a format that works on a phone screen, without the constant pinching
+                    and zooming that ruins the experience — an engine that reformats comics into a vertical scrolling,
+                    frame-by-frame layout, while leaving the original artwork untouched to respect publisher copyright.
+                    Our involvement went beyond code: we helped shape the business case and investor deck, provided
+                    fractional CTO support, and brought in product ownership and project management to keep a
+                    fast-moving, bootstrapped startup on track.
+                  </p>
+                  <h4 class="case-study__heading">Effects</h4>
+                  <p class="card__copy">
+                    Once the app was live, Comixit secured exclusive UK licensing agreements with both Disney and the
+                    publisher of the Beano — deals that depended on having a working product to show. The app is still
+                    live and still growing today.
+                  </p>
+                  <p class="case-study__stack">Stack: React Native, Expo, C#, ASP.NET, AWS, Terraform</p>
+                </div>
+                <div class="case-study__figure">
+                  <!-- Intrinsic size given so the column reserves the space before
+                       the panel arrives, as the masthead's mark does. -->
+                  <img
+                    class="case-study__graphic"
+                    src="assets/img/case-studies/comixit/reading-app.svg"
+                    alt="The Comixit Reading App panel: Disney and Beano exclusive UK content, free and paid subscription tiers, kids creating their own comics, and the comic reformatting engine turning a publisher PDF into a vertical scroll"
+                    width="520"
+                    height="578"
+                  />
+                </div>
+              </div>
+            </li>
+            <li class="card">
+              <p class="case-study__eyebrow">CASE STUDY</p>
+              <h3 class="card__title">Rescuing and Scaling</h3>
+              <p class="case-study__subtitle">a Learning Management Platform</p>
+              <p class="case-study__meta">Sector: Education / EdTech · Client: UK-based Learning Platform</p>
+              <div class="case-study__split">
+                <div class="case-study__text">
+                  <h4 class="case-study__heading">Challenge</h4>
+                  <p class="card__copy">
+                    The Client runs a platform that helps UK employers manage apprenticeships, including the reporting
+                    needed to claim government funding and the structure needed to get apprentices through to
+                    completion. That matters because national apprenticeship completion rates sit below 50%, while our
+                    Client's platform was already achieving close to 85%. The problem was how the platform had been
+                    built: it had grown over time through a single freelance developer who eventually became
+                    uncooperative and held the company's own IP to ransom. The system was live but needed significant
+                    manual intervention every month just to keep running, and our Client had no internal technical
+                    capability of its own to fall back on.
+                  </p>
+                  <h4 class="case-study__heading">Solution</h4>
+                  <p class="card__copy">
+                    We brought in a fractional CTO with over 15 years' experience running learning platforms in the UK,
+                    who reviewed the existing codebase and AWS setup and identified where things needed to change.
+                    Working alongside an engineering manager and two dedicated engineers, the team made short-term fixes
+                    to stabilise the platform, then moved into iterative improvements to cut down the manual work
+                    involved in keeping it running month to month. What started as an emergency fix has since grown into
+                    a long-term development partnership, with ongoing refactoring, new features and additional products
+                    now on the roadmap.
+                  </p>
+                  <h4 class="case-study__heading">Effects</h4>
+                  <ul class="case-study__bullets">
+                    <li class="card__copy">AWS infrastructure costs halved</li>
+                    <li class="card__copy">Management overhead for the business owner cut by around 25%</li>
+                    <li class="card__copy">Monthly manual intervention significantly reduced</li>
+                    <li class="card__copy">Client secured additional investment on the back of the improved platform</li>
+                    <li class="card__copy">
+                      Relationship has grown from an emergency fix into a long-term development partnership
+                    </li>
+                  </ul>
+                  <p class="case-study__stack">Stack: .NET, AWS, React</p>
+                </div>
+                <div class="case-study__figure">
+                  <img
+                    class="case-study__graphic"
+                    src="assets/img/case-studies/learning/platform-health.svg"
+                    alt="The Apprenticeship Platform Health panel: an 85% completion rate against a 47% national average, AWS infrastructure cost down 50% and management overhead down 25%"
+                    width="520"
+                    height="552"
+                  />
+                </div>
+              </div>
+            </li>
+            <li class="card">
+              <p class="case-study__eyebrow">CASE STUDY</p>
+              <h3 class="card__title">Centralising Group Management Reporting</h3>
+              <p class="case-study__subtitle">for Consulting &amp; Professional Services</p>
+              <p class="case-study__meta">
+                Sector: Consulting and Professional Services · Client: Confidential, International — offices across EU,
+                USA, UK and Asia
+              </p>
+              <div class="case-study__split">
+                <div class="case-study__text">
+                  <h4 class="case-study__heading">Challenge</h4>
+                  <p class="card__copy">
+                    This client group holds various consulting businesses, alongside several other propositions in
+                    professional services related operations under the same ownership. Despite operating as one group,
+                    they had no reliable, shared view of how the group as a whole was performing. Financial reporting,
+                    sales forecasting, resource utilisation, productivity and product delivery status all lived in
+                    separate, inconsistent formats across the different businesses. There was no single place anyone
+                    could look to see group revenue, profit, forecasts or history. Dashboards also only updated once a
+                    day, so leadership teams across multiple jurisdictions were often looking at figures that were
+                    already hours out of date compared to each other — and the reports themselves weren't giving
+                    leadership what they needed.
+                  </p>
+                  <h4 class="case-study__heading">Solution</h4>
+                  <p class="card__copy">
+                    We designed and built a unified management dashboard that pulled financial reporting, forecasting,
+                    resource utilisation, productivity and product status into one group-wide view. The system had to
+                    work across multiple legal entities and jurisdictions, not just a single office, so it was built
+                    with that complexity in mind from the start. We worked closely with the Group CFO and in-country
+                    Finance Directors to understand what the existing reports were meant to achieve, checked the
+                    integrity of the underlying data, and rebuilt the reporting so every business unit internationally
+                    could see live figures rather than a single daily snapshot.
+                  </p>
+                  <h4 class="case-study__heading">Effects</h4>
+                  <p class="card__copy">
+                    The group now has one source of truth for revenue, profit, forecasts, actuals and historical
+                    performance across all its businesses. Reporting is consistent across jurisdictions instead of
+                    varying office by office, and the dashboard was built to hold up against the layered regulatory and
+                    compliance requirements of running an international professional services group. Feedback from
+                    business leads has been consistently positive, and the engagement surfaced a bigger strategic
+                    opportunity — an active board-level conversation on enterprise and data architecture, with the
+                    relationship moving toward an ongoing advisory arrangement.
+                  </p>
+                  <p class="case-study__stack">Stack: Microsoft</p>
+                </div>
+                <div class="case-study__figure">
+                  <img
+                    class="case-study__graphic"
+                    src="assets/img/case-studies/professional-services/group-dashboard.svg"
+                    alt="The Group Performance Dashboard panel: £48.2M group revenue, a 22.4% profit margin and 87% utilisation, with revenue against forecast by quarter and utilisation split across EU, USA, UK and Asia"
+                    width="520"
+                    height="596"
+                  />
+                </div>
+              </div>
+            </li>
+          </ul>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="footer__brand">
+          <p class="footer__logo">SoftPapaya</p>
+          <p class="footer__blurb">
+            SoftPapaya is a software studio working with teams who would rather have a small group of senior people
+            finish the thing than a large one start it.
+          </p>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Services</h2>
+          <ul class="footer__links">
+            <li><a href="#">Custom Software</a></li>
+            <li><a href="#">Cloud &amp; Infrastructure</a></li>
+            <li><a href="#">Data Engineering</a></li>
+            <li><a href="#">UI/UX Design</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Work</h2>
+          <ul class="footer__links">
+            <li><a href="#">Case Studies</a></li>
+            <li><a href="#">Industries</a></li>
+            <li><a href="#">Partners</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">About</h2>
+          <ul class="footer__links">
+            <li><a href="#">Our Story</a></li>
+            <li><a href="#">Values</a></li>
+            <li><a href="#">Team</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Careers</h2>
+          <ul class="footer__links">
+            <li><a href="#">Open Roles</a></li>
+            <li><a href="#">Life at SoftPapaya</a></li>
+            <li><a href="#">Internships</a></li>
+          </ul>
+        </div>
+        <div class="footer__contact">
+          <h2 class="footer__heading">Contact</h2>
+          <p><a href="mailto:hello@softpapaya.com">hello@softpapaya.com</a></p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <div class="container footer__bottom-inner">
+          <p class="footer__copyright">© 2026 SoftPapaya. All rights reserved.</p>
+          <ul class="footer__legal">
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

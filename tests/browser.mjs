@@ -18,6 +18,7 @@ export async function serveStatic(root) {
     '.png': 'image/png',
     '.jpg': 'image/jpeg',
     '.jpeg': 'image/jpeg',
+    '.svg': 'image/svg+xml',
   }
   const server = createServer(async (req, res) => {
     const path = decodeURIComponent(new URL(req.url, 'http://localhost').pathname)

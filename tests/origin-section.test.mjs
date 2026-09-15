@@ -6,6 +6,7 @@ import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { openPage, serveStatic } from './browser.mjs'
 import {
+  CASE_STUDIES_PAGE,
   CONTACT_PAGE,
   HOMEPAGE,
   ORIGIN_ANCHOR,
@@ -301,6 +302,7 @@ const clickTo = (label) => `
           before,
           after: window.scrollY,
           top: Math.round(section.getBoundingClientRect().top) + 0,
+          head: Math.round(document.querySelector('.masthead').getBoundingClientRect().bottom),
           id: section.id,
         }),
       ),
@@ -330,7 +332,10 @@ describe('Origin task 5: the "About" link pointed at the new band', () => {
     assert.equal(about.id, ORIGIN_ANCHOR, `clicking "About" reached #${about.id}`)
     assert.equal(about.hash, `#${ORIGIN_ANCHOR}`)
     assert.ok(about.after > about.before, `clicking "About" moved the page ${about.after - about.before}px`)
-    assert.equal(about.top, 0, `the band landed ${about.top}px from the top of the viewport`)
+    // The masthead is sticky since specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md,
+    // and `scroll-padding-top` offsets the jump by its height, so the band now
+    // lands just below the header rather than under it at the fold.
+    assert.ok(about.top >= about.head, `the band landed ${about.top}px down, under a masthead ending at ${about.head}px`)
   })
 
   it('needs no script to do it: the anchor works with JavaScript disabled', async () => {
@@ -349,12 +354,16 @@ describe('Origin task 5: the "About" link pointed at the new band', () => {
     const landed = await site.page.evaluate(`
       return {
         top: Math.round(document.querySelector('#${ORIGIN_ANCHOR}').getBoundingClientRect().top) + 0,
+        head: Math.round(document.querySelector('.masthead').getBoundingClientRect().bottom),
         scrolled: window.scrollY > 0,
       }
     `)
 
     assert.equal(landed.scrolled, true, `the page never moved to #${ORIGIN_ANCHOR} without JavaScript`)
-    assert.equal(landed.top, 0, `#${ORIGIN_ANCHOR} landed ${landed.top}px from the top without JavaScript`)
+    assert.ok(
+      landed.top >= landed.head,
+      `#${ORIGIN_ANCHOR} landed ${landed.top}px down without JavaScript, under a masthead ending at ${landed.head}px`,
+    )
   })
 
   it('introduces no smooth scroll, which "Services" does not have either', async () => {
@@ -391,7 +400,10 @@ describe('Origin task 6: the same link on a narrow screen', () => {
       const about = await site.page.evaluate(clickTo('About'))
 
       assert.equal(about.id, ORIGIN_ANCHOR, `clicking "About" reached #${about.id} at ${width}px`)
-      assert.equal(about.top, 0, `the band landed ${about.top}px from the top at ${width}px`)
+      assert.ok(
+        about.top >= about.head,
+        `the band landed ${about.top}px down at ${width}px, under a masthead ending at ${about.head}px`,
+      )
     })
   }
 
@@ -433,7 +445,10 @@ describe('Origin task 7: "Services", "WHAT WE OFFER" and everything else, untouc
     assert.equal(nav.services.href, '#services')
     assert.equal(services.id, 'services', `clicking "Services" reached #${services.id}`)
     assert.equal(services.hash, '#services')
-    assert.equal(services.top, 0, `the services band landed ${services.top}px from the top`)
+    assert.ok(
+      services.top >= services.head,
+      `the services band landed ${services.top}px down, under a masthead ending at ${services.head}px`,
+    )
   })
 
   it("leaves the services band's own markup and copy as it was", async () => {
@@ -465,7 +480,11 @@ describe('Origin task 7: "Services", "WHAT WE OFFER" and everything else, untouc
       { label: 'Services', href: '#services' },
       { label: 'Values', href: '#values' },
       { label: 'Team', href: '#' },
-      { label: 'Case Studies', href: '#' },
+      // Repointed at the Case Studies page by
+      // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md, the same
+      // one-attribute change "About" itself took; the tab's wording and position
+      // are unchanged, and tests/case-studies.test.mjs holds it to that.
+      { label: 'Case Studies', href: CASE_STUDIES_PAGE },
       { label: 'Careers', href: '#' },
       { label: 'Blog', href: '#' },
       // Repointed at the Contact Us page by

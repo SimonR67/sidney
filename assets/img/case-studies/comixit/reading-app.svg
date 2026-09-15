@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The "Comixit Reading App" panel from cases/ComixIT.pdf, rebuilt shape for
+     shape in the papaya palette recorded in
+     specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/notes.md. Every word in it is the
+     panel's own. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 578" width="520" height="578" role="img"
+  font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <rect x="0" y="0" width="520" height="578" rx="18" fill="#3d1706" />
+
+  <text x="260" y="46" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">Comixit Reading App</text>
+  <text x="260" y="70" text-anchor="middle" font-size="12" fill="#f3d9c6">Live · iOS &amp; Android · UK</text>
+
+  <rect x="18" y="92" width="152" height="110" rx="10" fill="#fbdcc2" />
+  <text x="94" y="136" text-anchor="middle" font-size="15" font-weight="700" fill="#4a1e05">Disney &amp;</text>
+  <text x="94" y="156" text-anchor="middle" font-size="15" font-weight="700" fill="#4a1e05">Beano</text>
+  <text x="94" y="182" text-anchor="middle" font-size="10" fill="#4a1e05">Exclusive UK Content</text>
+
+  <rect x="184" y="92" width="152" height="110" rx="10" fill="#fbdcc2" />
+  <text x="260" y="146" text-anchor="middle" font-size="15" font-weight="700" fill="#4a1e05">Free &amp; Paid</text>
+  <text x="260" y="182" text-anchor="middle" font-size="10" fill="#4a1e05">Subscription Tiers</text>
+
+  <rect x="350" y="92" width="152" height="110" rx="10" fill="#fbdcc2" />
+  <text x="426" y="146" text-anchor="middle" font-size="15" font-weight="700" fill="#4a1e05">Kids Create</text>
+  <text x="426" y="182" text-anchor="middle" font-size="10" fill="#4a1e05">Their Own Comics</text>
+
+  <text x="260" y="242" text-anchor="middle" font-size="13" font-weight="700" fill="#ffffff">How It Works: Comic Reformatting Engine</text>
+
+  <!-- The publisher's file: a page of flowed lines. -->
+  <rect x="52" y="264" width="92" height="110" rx="8" fill="#fbdcc2" />
+  <rect x="66" y="282" width="64" height="8" rx="4" fill="#f2a05a" />
+  <rect x="66" y="298" width="64" height="8" rx="4" fill="#f2a05a" />
+  <rect x="66" y="314" width="44" height="8" rx="4" fill="#f2a05a" />
+  <rect x="66" y="334" width="64" height="8" rx="4" fill="#f2a05a" />
+  <rect x="66" y="350" width="34" height="8" rx="4" fill="#f2a05a" />
+
+  <path d="M152 315 h26 v-7 l14 11 -14 11 v-7 h-26 z" fill="#f2a05a" />
+
+  <circle cx="260" cy="319" r="48" fill="#e56717" />
+  <text x="260" y="327" text-anchor="middle" font-size="21" font-weight="700" fill="#ffffff">AI</text>
+
+  <path d="M328 315 h26 v-7 l14 11 -14 11 v-7 h-26 z" fill="#f2a05a" />
+
+  <!-- The reformatted read: one frame at a time, scrolling down. -->
+  <rect x="376" y="264" width="92" height="110" rx="8" fill="#fbdcc2" />
+  <rect x="390" y="278" width="64" height="26" rx="4" fill="#f2a05a" />
+  <rect x="390" y="310" width="64" height="34" rx="4" fill="#d95a12" />
+  <rect x="390" y="350" width="64" height="16" rx="4" fill="#f2a05a" />
+
+  <text x="98" y="394" text-anchor="middle" font-size="10.5" fill="#f3d9c6">Publisher</text>
+  <text x="98" y="408" text-anchor="middle" font-size="10.5" fill="#f3d9c6">PDF</text>
+  <text x="260" y="394" text-anchor="middle" font-size="10.5" fill="#f3d9c6">Reformatting</text>
+  <text x="260" y="408" text-anchor="middle" font-size="10.5" fill="#f3d9c6">Engine</text>
+  <text x="422" y="394" text-anchor="middle" font-size="10.5" fill="#f3d9c6">Vertical</text>
+  <text x="422" y="408" text-anchor="middle" font-size="10.5" fill="#f3d9c6">Scroll</text>
+
+  <text x="260" y="442" text-anchor="middle" font-size="10.5" font-style="italic" fill="#f3d9c6">Artwork left untouched — respects publisher copyright</text>
+
+  <rect x="18" y="468" width="484" height="92" rx="10" fill="#fbdcc2" />
+  <text x="260" y="502" text-anchor="middle" font-size="11" font-weight="700" letter-spacing="3" fill="#d95a12">RESULT</text>
+  <text x="260" y="532" text-anchor="middle" font-size="17" font-weight="700" fill="#4a1e05">Disney &amp; Beano UK licensing secured</text>
+</svg>

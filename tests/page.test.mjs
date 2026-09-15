@@ -27,6 +27,9 @@ import {
 import {
   COLOURS,
   COLOUR_VARS,
+  CASE_SOURCES,
+  CASE_STUDIES,
+  CASE_STUDIES_PAGE,
   CONTACT_PAGE,
   CONTACT_SCRIPTS,
   GOLD_NOTES,
@@ -320,9 +323,19 @@ describe('Task 6 (rendered): every line of text on every page', () => {
 describe('Task 7: nothing left of the superseded site', () => {
   // The fourth page is the Contact Us page
   // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md added, with the two
-  // scripts behind its form; tests/contact-page.test.mjs covers all three.
+  // scripts behind its form; tests/contact-page.test.mjs covers all three. The
+  // fifth is the Case Studies page
+  // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md added, with the three
+  // PDFs it was written from and the three panels recoloured out of them;
+  // tests/case-studies.test.mjs covers all seven.
   it('serves exactly the pages of the new site', async () => {
-    assert.deepEqual(await htmlFiles(), ['about.html', CONTACT_PAGE, 'contact.html', 'index.html'])
+    assert.deepEqual(await htmlFiles(), [
+      'about.html',
+      CASE_STUDIES_PAGE,
+      CONTACT_PAGE,
+      'contact.html',
+      'index.html',
+    ])
   })
 
   it('is built from those pages, their stylesheets and their scripts, nothing else', async () => {
@@ -330,6 +343,9 @@ describe('Task 7: nothing left of the superseded site', () => {
       ORIGIN_IMAGE,
       LOGO_ASSET,
       'about.html',
+      ...CASE_STUDIES.map((study) => study.graphic),
+      CASE_STUDIES_PAGE,
+      ...CASE_SOURCES,
       CONTACT_PAGE,
       'contact.html',
       'index.html',
@@ -346,6 +362,9 @@ describe('Task 7: nothing left of the superseded site', () => {
       ORIGIN_IMAGE,
       LOGO_ASSET,
       'about.html',
+      'assets',
+      CASE_STUDIES_PAGE,
+      'cases',
       CONTACT_PAGE,
       'contact.html',
       'index.html',

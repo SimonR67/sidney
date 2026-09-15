@@ -29,6 +29,24 @@
 
   --container: 1200px;
   --gutter: 20px;
+
+  /* The mark's old cap, and the 60% the spec enlarges it by — multiplied rather
+     than written out, so the factor stays readable.
+     See specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/notes.md. */
+  --logo-height: 28px;
+  --logo-scale: 1.6;
+
+  /* The tallest the sticky masthead gets at this width, rounded up: what an
+     anchor jump has to clear to land its band below the header rather than
+     under it. Stepped at the site's own two breakpoints, at the foot. */
+  --masthead-clearance: 151px;
+}
+
+/* The masthead is pinned rather than lifted out of the flow, so page content
+   still starts where the header ends and nothing has to be padded back down.
+   This is the one declaration an anchor jump cannot infer for itself. */
+html {
+  scroll-padding-top: var(--masthead-clearance);
 }
 
 *,
@@ -134,7 +152,17 @@ a {
 
 /* Header -------------------------------------------------------------- */
 
+/* Pinned to the top of the viewport on every page that carries it. `sticky`
+   rather than `fixed`: the header stays in the flow, so the content below it is
+   never underneath it — on load or at any scroll position — and no page needs
+   top padding restored by hand at each breakpoint. The background is opaque so
+   the content passing under it does not show through; the 1px rule it already
+   carried is what it looks like scrolled, same as at rest. */
 .masthead {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background-color: var(--page);
   border-bottom: 1px solid var(--line);
 }
 
@@ -154,12 +182,13 @@ a {
   margin-right: auto;
 }
 
-/* Capped to the height the 20px text title sat at, and left to find its own
-   width from the file's 655×198 aspect ratio. */
+/* 60% taller than the 28px it was capped at, and still left to find its own
+   width from the file's 655×198 aspect ratio. The header does not grow with it:
+   the TALK TO US button is 47.8px tall and still sets the first row's height. */
 .masthead__mark {
   display: block;
   width: auto;
-  height: 28px;
+  height: calc(var(--logo-height) * var(--logo-scale));
 }
 
 /* Narrow screens drop the nav onto a row of its own, below the logo and the
@@ -490,6 +519,99 @@ a {
   text-decoration: underline;
 }
 
+/* Case Studies page ---------------------------------------------------- */
+
+/* The band the three case studies stack in. Its rhythm is the Contact Us page's
+   — the same 56px in, 72px out — and its heading is that page's h1 untouched,
+   so the page opens exactly as the rest of the site does.
+   See specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/notes.md. */
+.case-studies {
+  padding: 56px 0 72px;
+}
+
+/* The boxes are `.services__grid` and `.card`, reused class for class the way
+   the VALUES band reuses them, which brings the border rotation, the radius, the
+   padding, the background and the shadow with them rather than approximating any
+   of it. The one thing declared here is the column count: one box to a row at
+   every width. Scoped to the band so it holds past the 768px and 1024px rules
+   that open the services grid out, without either of those being edited. */
+.case-studies .services__grid {
+  grid-template-columns: 1fr;
+  margin-top: 32px;
+}
+
+/* Inside the box. Everything below sets position, measure and weight only —
+   every colour comes from a token the page already declares. */
+.case-study__eyebrow {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+}
+
+.case-study__subtitle {
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.case-study__meta {
+  color: var(--muted);
+  font-size: 14px;
+  font-style: italic;
+}
+
+/* The copy and the panel. Narrow-first like everything above it: one column, so
+   the graphic follows the text in document order, and the 1024px rule at the
+   foot sets them side by side. The gap is the origin band's. */
+.case-study__split {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* The `.card`'s own 12px rhythm, applied again inside the column so the
+   sub-headings and the paragraphs sit the same distance apart as the box's
+   direct children do. */
+.case-study__text {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.case-study__heading {
+  margin: 0;
+  color: var(--deep);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+/* The one place the stylesheet puts a list marker back: the Effects section of
+   the Learning case study is a bulleted list in its source, and the global `ul`
+   reset above strips both the marker and the indent. */
+.case-study__bullets {
+  display: grid;
+  gap: 8px;
+  padding-left: 20px;
+  list-style: disc;
+}
+
+.case-study__stack {
+  color: var(--deep);
+  font-size: 15px;
+  font-weight: 700;
+}
+
+/* Fills whatever column it is in and derives its own height, so each panel keeps
+   the ratio it was drawn at, as the origin band's photograph does. */
+.case-study__graphic {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
 /* Footer --------------------------------------------------------------- */
 
 .footer {
@@ -570,6 +692,12 @@ a {
 
 /* Tablet: the cards pair up and the footer's columns sit beside each other. */
 @media (min-width: 768px) {
+  /* The nav still sits on a row of its own here, but its links no longer wrap to
+     three lines, so the masthead an anchor jump has to clear is shorter. */
+  :root {
+    --masthead-clearance: 121px;
+  }
+
   .services__grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -591,8 +719,19 @@ a {
 
 /* Desktop: three service columns, and the nav moves back onto the logo's row. */
 @media (min-width: 1024px) {
+  /* The nav rejoins the logo's row below, so the masthead is one row tall and
+     an anchor jump has that much less to clear. */
+  :root {
+    --masthead-clearance: 84px;
+  }
+
   .services__grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* The copy takes half again as much room as the panel beside it. */
+  .case-study__split {
+    grid-template-columns: 1.5fr 1fr;
   }
 
   .masthead__nav {
