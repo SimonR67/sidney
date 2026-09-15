@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Contact Us — Softpapaya</title>
+    <!-- Inline icon: keeps the browser from requesting (and 404-ing on) /favicon.ico. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ffffff'/%3E%3Ccircle cx='8' cy='8' r='4' fill='%230a66ff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="container masthead__inner">
+        <a class="masthead__logo" href="index.html">
+          <!-- Intrinsic size given so the header reserves the space before the
+               image arrives and nothing below it shifts on load. -->
+          <img class="masthead__mark" src="SoftPapaya-logo.png" alt="SoftPapaya" width="655" height="198" />
+        </a>
+        <!-- The home page's nav, with each in-page anchor qualified by the page
+             it lives on so the tabs still work from here. -->
+        <nav class="masthead__nav" aria-label="Primary">
+          <ul class="masthead__links">
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="index.html#values">Values</a></li>
+            <li><a href="#">Team</a></li>
+            <li><a href="#">Case Studies</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="contact-us.html">Contact</a></li>
+          </ul>
+        </nav>
+        <a class="button button--accent masthead__cta" href="contact-us.html">TALK TO US</a>
+      </div>
+    </header>
+    <main>
+      <section class="contact" aria-labelledby="contact-heading">
+        <div class="container contact__inner">
+          <h1 class="contact__heading" id="contact-heading">CONTACT US</h1>
+          <p class="contact__lede">
+            Tell us what you are trying to ship and where it is stuck. We will come back with a view on scope, a shape
+            for the team and an honest answer about whether we are the right people for it.
+          </p>
+          <!-- `novalidate` hands validation to scripts/contact-form.js, which
+               writes the errors inline where the browser's own bubbles cannot be
+               styled or read back. `data-endpoint` is the one place the
+               submission destination is named: empty means none is configured
+               yet, and scripts/contact-api.js falls back to the site's own
+               address. See specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/notes.md. -->
+          <form class="contact__form" id="contact-form" novalidate data-endpoint="">
+            <div class="field">
+              <label class="field__label" for="contact-full-name">Full Name</label>
+              <input
+                class="field__control"
+                id="contact-full-name"
+                name="fullName"
+                type="text"
+                autocomplete="name"
+                required
+                aria-describedby="contact-full-name-error"
+              />
+              <p class="field__error" id="contact-full-name-error" hidden></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="contact-email">Email Address</label>
+              <input
+                class="field__control"
+                id="contact-email"
+                name="email"
+                type="email"
+                autocomplete="email"
+                required
+                aria-describedby="contact-email-error"
+              />
+              <p class="field__error" id="contact-email-error" hidden></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="contact-enquiry">Nature of Enquiry</label>
+              <input
+                class="field__control"
+                id="contact-enquiry"
+                name="enquiry"
+                type="text"
+                required
+                aria-describedby="contact-enquiry-error"
+              />
+              <p class="field__error" id="contact-enquiry-error" hidden></p>
+            </div>
+            <div class="field">
+              <label class="field__label" for="contact-details">Details about the type of work you need help with</label>
+              <textarea
+                class="field__control field__control--long"
+                id="contact-details"
+                name="details"
+                rows="7"
+                required
+                aria-describedby="contact-details-error"
+              ></textarea>
+              <p class="field__error" id="contact-details-error" hidden></p>
+            </div>
+            <button class="button button--accent button--large contact__submit" type="submit">SEND ENQUIRY</button>
+            <p class="contact__status" id="contact-status" role="status" hidden></p>
+          </form>
+          <p class="contact__linkedin">
+            You can also find us on
+            <a href="https://www.linkedin.com/company/softpapaya/" target="_blank" rel="noopener noreferrer"
+              >LinkedIn</a
+            >.
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="footer__brand">
+          <p class="footer__logo">SoftPapaya</p>
+          <p class="footer__blurb">
+            SoftPapaya is a software studio working with teams who would rather have a small group of senior people
+            finish the thing than a large one start it.
+          </p>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Services</h2>
+          <ul class="footer__links">
+            <li><a href="#">Custom Software</a></li>
+            <li><a href="#">Cloud &amp; Infrastructure</a></li>
+            <li><a href="#">Data Engineering</a></li>
+            <li><a href="#">UI/UX Design</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Work</h2>
+          <ul class="footer__links">
+            <li><a href="#">Case Studies</a></li>
+            <li><a href="#">Industries</a></li>
+            <li><a href="#">Partners</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">About</h2>
+          <ul class="footer__links">
+            <li><a href="#">Our Story</a></li>
+            <li><a href="#">Values</a></li>
+            <li><a href="#">Team</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Careers</h2>
+          <ul class="footer__links">
+            <li><a href="#">Open Roles</a></li>
+            <li><a href="#">Life at SoftPapaya</a></li>
+            <li><a href="#">Internships</a></li>
+          </ul>
+        </div>
+        <div class="footer__contact">
+          <h2 class="footer__heading">Contact</h2>
+          <p><a href="mailto:hello@softpapaya.com">hello@softpapaya.com</a></p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <div class="container footer__bottom-inner">
+          <p class="footer__copyright">© 2026 SoftPapaya. All rights reserved.</p>
+          <ul class="footer__legal">
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+    <script type="module" src="scripts/contact-form.js"></script>
+  </body>
+</html>

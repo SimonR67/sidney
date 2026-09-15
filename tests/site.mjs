@@ -253,6 +253,71 @@ export const OLD_BOXES = [
 ]
 
 /**
+ * Where the Contact Us page is specified, and this job's discovery written down.
+ */
+export const CONTACT_PLAN = 'specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md'
+export const CONTACT_NOTES = 'specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/notes.md'
+
+/**
+ * The one page the three contact entry points now share. `contact.html` is
+ * already taken by the legacy page set, which this job may not touch, hence the
+ * second slug; see `CONTACT_NOTES`.
+ */
+export const CONTACT_PAGE = 'contact-us.html'
+
+/** Its `<title>`, and the heading it shows. */
+export const CONTACT_TITLE = 'Contact Us — Softpapaya'
+export const CONTACT_HEADING = 'CONTACT US'
+
+/**
+ * The four fields the form asks for, in the order it writes them: the label it
+ * is introduced by, the control it is built from and the name it submits under.
+ */
+export const CONTACT_FIELDS = [
+  { name: 'fullName', label: 'Full Name', control: 'input', type: 'text' },
+  { name: 'email', label: 'Email Address', control: 'input', type: 'email' },
+  { name: 'enquiry', label: 'Nature of Enquiry', control: 'input', type: 'text' },
+  { name: 'details', label: 'Details about the type of work you need help with', control: 'textarea', type: null },
+]
+
+/** The company page the link under the form opens, in a tab of its own. */
+export const LINKEDIN_URL = 'https://www.linkedin.com/company/softpapaya/'
+
+/** The form's behaviour, and the swappable submission layer behind it. */
+export const CONTACT_SCRIPTS = ['scripts/contact-api.js', 'scripts/contact-form.js']
+
+/**
+ * The three elements the spec unifies, each with the selector that finds it on
+ * the home page and the label it has to keep.
+ */
+export const CONTACT_ENTRY_POINTS = [
+  { what: 'the "Contact" nav link', selector: '.masthead__links li:last-child a', label: 'Contact' },
+  { what: 'the "Talk to us" button', selector: '.masthead__cta', label: 'TALK TO US' },
+  { what: 'the "Start a conversation" button', selector: '.invitation .button--large', label: 'START A CONVERSATION' },
+]
+
+/** The address the site contacted before this page, and still falls back to. */
+export const CONTACT_EMAIL = 'hello@softpapaya.com'
+
+/**
+ * The home page with this job's three repointed hrefs put back the way they
+ * were, so that the byte-exact "nothing else changed" audits earlier jobs wrote
+ * still read the page they were written against. Only the destinations are
+ * rewound — anything else that moved still shows up in those diffs.
+ */
+export const beforeContactPage = (markup) =>
+  markup
+    .replace(`<li><a href="${CONTACT_PAGE}">Contact</a></li>`, '<li><a href="#contact">Contact</a></li>')
+    .replace(
+      `<a class="button button--accent masthead__cta" href="${CONTACT_PAGE}">`,
+      `<a class="button button--accent masthead__cta" href="mailto:${CONTACT_EMAIL}">`,
+    )
+    .replace(
+      `<a class="button button--accent button--large" href="${CONTACT_PAGE}">`,
+      `<a class="button button--accent button--large" href="mailto:${CONTACT_EMAIL}">`,
+    )
+
+/**
  * The colour scheme: two dark greys for the surfaces, gold for the body text
  * and lettering, and three oranges — the accent plus the shades its hover and
  * active states brighten and deepen to.
@@ -352,12 +417,13 @@ export async function siteFiles() {
 }
 
 /**
- * Every site file except the Softpapaya Services page, its stylesheet and the
- * two images it carries — all four arrived with that page, after the audits the
- * legacy pages are held to were written, so none of them appears in those.
+ * Every site file except the Softpapaya Services page, its stylesheet, the two
+ * images it carries, and the Contact Us page and scripts that arrived with it —
+ * all of them landed after the audits the legacy pages are held to were
+ * written, so none of them appears in those.
  */
 export async function legacySiteFiles() {
-  const replaced = new Set([HOMEPAGE, SERVICES_STYLESHEET, LOGO_ASSET, ORIGIN_IMAGE])
+  const replaced = new Set([HOMEPAGE, SERVICES_STYLESHEET, LOGO_ASSET, ORIGIN_IMAGE, CONTACT_PAGE, ...CONTACT_SCRIPTS])
   return (await siteFiles()).filter((name) => !replaced.has(name))
 }
 

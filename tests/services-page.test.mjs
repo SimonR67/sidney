@@ -6,6 +6,8 @@ import assert from 'node:assert/strict'
 import { contrastRatio, openPage, parseColor, serveStatic } from './browser.mjs'
 import {
   BOXES,
+  CONTACT_EMAIL,
+  CONTACT_PAGE,
   HOMEPAGE,
   HOME_PARAGRAPH,
   MIN_CONTRAST,
@@ -28,8 +30,13 @@ import {
   titleOf,
 } from './site.mjs'
 
-/** The email every contact route on the page points at. */
-const CONTACT = 'mailto:hello@softpapaya.com'
+/**
+ * The address the footer still writes out. The header's call to action and the
+ * invitation band pointed here too until
+ * specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md sent them, and the
+ * "Contact" nav tab, to the Contact Us page instead.
+ */
+const CONTACT = `mailto:${CONTACT_EMAIL}`
 
 /** The one accent colour the page is allowed to spend. */
 const ACCENT = '#0a66ff'
@@ -218,21 +225,28 @@ describe('Services task 3: the header, its nav and the "TALK TO US" call to acti
     assert.deepEqual(header.links, NAV_LABELS)
   })
 
-  it('points every nav link at a placeholder or an in-page section, never a dead route', async () => {
+  // The "Contact" tab left the page for one of its own when
+  // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md gave the site a Contact
+  // Us page; every other tab is still a placeholder or an in-page section.
+  it('points every nav link at a placeholder, an in-page section or a page that ships', async () => {
     const header = await site.page.evaluate(HEADER)
     const sections = await site.page.evaluate(
       `return [...document.querySelectorAll('[id]')].map((el) => '#' + el.id)`,
     )
+    const pages = await htmlFiles()
 
     for (const href of header.hrefs) {
-      assert.ok(href === '#' || sections.includes(href), `the nav links ${href}, which is on no section`)
+      assert.ok(
+        href === '#' || sections.includes(href) || pages.includes(href),
+        `the nav links ${href}, which is on no section and is no page of the site`,
+      )
     }
   })
 
-  it('ends the header with exactly one "TALK TO US" button, pointed at the contact address', async () => {
+  it('ends the header with exactly one "TALK TO US" button, pointed at the Contact Us page', async () => {
     const header = await site.page.evaluate(HEADER)
 
-    assert.deepEqual(header.cta, [CONTACT])
+    assert.deepEqual(header.cta, [CONTACT_PAGE])
   })
 })
 
@@ -362,8 +376,7 @@ describe('Services task 6: the call-to-action band', () => {
 
     assert.equal(band.buttons, 1, `the band carries ${band.buttons} links`)
     assert.ok(band.button.label.length > 0, 'the button has no label')
-    assert.match(band.button.href, /^(mailto:|#)/, `the button points at ${band.button.href}`)
-    assert.equal(band.button.href, CONTACT, 'the band points somewhere other than the one contact address')
+    assert.equal(band.button.href, CONTACT_PAGE, 'the band points somewhere other than the one Contact Us page')
   })
 })
 
@@ -687,9 +700,14 @@ describe('Services task 10: the page without JavaScript, and without the webfont
   it('leaves every link inert rather than broken', async () => {
     const { links } = await site.page.evaluate(RENDERED)
 
+    const pages = await htmlFiles()
+
     assert.ok(links.length > 0, 'the page carries no links')
     for (const href of links) {
-      assert.match(href, /^(#|mailto:)/, `${href} needs a destination this page does not have`)
+      assert.ok(
+        /^(#|mailto:)/.test(href) || pages.includes(href),
+        `${href} needs a destination this page does not have`,
+      )
     }
   })
 
@@ -758,6 +776,10 @@ describe('Services task 11: one home page, and nothing orphaned behind it', () =
 
       assert.ok(!html.includes(SERVICES_TITLE), `${file} also carries the Softpapaya Services title`)
       assert.ok(!html.includes('WHAT WE DO.'), `${file} also carries the hero statement`)
+      // The Contact Us page shares the stylesheet deliberately — it is the same
+      // site, in the same chrome. What it may not share is the home page
+      // itself, which the two checks above hold it to.
+      if (file === CONTACT_PAGE) continue
       assert.ok(!html.includes(SERVICES_STYLESHEET), `${file} also links the home page stylesheet`)
     }
   })
