@@ -3,6 +3,6 @@
   "private": true,
   "description": "Static site: the Softpapaya Services home page, plus the Sid Meyers Alpha Centuri About Us and Contact pages. No build step.",
   "scripts": {
-    "test": "node --test tests/page.test.mjs tests/services-page.test.mjs tests/styling-update.test.mjs tests/homepage-refresh.test.mjs"
+    "test": "node --test tests/page.test.mjs tests/services-page.test.mjs tests/styling-update.test.mjs tests/homepage-refresh.test.mjs tests/origin-section.test.mjs"
   }
 }

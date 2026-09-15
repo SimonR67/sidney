@@ -295,6 +295,27 @@ a {
   letter-spacing: 0.02em;
 }
 
+/* Where we've come from ------------------------------------------------ */
+
+/* The band the "About" nav entry lands on. Its heading is the shared
+   `.section__heading` untouched; only the vertical rhythm — the same as the
+   services band above it — and the paragraphs' measure are set here. */
+.origin {
+  padding: 24px 0 72px;
+}
+
+/* The same measure, colour and size the hero lede is set on, so the page reads
+   its body copy at one width throughout. */
+.origin__copy {
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.origin__copy + .origin__copy {
+  margin-top: 18px;
+}
+
 /* Call-to-action band -------------------------------------------------- */
 
 .invitation {
