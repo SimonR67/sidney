@@ -18,6 +18,7 @@ import {
   SERVICES_TITLE,
   SITE_NAME,
   STYLESHEET,
+  TEAM_PAGE,
   declaredValue,
   hexColours,
   htmlFiles,
@@ -777,10 +778,11 @@ describe('Services task 11: one home page, and nothing orphaned behind it', () =
 
       assert.ok(!html.includes(SERVICES_TITLE), `${file} also carries the Softpapaya Services title`)
       assert.ok(!html.includes('WHAT WE DO.'), `${file} also carries the hero statement`)
-      // The Contact Us and Case Studies pages share the stylesheet deliberately —
-      // it is the same site, in the same chrome. What they may not share is the
-      // home page itself, which the two checks above hold them to.
-      if (file === CONTACT_PAGE || file === CASE_STUDIES_PAGE) continue
+      // The Contact Us, Case Studies and Team pages share the stylesheet
+      // deliberately — it is the same site, in the same chrome. What they may
+      // not share is the home page itself, which the two checks above hold them
+      // to.
+      if (file === CONTACT_PAGE || file === CASE_STUDIES_PAGE || file === TEAM_PAGE) continue
       assert.ok(!html.includes(SERVICES_STYLESHEET), `${file} also links the home page stylesheet`)
     }
   })

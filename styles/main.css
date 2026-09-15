@@ -612,6 +612,56 @@ a {
   height: auto;
 }
 
+/* Team page ------------------------------------------------------------ */
+
+/* The band the Team page stacks its photographs and its ten avatars in. The
+   headline and the subtext above it are the home page's `.hero` band, reused
+   whole, so this band takes the 24px the `.services` band takes after it.
+   See specs/755b1c19-a364-4f06-bf29-a35998f8da76/notes.md. */
+.team {
+  padding: 24px 0 72px;
+}
+
+/* One column, and the origin band's own 32px between each of the four things
+   stacked in it — the photograph, the grid, the second photograph and the
+   banner — so none of them needs a margin of its own. */
+.team__stack {
+  display: grid;
+  gap: 32px;
+}
+
+/* Each fills whatever it is given and derives its own height, so the files keep
+   the ratios they were saved at, as the origin band's photograph does. The
+   avatar's frame is its box's: `.card` draws the border and the radius around
+   it, and the banner is asked for unframed. */
+.team__avatar,
+.team__banner {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+}
+
+/* The avatars are `.services__grid` and `.card`, reused class for class the way
+   the VALUES band reuses them, which brings the radius, the padding, the
+   background, the shadow and the breakpoints with them. The one thing declared
+   here is the border sequence: the spec asks for papaya, lime, black and round
+   again, where the services grid runs a six-step sequence of its own. Set by
+   position, as that grid sets it, and scoped to this band so those six steps
+   are untouched — the way `.case-studies .services__grid` overrides the column
+   count without editing it. Ten boxes land papaya, lime, black … papaya. */
+.team .services__grid > .card:nth-child(3n + 1) {
+  border-color: var(--papaya);
+}
+
+.team .services__grid > .card:nth-child(3n + 2) {
+  border-color: var(--lime);
+}
+
+.team .services__grid > .card:nth-child(3n) {
+  border-color: var(--black);
+}
+
 /* Footer --------------------------------------------------------------- */
 
 .footer {

@@ -707,7 +707,10 @@ export const beforeCaseStudiesStyles = (css) =>
         "   width from the file's 655×198 aspect ratio. */\n",
     )
     .replace('  height: calc(var(--logo-height) * var(--logo-scale));\n', '  height: 28px;\n')
-    .replace(/\/\* Case Studies page -+ \*\/\n[\s\S]*?\n(?=\/\* Footer)/, '')
+    // Stops at the Team page block as well as at the footer: that block was
+    // written after this helper and now sits between the two, and each `before…`
+    // helper takes out its own job's styles and no one else's.
+    .replace(/\/\* Case Studies page -+ \*\/\n[\s\S]*?\n(?=\/\* (?:Team page|Footer))/, '')
     .replace(/ {2}\/\* The nav still sits on a row[\s\S]*?--masthead-clearance: 121px;\n {2}\}\n\n/, '')
     .replace(/ {2}\/\* The nav rejoins the logo's row[\s\S]*?--masthead-clearance: 84px;\n {2}\}\n\n/, '')
     .replace(/ {2}\/\* The copy takes half again[\s\S]*?\n {2}\}\n\n(?= {2}\.masthead__nav)/, '')

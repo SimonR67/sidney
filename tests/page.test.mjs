@@ -46,6 +46,8 @@ import {
   SERVICES_STYLESHEET,
   SITE_NAME,
   STYLESHEET,
+  TEAM_ASSETS,
+  TEAM_PAGE,
   TITLE_SOURCES,
   declaredValue,
   headingsIn,
@@ -327,7 +329,10 @@ describe('Task 7: nothing left of the superseded site', () => {
   // fifth is the Case Studies page
   // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md added, with the three
   // PDFs it was written from and the three panels recoloured out of them;
-  // tests/case-studies.test.mjs covers all seven.
+  // tests/case-studies.test.mjs covers all seven. The sixth is the Team page
+  // specs/755b1c19-a364-4f06-bf29-a35998f8da76/plan.md added, with the ten
+  // placeholder avatars it ships beside the three photographs that were already
+  // in `team/`; tests/team-page.test.mjs covers the page and all thirteen.
   it('serves exactly the pages of the new site', async () => {
     assert.deepEqual(await htmlFiles(), [
       'about.html',
@@ -335,6 +340,7 @@ describe('Task 7: nothing left of the superseded site', () => {
       CONTACT_PAGE,
       'contact.html',
       'index.html',
+      TEAM_PAGE,
     ])
   })
 
@@ -353,6 +359,8 @@ describe('Task 7: nothing left of the superseded site', () => {
       ...CONTACT_SCRIPTS,
       'style.css',
       SERVICES_STYLESHEET,
+      TEAM_PAGE,
+      ...TEAM_ASSETS,
     ])
   })
 
@@ -373,6 +381,8 @@ describe('Task 7: nothing left of the superseded site', () => {
       'specs',
       'style.css',
       'styles',
+      'team',
+      TEAM_PAGE,
       'tests',
     ])
   })

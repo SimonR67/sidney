@@ -85,6 +85,13 @@ const BANDS = `
     const r = el.getBoundingClientRect()
     return { top: r.top, right: r.right, bottom: r.bottom, left: r.left, width: r.width, height: r.height }
   }
+  // A block element's own getClientRects() is one rect however many lines it
+  // sets, so the line boxes are read off a range over its contents instead.
+  const lineTops = (el) => {
+    const range = document.createRange()
+    range.selectNodeContents(el)
+    return [...new Set([...range.getClientRects()].map((r) => Math.round(r.top)))].sort((a, b) => a - b)
+  }
   const frame = (el) => {
     const style = getComputedStyle(el)
     return {
@@ -112,7 +119,7 @@ const BANDS = `
     heading: heading && {
       classes: [...heading.classList],
       text: heading.textContent.replace(/\\s+/g, ' ').trim(),
-      lines: [...heading.getClientRects()].map((r) => Math.round(r.top)),
+      lines: lineTops(heading),
       color: getComputedStyle(heading).color,
       fontSize: parseFloat(getComputedStyle(heading).fontSize),
       fontWeight: getComputedStyle(heading).fontWeight,
@@ -149,7 +156,15 @@ const BANDS = `
     })),
     overflow: document.documentElement.scrollWidth - document.documentElement.clientWidth,
     viewport: window.innerWidth,
-    container: box(document.querySelector('main .team > .container')),
+    container: (() => {
+      const el = document.querySelector('main .team > .container')
+      const style = getComputedStyle(el)
+      // The measure the band lays its content out on: the container's box less
+      // the gutter it pads itself with.
+      return Object.assign(box(el), {
+        content: el.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight),
+      })
+    })(),
   }
 `
 
@@ -447,7 +462,7 @@ describe('Team task 6: the first photograph, in the frame the origin band uses',
     const { images, container } = await site.page.evaluate(BANDS)
     const { width, height } = TEAM_IMAGES.top
 
-    assert.ok(Math.abs(images[0].rect.width - container.width) < 1, 'the photograph does not fill the band')
+    assert.ok(Math.abs(images[0].rect.width - container.content) < 1, 'the photograph does not fill the band')
     const ratio = (images[0].rect.width - 2) / (images[0].rect.height - 2)
     assert.ok(Math.abs(ratio - width / height) < 0.02, `the photograph is drawn at ${ratio.toFixed(3)}, not ${(width / height).toFixed(3)}`)
     assert.equal(images[0].width, String(width))
@@ -626,7 +641,7 @@ describe('Team task 10: the banner, at the foot of the page', () => {
     assert.equal(banner.radius, '0px', 'the banner is rounded')
     assert.deepEqual(banner.widths, Array(4).fill('0px'), 'the banner is outlined')
     assert.notDeepEqual(banner.classes, images[0].classes, 'the banner carries the framed photographs\' class')
-    assert.ok(Math.abs(banner.rect.width - container.width) < 1, 'the banner does not fill the band')
+    assert.ok(Math.abs(banner.rect.width - container.content) < 1, 'the banner does not fill the band')
   })
 
   it('sits above the footer, so the page ends where the rest of the site does', async () => {
@@ -686,7 +701,7 @@ describe('Team task 12: the page at every width the site supports', () => {
 
       assert.equal(bands.overflow, 0, `the page scrolls sideways at ${width}px`)
       for (const image of bands.images) {
-        assert.ok(image.rect.width <= bands.container.width + 1, `a photograph is wider than the band at ${width}px`)
+        assert.ok(image.rect.width <= bands.container.content + 1, `a photograph is wider than the band at ${width}px`)
         assert.ok(image.rect.left >= bands.container.left - 1, `a photograph starts left of the band at ${width}px`)
       }
       for (const [index, card] of bands.cards.entries()) {
@@ -713,7 +728,13 @@ describe('Team task 12: the page at every width the site supports', () => {
     const longest = cards[TEAM_MEMBERS.findIndex((member) => member.name === 'Marcin B')]
     const wrapped = await site.page.evaluate(`
       const caption = [...document.querySelectorAll('.team .card__title')].at(-1)
-      return { scrollWidth: caption.scrollWidth, clientWidth: caption.clientWidth, lines: caption.getClientRects().length }
+      const range = document.createRange()
+      range.selectNodeContents(caption)
+      return {
+        scrollWidth: caption.scrollWidth,
+        clientWidth: caption.clientWidth,
+        lines: new Set([...range.getClientRects()].map((r) => Math.round(r.top))).size,
+      }
     `)
 
     assert.ok(wrapped.scrollWidth <= wrapped.clientWidth + 1, 'the longest caption overflows its box')
