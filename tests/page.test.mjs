@@ -27,6 +27,8 @@ import {
 import {
   COLOURS,
   COLOUR_VARS,
+  CONTACT_PAGE,
+  CONTACT_SCRIPTS,
   GOLD_NOTES,
   HOMEPAGE,
   LOGO_ASSET,
@@ -316,18 +318,23 @@ describe('Task 6 (rendered): every line of text on every page', () => {
 })
 
 describe('Task 7: nothing left of the superseded site', () => {
-  it('serves exactly the three pages of the new site', async () => {
-    assert.deepEqual(await htmlFiles(), ['about.html', 'contact.html', 'index.html'])
+  // The fourth page is the Contact Us page
+  // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md added, with the two
+  // scripts behind its form; tests/contact-page.test.mjs covers all three.
+  it('serves exactly the pages of the new site', async () => {
+    assert.deepEqual(await htmlFiles(), ['about.html', CONTACT_PAGE, 'contact.html', 'index.html'])
   })
 
-  it('is built from those pages and their stylesheets, nothing else', async () => {
+  it('is built from those pages, their stylesheets and their scripts, nothing else', async () => {
     assert.deepEqual(await siteFiles(), [
       ORIGIN_IMAGE,
       LOGO_ASSET,
       'about.html',
+      CONTACT_PAGE,
       'contact.html',
       'index.html',
       'package.json',
+      ...CONTACT_SCRIPTS,
       'style.css',
       SERVICES_STYLESHEET,
     ])
@@ -339,9 +346,11 @@ describe('Task 7: nothing left of the superseded site', () => {
       ORIGIN_IMAGE,
       LOGO_ASSET,
       'about.html',
+      CONTACT_PAGE,
       'contact.html',
       'index.html',
       'package.json',
+      'scripts',
       'specs',
       'style.css',
       'styles',

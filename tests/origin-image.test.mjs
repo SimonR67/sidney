@@ -17,6 +17,7 @@ import {
   ORIGIN_IMAGE_SIZE,
   ORIGIN_PARAGRAPHS,
   SERVICES_STYLESHEET,
+  beforeContactPage,
   parseHex,
   read,
   repoRoot,
@@ -599,8 +600,11 @@ describe('Image task 9: the copy and the "WHAT WE OFFER" band untouched', () => 
     // same way the origin band is: they are the whole of what
     // specs/e9bbd504-8f82-4e38-83fa-3eecbfd1d7ce/plan.md added, and
     // tests/values-section.test.mjs holds them to their own byte-exact diff.
+    // The three contact destinations are rewound for the same reason —
+    // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md repointed them, and
+    // tests/contact-page.test.mjs is where they are checked.
     const without = (markup) =>
-      markup
+      beforeContactPage(markup)
         .replace(/<section class="origin"[\s\S]*?\n {6}<\/section>/, '<!-- origin -->')
         .replace(/\n {6}<!-- The "Values" nav entry's target\.[\s\S]*?\n {6}<\/section>/, '')
         .replace('<li><a href="#values">Values</a></li>', '<li><a href="#">Values</a></li>')

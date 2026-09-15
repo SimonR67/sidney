@@ -22,6 +22,11 @@
   --lime: #32cd32;
   --black: #000000;
 
+  /* The one shade the contact form spends on a problem — 6.5:1 on the page and
+     6.1:1 on the band, so an error reads as body copy does.
+     See specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/notes.md. */
+  --error: #b3261e;
+
   --container: 1200px;
   --gutter: 20px;
 }
@@ -367,6 +372,122 @@ a {
   margin: 18px 0 28px;
   color: var(--muted);
   font-size: 17px;
+}
+
+/* Contact page --------------------------------------------------------- */
+
+/* The band the Contact Us page sets its form in. Its rhythm is the services
+   band's, and its lede is the hero's, so the page reads as the rest of the site
+   does. Written narrow-first like everything above it: the form is one column
+   at every width, and only its measure is capped. */
+.contact {
+  padding: 56px 0 72px;
+}
+
+.contact__lede {
+  max-width: 62ch;
+  margin-top: 20px;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+/* Capped well short of the 1200px container: a text field the width of the page
+   is hard to scan back along. The cap is below the 768px breakpoint, so the
+   form is the full column on a phone and this measure everywhere above it. */
+.contact__form {
+  display: grid;
+  gap: 22px;
+  max-width: 620px;
+  margin-top: 32px;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.field__label {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* 16px is the floor that keeps iOS from zooming the page when a field takes
+   focus, and 46px the height that keeps it a comfortable tap target. */
+.field__control {
+  width: 100%;
+  min-height: 46px;
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 11px 14px;
+  background-color: var(--page);
+  color: var(--ink);
+  font-family: inherit;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.field__control:focus {
+  border-color: var(--accent);
+}
+
+.field__control--long {
+  min-height: 160px;
+  resize: vertical;
+}
+
+/* Keyed off `aria-invalid` rather than a class of its own, so the ring a sighted
+   visitor sees and the state a screen reader announces cannot drift apart. */
+.field__control[aria-invalid='true'] {
+  border-color: var(--error);
+}
+
+.field__error {
+  color: var(--error);
+  font-size: 14px;
+}
+
+.contact__submit {
+  justify-self: start;
+  min-height: 46px;
+  cursor: pointer;
+}
+
+.contact__submit[disabled] {
+  cursor: progress;
+}
+
+/* One status line for both outcomes: the wording carries the news and the
+   border carries the colour. No `display` is set on it, so the `hidden`
+   attribute the script toggles still takes it off the page. */
+.contact__status {
+  border: 1px solid var(--line);
+  border-radius: 7px;
+  padding: 12px 14px;
+  background-color: var(--band);
+  font-size: 15px;
+}
+
+.contact__status[data-state='success'] {
+  border-color: var(--lime);
+}
+
+.contact__status[data-state='error'] {
+  border-color: var(--error);
+  color: var(--error);
+}
+
+.contact__linkedin {
+  max-width: 620px;
+  margin-top: 28px;
+  color: var(--muted);
+  font-size: 15px;
+}
+
+.contact__linkedin a {
+  color: var(--accent);
+  text-decoration: underline;
 }
 
 /* Footer --------------------------------------------------------------- */

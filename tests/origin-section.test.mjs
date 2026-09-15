@@ -6,6 +6,7 @@ import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { openPage, serveStatic } from './browser.mjs'
 import {
+  CONTACT_PAGE,
   HOMEPAGE,
   ORIGIN_ANCHOR,
   ORIGIN_HEADING,
@@ -467,7 +468,11 @@ describe('Origin task 7: "Services", "WHAT WE OFFER" and everything else, untouc
       { label: 'Case Studies', href: '#' },
       { label: 'Careers', href: '#' },
       { label: 'Blog', href: '#' },
-      { label: 'Contact', href: '#contact' },
+      // Repointed at the Contact Us page by
+      // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md; the tab's wording
+      // and position are unchanged, and tests/contact-page.test.mjs holds the
+      // three contact entry points to one destination.
+      { label: 'Contact', href: CONTACT_PAGE },
     ])
   })
 

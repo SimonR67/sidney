@@ -7,6 +7,8 @@ import { spawnSync } from 'node:child_process'
 import { openPage, serveStatic } from './browser.mjs'
 import {
   BOXES,
+  CONTACT_PAGE,
+  beforeContactPage,
   BOX_BORDERS,
   HOMEPAGE,
   ORIGIN_ANCHOR,
@@ -485,6 +487,16 @@ const baseline = (file) => {
   return show.status === 0 ? show.stdout : null
 }
 
+/**
+ * The stylesheet without the contact page's block and the one shade it declares
+ * — both added by specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md, and held
+ * to their own checks in tests/contact-page.test.mjs.
+ */
+const withoutContactStyles = (css) =>
+  css
+    .replace(/\n\n {2}\/\* The one shade the contact form spends[\s\S]*?--error: [^;]+;/, '')
+    .replace(/\/\* Contact page -+ \*\/\n[\s\S]*?\n(?=\/\* Footer)/, '')
+
 /** The `<section class="…">…</section>` block with the given class, indentation and all. */
 const sectionOf = (html, className) =>
   html.match(new RegExp(`<section class="${className}"[\\s\\S]*?\\n {6}</section>`))?.[0] ?? null
@@ -508,7 +520,10 @@ describe('Values task 5: the two bands above it, untouched', () => {
     const now = await read(HOMEPAGE)
 
     if (was === null) return
-    const withoutValues = now
+    // The three contact destinations are rewound alongside the values band, the
+    // way tests/origin-image.test.mjs rewinds them: they belong to
+    // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md, not to this one.
+    const withoutValues = beforeContactPage(now)
       .replace(/\n {6}<!-- The "Values" nav entry's target\.[\s\S]*?\n {6}<\/section>/, '')
       .replace('<li><a href="#values">Values</a></li>', '<li><a href="#">Values</a></li>')
     assert.equal(withoutValues, was, `${HOMEPAGE} carries a change beyond the new band and the "Values" href`)
@@ -519,7 +534,10 @@ describe('Values task 5: the two bands above it, untouched', () => {
     const now = await read(SERVICES_STYLESHEET)
 
     if (was === null) return
-    const withoutValues = now.replace(/\/\* Values -+ \*\/\n[\s\S]*?\.values \{\n {2}padding: [^;]+;\n\}\n\n/, '')
+    const withoutValues = withoutContactStyles(now).replace(
+      /\/\* Values -+ \*\/\n[\s\S]*?\.values \{\n {2}padding: [^;]+;\n\}\n\n/,
+      '',
+    )
     assert.equal(withoutValues, was, `${SERVICES_STYLESHEET} carries a change beyond the new band's padding`)
   })
 
@@ -557,7 +575,11 @@ describe('Values task 5: the two bands above it, untouched', () => {
       { label: 'Case Studies', href: '#' },
       { label: 'Careers', href: '#' },
       { label: 'Blog', href: '#' },
-      { label: 'Contact', href: '#contact' },
+      // Repointed at the Contact Us page by
+      // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md; the tab's wording
+      // and position are unchanged, and tests/contact-page.test.mjs holds the
+      // three contact entry points to one destination.
+      { label: 'Contact', href: CONTACT_PAGE },
     ])
     for (const href of nav.footer) {
       assert.ok(href === '#' || href.startsWith('mailto:'), `a footer link now points at ${href}`)

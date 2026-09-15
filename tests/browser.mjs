@@ -206,6 +206,15 @@ export async function openPage(url, { width = 1280, height = 800 } = {}) {
       nodeIds.set(selector, nodeId)
       await session.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses })
     },
+    /**
+     * Types `text` into the element matching `selector`, the way the keyboard
+     * does — the element is focused first and the browser raises the `input`
+     * events itself, rather than the value being assigned from script.
+     */
+    async type(selector, text) {
+      await page.evaluate(`document.querySelector(${JSON.stringify(selector)}).focus()`)
+      await session.send('Input.insertText', { text })
+    },
     /** Turns page script execution off/on, mirroring the browser's "disable JavaScript" setting. */
     async setScriptExecution(enabled) {
       await session.send('Emulation.setScriptExecutionDisabled', { value: !enabled })
