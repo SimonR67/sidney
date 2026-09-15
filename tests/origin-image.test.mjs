@@ -17,6 +17,7 @@ import {
   ORIGIN_IMAGE_SIZE,
   ORIGIN_PARAGRAPHS,
   SERVICES_STYLESHEET,
+  beforeCaseStudies,
   beforeContactPage,
   parseHex,
   read,
@@ -602,9 +603,12 @@ describe('Image task 9: the copy and the "WHAT WE OFFER" band untouched', () => 
     // tests/values-section.test.mjs holds them to their own byte-exact diff.
     // The three contact destinations are rewound for the same reason —
     // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md repointed them, and
-    // tests/contact-page.test.mjs is where they are checked.
+    // tests/contact-page.test.mjs is where they are checked. The "Case Studies"
+    // tab is rewound on the same footing:
+    // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md gave it a page to reach
+    // and tests/case-studies.test.mjs holds it to that.
     const without = (markup) =>
-      beforeContactPage(markup)
+      beforeCaseStudies(beforeContactPage(markup))
         .replace(/<section class="origin"[\s\S]*?\n {6}<\/section>/, '<!-- origin -->')
         .replace(/\n {6}<!-- The "Values" nav entry's target\.[\s\S]*?\n {6}<\/section>/, '')
         .replace('<li><a href="#values">Values</a></li>', '<li><a href="#">Values</a></li>')

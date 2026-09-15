@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- The "Apprenticeship Platform Health" panel from cases/Learning.pdf, rebuilt
+     shape for shape in the papaya palette recorded in
+     specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/notes.md. Every word and every
+     figure in it is the panel's own. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 552" width="520" height="552" role="img"
+  font-family="Inter, 'Helvetica Neue', Arial, sans-serif">
+  <rect x="0" y="0" width="520" height="552" rx="18" fill="#3d1706" />
+
+  <text x="260" y="46" text-anchor="middle" font-size="19" font-weight="700" fill="#ffffff">Apprenticeship Platform Health</text>
+  <text x="260" y="70" text-anchor="middle" font-size="12" fill="#f3d9c6">Live · Employer &amp; Funding Reporting</text>
+
+  <rect x="18" y="92" width="152" height="96" rx="10" fill="#fbdcc2" />
+  <text x="94" y="140" text-anchor="middle" font-size="22" font-weight="700" fill="#4a1e05">85%</text>
+  <text x="94" y="166" text-anchor="middle" font-size="10" fill="#4a1e05">Completion Rate</text>
+
+  <rect x="184" y="92" width="152" height="96" rx="10" fill="#fbdcc2" />
+  <text x="260" y="140" text-anchor="middle" font-size="22" font-weight="700" fill="#4a1e05">−50%</text>
+  <text x="260" y="166" text-anchor="middle" font-size="10" fill="#4a1e05">AWS Infra. Cost</text>
+
+  <rect x="350" y="92" width="152" height="96" rx="10" fill="#fbdcc2" />
+  <text x="426" y="140" text-anchor="middle" font-size="22" font-weight="700" fill="#4a1e05">−25%</text>
+  <text x="426" y="166" text-anchor="middle" font-size="10" fill="#4a1e05">Mgmt. Overhead</text>
+
+  <text x="18" y="228" font-size="13" font-weight="700" fill="#ffffff">Completion Rate: Client vs National Avg.</text>
+
+  <!-- Two bars on one scale, each labelled with its own figure. -->
+  <rect x="112" y="260" width="150" height="96" rx="4" fill="#fbdcc2" />
+  <text x="187" y="250" text-anchor="middle" font-size="11" fill="#f3d9c6">85%</text>
+  <rect x="300" y="303" width="150" height="53" rx="4" fill="#e56717" />
+  <text x="375" y="293" text-anchor="middle" font-size="11" fill="#f3d9c6">47%</text>
+  <line x1="24" y1="357" x2="496" y2="357" stroke="#f3d9c6" stroke-width="1" />
+  <text x="187" y="376" text-anchor="middle" font-size="10.5" fill="#f3d9c6">Client Platform</text>
+  <text x="375" y="376" text-anchor="middle" font-size="10.5" fill="#f3d9c6">National Average</text>
+
+  <text x="18" y="418" font-size="13" font-weight="700" fill="#ffffff">AWS Infrastructure Cost</text>
+
+  <!-- Half the ring drawn, for the half the bill came down by. -->
+  <circle cx="96" cy="480" r="42" fill="none" stroke="#52210a" stroke-width="20" />
+  <circle cx="96" cy="480" r="42" fill="none" stroke="#fbdcc2" stroke-width="20"
+    stroke-dasharray="131.95 263.89" transform="rotate(-90 96 480)" />
+  <text x="96" y="487" text-anchor="middle" font-size="17" font-weight="700" fill="#ffffff">50%</text>
+
+  <text x="172" y="474" font-size="11" fill="#f3d9c6">Halved after platform stabilisation</text>
+  <text x="172" y="494" font-size="11" fill="#f3d9c6">Costs down, reliability up.</text>
+</svg>

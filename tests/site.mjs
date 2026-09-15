@@ -299,6 +299,275 @@ export const CONTACT_ENTRY_POINTS = [
 /** The address the site contacted before this page, and still falls back to. */
 export const CONTACT_EMAIL = 'hello@softpapaya.com'
 
+/* Case Studies ---------------------------------------------------------- */
+
+/** Where the Case Studies page is specified, and this job's discovery written down. */
+export const CASE_STUDIES_PLAN = 'specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md'
+export const CASE_STUDIES_NOTES = 'specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/notes.md'
+
+/**
+ * The page the "Case Studies" nav entry — inert since the header was written —
+ * now reaches. The slug is `contact-us.html`'s: a flat, hyphenated `.html` at
+ * the repository root, which is the only convention this site has.
+ */
+export const CASE_STUDIES_PAGE = 'case-studies.html'
+
+/** Its `<title>`, and the band heading above the three boxes. */
+export const CASE_STUDIES_TITLE = 'Case Studies — Softpapaya'
+export const CASE_STUDIES_HEADING = 'CASE STUDIES'
+
+/** The folder the three source PDFs sit in, and the files themselves, in page order. */
+export const CASE_SOURCES = ['cases/ComixIT.pdf', 'cases/Learning.pdf', 'cases/Professional-Services.pdf']
+
+/**
+ * The three case studies, in the order the page stacks them, each one's copy
+ * transcribed from `source` and checked back against it by eye. `title`,
+ * `subtitle` and `meta` are the PDF's own first three lines; `sections` are its
+ * Challenge / Solution / Effects, each a list of paragraphs, or of bullets where
+ * the PDF sets bullets; `stack` is its closing line. Nothing here is paraphrased,
+ * reordered or tidied — see `CASE_STUDIES_NOTES`.
+ *
+ * `graphic` is the SVG the PDF's panel was rebuilt as, in the papaya palette
+ * those notes set out, and `panel` is the wording inside that panel — which is
+ * part of the artwork in the PDF and stays part of it here.
+ */
+export const CASE_STUDIES = [
+  {
+    slug: 'comixit',
+    source: 'cases/ComixIT.pdf',
+    eyebrow: 'CASE STUDY',
+    title: 'Building Comixit',
+    subtitle: "a Children's Reading App",
+    meta: 'Sector: Media and Publishing · Client: Comixit',
+    sections: [
+      {
+        heading: 'Challenge',
+        paragraphs: [
+          "Comixit's founder, a scriptwriter and publisher from the film and book world, wanted to tackle a " +
+            'problem he kept seeing firsthand: children spending hours watching videos on their parents\' phones ' +
+            "instead of reading. It's a bigger issue than it sounds — a significant number of children in the UK " +
+            'leave primary school without the basic literacy skills they need for secondary education, and this ' +
+            'was happening in the same year the government was actively promoting reading in schools. The founder ' +
+            "had an initial idea and an early proof of concept for a children's comics app, but it needed real " +
+            'product thinking and engineering behind it to become something investors and major publishers would ' +
+            'take seriously.',
+        ],
+      },
+      {
+        heading: 'Solution',
+        paragraphs: [
+          'We built a fully functioning Android and iOS app with free and subscription tiers, giving parents the ' +
+            "ability to monitor and control their children's access while letting kids read comics from major " +
+            'publishers including exclusive content from Disney and the Beano. Behind the app sits an extensive ' +
+            'backend for onboarding new publishers and a system that lets children safely create and upload their ' +
+            'own comics and characters. One of the harder technical problems was using AI to take a publisher\'s ' +
+            'source files and turn them into a format that works on a phone screen, without the constant pinching ' +
+            'and zooming that ruins the experience — an engine that reformats comics into a vertical scrolling, ' +
+            'frame-by-frame layout, while leaving the original artwork untouched to respect publisher copyright. ' +
+            'Our involvement went beyond code: we helped shape the business case and investor deck, provided ' +
+            'fractional CTO support, and brought in product ownership and project management to keep a ' +
+            'fast-moving, bootstrapped startup on track.',
+        ],
+      },
+      {
+        heading: 'Effects',
+        paragraphs: [
+          'Once the app was live, Comixit secured exclusive UK licensing agreements with both Disney and the ' +
+            'publisher of the Beano — deals that depended on having a working product to show. The app is still ' +
+            'live and still growing today.',
+        ],
+      },
+    ],
+    stack: 'Stack: React Native, Expo, C#, ASP.NET, AWS, Terraform',
+    graphic: 'assets/img/case-studies/comixit/reading-app.svg',
+    panel: [
+      'Comixit Reading App',
+      'Live · iOS & Android · UK',
+      'Disney & Beano',
+      'Exclusive UK Content',
+      'Free & Paid',
+      'Subscription Tiers',
+      'Kids Create',
+      'Their Own Comics',
+      'How It Works: Comic Reformatting Engine',
+      'Publisher',
+      'Reformatting',
+      'Engine',
+      'Vertical',
+      'Scroll',
+      'Artwork left untouched — respects publisher copyright',
+      'RESULT',
+      'Disney & Beano UK licensing secured',
+    ],
+  },
+  {
+    slug: 'learning',
+    source: 'cases/Learning.pdf',
+    eyebrow: 'CASE STUDY',
+    title: 'Rescuing and Scaling',
+    subtitle: 'a Learning Management Platform',
+    meta: 'Sector: Education / EdTech · Client: UK-based Learning Platform',
+    sections: [
+      {
+        heading: 'Challenge',
+        paragraphs: [
+          'The Client runs a platform that helps UK employers manage apprenticeships, including the reporting ' +
+            'needed to claim government funding and the structure needed to get apprentices through to ' +
+            'completion. That matters because national apprenticeship completion rates sit below 50%, while our ' +
+            "Client's platform was already achieving close to 85%. The problem was how the platform had been " +
+            'built: it had grown over time through a single freelance developer who eventually became ' +
+            "uncooperative and held the company's own IP to ransom. The system was live but needed significant " +
+            'manual intervention every month just to keep running, and our Client had no internal technical ' +
+            'capability of its own to fall back on.',
+        ],
+      },
+      {
+        heading: 'Solution',
+        paragraphs: [
+          "We brought in a fractional CTO with over 15 years' experience running learning platforms in the UK, " +
+            'who reviewed the existing codebase and AWS setup and identified where things needed to change. ' +
+            'Working alongside an engineering manager and two dedicated engineers, the team made short-term fixes ' +
+            'to stabilise the platform, then moved into iterative improvements to cut down the manual work ' +
+            'involved in keeping it running month to month. What started as an emergency fix has since grown into ' +
+            'a long-term development partnership, with ongoing refactoring, new features and additional products ' +
+            'now on the roadmap.',
+        ],
+      },
+      {
+        heading: 'Effects',
+        bullets: [
+          'AWS infrastructure costs halved',
+          'Management overhead for the business owner cut by around 25%',
+          'Monthly manual intervention significantly reduced',
+          'Client secured additional investment on the back of the improved platform',
+          'Relationship has grown from an emergency fix into a long-term development partnership',
+        ],
+      },
+    ],
+    stack: 'Stack: .NET, AWS, React',
+    graphic: 'assets/img/case-studies/learning/platform-health.svg',
+    panel: [
+      'Apprenticeship Platform Health',
+      'Live · Employer & Funding Reporting',
+      '85%',
+      'Completion Rate',
+      '−50%',
+      'AWS Infra. Cost',
+      '−25%',
+      'Mgmt. Overhead',
+      'Completion Rate: Client vs National Avg.',
+      '47%',
+      'Client Platform',
+      'National Average',
+      'AWS Infrastructure Cost',
+      '50%',
+      'Halved after platform stabilisation',
+      'Costs down, reliability up.',
+    ],
+  },
+  {
+    slug: 'professional-services',
+    source: 'cases/Professional-Services.pdf',
+    eyebrow: 'CASE STUDY',
+    title: 'Centralising Group Management Reporting',
+    subtitle: 'for Consulting & Professional Services',
+    meta:
+      'Sector: Consulting and Professional Services · Client: Confidential, International — offices across EU, ' +
+      'USA, UK and Asia',
+    sections: [
+      {
+        heading: 'Challenge',
+        paragraphs: [
+          'This client group holds various consulting businesses, alongside several other propositions in ' +
+            'professional services related operations under the same ownership. Despite operating as one group, ' +
+            'they had no reliable, shared view of how the group as a whole was performing. Financial reporting, ' +
+            'sales forecasting, resource utilisation, productivity and product delivery status all lived in ' +
+            'separate, inconsistent formats across the different businesses. There was no single place anyone ' +
+            'could look to see group revenue, profit, forecasts or history. Dashboards also only updated once a ' +
+            'day, so leadership teams across multiple jurisdictions were often looking at figures that were ' +
+            "already hours out of date compared to each other — and the reports themselves weren't giving " +
+            'leadership what they needed.',
+        ],
+      },
+      {
+        heading: 'Solution',
+        paragraphs: [
+          'We designed and built a unified management dashboard that pulled financial reporting, forecasting, ' +
+            'resource utilisation, productivity and product status into one group-wide view. The system had to ' +
+            'work across multiple legal entities and jurisdictions, not just a single office, so it was built ' +
+            'with that complexity in mind from the start. We worked closely with the Group CFO and in-country ' +
+            'Finance Directors to understand what the existing reports were meant to achieve, checked the ' +
+            'integrity of the underlying data, and rebuilt the reporting so every business unit internationally ' +
+            'could see live figures rather than a single daily snapshot.',
+        ],
+      },
+      {
+        heading: 'Effects',
+        paragraphs: [
+          'The group now has one source of truth for revenue, profit, forecasts, actuals and historical ' +
+            'performance across all its businesses. Reporting is consistent across jurisdictions instead of ' +
+            'varying office by office, and the dashboard was built to hold up against the layered regulatory and ' +
+            'compliance requirements of running an international professional services group. Feedback from ' +
+            'business leads has been consistently positive, and the engagement surfaced a bigger strategic ' +
+            'opportunity — an active board-level conversation on enterprise and data architecture, with the ' +
+            'relationship moving toward an ongoing advisory arrangement.',
+        ],
+      },
+    ],
+    stack: 'Stack: Microsoft',
+    graphic: 'assets/img/case-studies/professional-services/group-dashboard.svg',
+    panel: [
+      'Group Performance Dashboard',
+      'Live · All Regions · Updated 09:41',
+      '£48.2M',
+      'Group Revenue',
+      '22.4%',
+      'Profit Margin',
+      '87%',
+      'Utilisation',
+      'Revenue vs Forecast, by Quarter',
+      'Q1',
+      'Q2',
+      'Q3',
+      'Q4',
+      'Actual (£M)',
+      'Forecast (£M)',
+      'Utilisation by Region',
+      'EU',
+      'USA',
+      'UK',
+      'Asia',
+    ],
+  },
+]
+
+/* The sticky masthead, and the mark inside it --------------------------- */
+
+/**
+ * The height `.masthead__mark` was capped at, and the factor this job scales it
+ * by — 60% larger, as the spec asks. The stylesheet multiplies the two rather
+ * than writing the product, so the 1.6 stays readable in the CSS.
+ */
+export const LOGO_BASE_HEIGHT = 28
+export const LOGO_SCALE = 1.6
+export const LOGO_HEIGHT = LOGO_BASE_HEIGHT * LOGO_SCALE
+
+/**
+ * The custom property the masthead's own height is published under, so an anchor
+ * jump can be offset by it, and the widths it is stepped at — the site's own two
+ * breakpoints. Each value is the tallest the masthead gets at that width, which
+ * `tests/case-studies.test.mjs` measures rather than trusts.
+ */
+export const MASTHEAD_CLEARANCE_VAR = '--masthead-clearance'
+export const MASTHEAD_CLEARANCE = [
+  { from: 0, value: '151px' },
+  { from: 768, value: '121px' },
+  { from: 1024, value: '84px' },
+]
+
+/** The widths the masthead and the three boxes are measured at. */
+export const BREAKPOINTS = [320, 375, 414, 768, 1024, 1280, 1440]
+
 /**
  * The home page with this job's three repointed hrefs put back the way they
  * were, so that the byte-exact "nothing else changed" audits earlier jobs wrote
@@ -316,6 +585,38 @@ export const beforeContactPage = (markup) =>
       `<a class="button button--accent button--large" href="${CONTACT_PAGE}">`,
       `<a class="button button--accent button--large" href="mailto:${CONTACT_EMAIL}">`,
     )
+
+/**
+ * Any page of the Softpapaya site with this job's one repointed href put back
+ * the way it was, for the same reason `beforeContactPage` exists. The nav's
+ * "Case Studies" tab — inert since the header was written — is the whole of what
+ * this job changed on a page that already existed.
+ */
+export const beforeCaseStudies = (markup) =>
+  markup.replace(`<li><a href="${CASE_STUDIES_PAGE}">Case Studies</a></li>`, '<li><a href="#">Case Studies</a></li>')
+
+/**
+ * The shared stylesheet with this job's work taken back out: the tokens and the
+ * `html` rule at its head, the masthead's sticky positioning and its taller
+ * mark, the Case Studies block, and the two clearance steps in the breakpoints.
+ * Same purpose as `beforeCaseStudies` — the audits earlier jobs wrote diff the
+ * sheet byte for byte, so each later job rewinds itself out of them.
+ */
+export const beforeCaseStudiesStyles = (css) =>
+  css
+    .replace(/\n\n {2}\/\* The mark's old cap[\s\S]*?scroll-padding-top: var\(--masthead-clearance\);\n/, '\n')
+    .replace(/\/\* Pinned to the top of the viewport[\s\S]*?\*\/\n(?=\.masthead \{)/, '')
+    .replace('  position: sticky;\n  top: 0;\n  z-index: 10;\n  background-color: var(--page);\n', '')
+    .replace(
+      /\/\* 60% taller than the 28px[\s\S]*?\*\/\n(?=\.masthead__mark \{)/,
+      '/* Capped to the height the 20px text title sat at, and left to find its own\n' +
+        "   width from the file's 655×198 aspect ratio. */\n",
+    )
+    .replace('  height: calc(var(--logo-height) * var(--logo-scale));\n', '  height: 28px;\n')
+    .replace(/\/\* Case Studies page -+ \*\/\n[\s\S]*?\n(?=\/\* Footer)/, '')
+    .replace(/ {2}\/\* The nav still sits on a row[\s\S]*?--masthead-clearance: 121px;\n {2}\}\n\n/, '')
+    .replace(/ {2}\/\* The nav rejoins the logo's row[\s\S]*?--masthead-clearance: 84px;\n {2}\}\n\n/, '')
+    .replace(/ {2}\/\* The copy takes half again[\s\S]*?\n {2}\}\n\n(?= {2}\.masthead__nav)/, '')
 
 /**
  * The colour scheme: two dark greys for the surfaces, gold for the body text
@@ -418,12 +719,23 @@ export async function siteFiles() {
 
 /**
  * Every site file except the Softpapaya Services page, its stylesheet, the two
- * images it carries, and the Contact Us page and scripts that arrived with it —
- * all of them landed after the audits the legacy pages are held to were
- * written, so none of them appears in those.
+ * images it carries, the Contact Us page and scripts that arrived with it, and
+ * the Case Studies page with its sources and graphics — all of them landed after
+ * the audits the legacy pages are held to were written, so none of them appears
+ * in those.
  */
 export async function legacySiteFiles() {
-  const replaced = new Set([HOMEPAGE, SERVICES_STYLESHEET, LOGO_ASSET, ORIGIN_IMAGE, CONTACT_PAGE, ...CONTACT_SCRIPTS])
+  const replaced = new Set([
+    HOMEPAGE,
+    SERVICES_STYLESHEET,
+    LOGO_ASSET,
+    ORIGIN_IMAGE,
+    CONTACT_PAGE,
+    ...CONTACT_SCRIPTS,
+    CASE_STUDIES_PAGE,
+    ...CASE_SOURCES,
+    ...CASE_STUDIES.map((study) => study.graphic),
+  ])
   return (await siteFiles()).filter((name) => !replaced.has(name))
 }
 

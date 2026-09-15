@@ -14,6 +14,7 @@ import {
   HERO_ACCENT,
   HERO_LEDE,
   LOGO_ASSET,
+  LOGO_HEIGHT,
   OLD_BOXES,
   REFRESH_PLAN,
   SERVICES_STYLESHEET,
@@ -263,11 +264,16 @@ describe('Refresh task 4: the logo image in place of the text title', () => {
     assert.deepEqual(site.page.failedRequests, [], 'the page produced failed requests')
   })
 
+  // The 40px cap was the height the text title this mark replaced sat at.
+  // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md enlarges the mark by 60%
+  // to LOGO_HEIGHT, which the header absorbs without growing — the TALK TO US
+  // button still sets its first row's height. tests/case-studies.test.mjs holds
+  // the mark to that height, and to its ratio, at every supported width.
   it('keeps the home link the text title carried, and the header height it sat at', async () => {
     const logo = await site.page.evaluate(LOGO)
 
     assert.equal(logo.href, '#', `the brand slot links ${logo.href}`)
-    assert.ok(logo.height > 0 && logo.height <= 40, `the logo renders ${logo.height}px tall`)
+    assert.ok(logo.height > 0 && logo.height <= Math.ceil(LOGO_HEIGHT), `the logo renders ${logo.height}px tall`)
   })
 })
 
