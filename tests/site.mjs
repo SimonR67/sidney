@@ -46,6 +46,27 @@ export const REFRESH_PLAN = 'specs/7931a152-83fe-4f91-8093-e167e642681a/plan.md'
 /** The brand mark the header now renders in place of its text title. */
 export const LOGO_ASSET = 'SoftPapaya-logo.png'
 
+/** Where the "WHERE WE'VE COME FROM" section is specified, and its discovery written down. */
+export const ORIGIN_PLAN = 'specs/6cbe8670-bc69-497e-838f-81bd88499f36/plan.md'
+export const ORIGIN_NOTES = 'specs/6cbe8670-bc69-497e-838f-81bd88499f36/notes.md'
+
+/** The new section's heading, and the anchor the "About" nav link now points at. */
+export const ORIGIN_HEADING = "WHERE WE'VE COME FROM"
+export const ORIGIN_ANCHOR = 'about'
+
+/** Its two paragraphs, word for word as the request supplied them. */
+export const ORIGIN_PARAGRAPHS = [
+  'We are a technology services business based in the UK, Poland, Ireland and Bulgaria with Software ' +
+    'Development teams providing, Enterprise to SME CIO/CTO support, roadmap planning, architecture and ' +
+    'development through C-Suite advisory to development engineering skills and resources.',
+  'We are a UK and European based business working out of modern offices in Exeter, Dublin, Wroclaw and ' +
+    "Sofia. Launched as a new company and a single brand 'Softpapaya' in March 2026, we are the coming " +
+    'together of groups of professionals from various technology companies that have been working together ' +
+    'for over 11 years. Our expertise covers helping business leaders accomplish digital product build at ' +
+    'pace, from International Enterprise scale to Startup. Softpapaya delivers from boardroom to development ' +
+    'team, advisory, skills and people.',
+]
+
 /** The one span of the hero headline painted papaya; the rest stays as it was. */
 export const HERO_ACCENT = 'REALLY WELL'
 
