@@ -71,8 +71,19 @@ export const ORIGIN_PARAGRAPHS = [
 export const ORIGIN_IMAGE_PLAN = 'specs/1416c200-4729-4c71-8e75-e674bd0519d5/plan.md'
 export const ORIGIN_IMAGE_NOTES = 'specs/1416c200-4729-4c71-8e75-e674bd0519d5/notes.md'
 
+/**
+ * Where the same band's photograph was re-specified — the frame and the split
+ * asked for a second time, against the layout already standing — and this job's
+ * own discovery written down.
+ */
+export const SOFIA_FRAME_PLAN = 'specs/29617dac-16b5-4a2b-a6ce-006411c2b9fd/plan.md'
+export const SOFIA_FRAME_NOTES = 'specs/29617dac-16b5-4a2b-a6ce-006411c2b9fd/notes.md'
+
 /** The photograph the origin band now sets beside its copy, at the path it already sits on. */
 export const ORIGIN_IMAGE = 'Sofia.jpg'
+
+/** The class the photograph's frame and sizing are scoped to, and the column it sits in. */
+export const ORIGIN_PHOTO_CLASS = 'origin__photo'
 
 /** Its intrinsic size, which the rendered photograph's aspect ratio is held to. */
 export const ORIGIN_IMAGE_SIZE = { width: 1080, height: 719 }
