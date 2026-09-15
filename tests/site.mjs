@@ -582,8 +582,10 @@ export const TEAM_AVATAR_SIZE = { width: 480, height: 480 }
 /**
  * The ten team members, in the order the spec lists them: the name and the role
  * its caption reads, and the placeholder file standing in for the photograph.
- * "Principle Engineer" and the single-name "Slaw" are the spec's own words, kept
- * as supplied and flagged in `TEAM_NOTES` rather than tidied.
+ * "Principle Engineer" is the spec's own word, kept as supplied and flagged in
+ * `TEAM_NOTES` rather than tidied. The eighth and ninth entries — "Oskar S" and
+ * the single-name "Slaw" — were replaced by the two real people in
+ * `TEAM_ADDITIONS`; `TEAM_REPLACED` holds what stood there before.
  */
 export const TEAM_MEMBERS = [
   { name: 'Simon Raitt', role: 'CEO', image: 'team/placeholder-simon-raitt.png' },
@@ -593,9 +595,38 @@ export const TEAM_MEMBERS = [
   { name: 'Slawek Panic', role: 'Principle Engineer', image: 'team/placeholder-slawek-panic.png' },
   { name: 'Grygorii L', role: 'Front End Lead', image: 'team/placeholder-grygorii-l.png' },
   { name: 'Marcin S', role: 'Back End Lead', image: 'team/placeholder-marcin-s.png' },
-  { name: 'Oskar S', role: 'Lead Engineer', image: 'team/placeholder-oskar-s.png' },
-  { name: 'Slaw', role: 'Lead Engineer and AI Lead', image: 'team/placeholder-slaw.png' },
+  // Replaced by job f5053a8e; see TEAM_REPLACED and TEAM_UPDATE_NOTES.
+  { name: 'Paula S', role: 'Agile Delivery Lead', image: 'team/placeholder-paula-s.png' },
+  { name: 'Nino A', role: 'Power BI and Data Analyst', image: 'team/placeholder-nino-a.png' },
   { name: 'Marcin B', role: 'Mobile iOS and Android Lead Engineer', image: 'team/placeholder-marcin-b.png' },
+]
+
+/* Team page: the two entries replaced by real people --------------------- */
+
+/** Where this job — the two new members, and the responsive audit — is written down. */
+export const TEAM_UPDATE_PLAN = 'specs/f5053a8e-0d91-4eab-b266-a0cd26076190/plan.md'
+export const TEAM_UPDATE_NOTES = 'specs/f5053a8e-0d91-4eab-b266-a0cd26076190/notes.md'
+
+/**
+ * The two entries this job supersedes, with the 1-based position each held in
+ * the grid. Every one of the ten was a placeholder, so the two were chosen by
+ * the spec's own rule — the least identifying captions on the page — and the
+ * reasoning is written out in `TEAM_UPDATE_NOTES`.
+ */
+export const TEAM_REPLACED = [
+  { position: 8, name: 'Oskar S', role: 'Lead Engineer', image: 'team/placeholder-oskar-s.png' },
+  { position: 9, name: 'Slaw', role: 'Lead Engineer and AI Lead', image: 'team/placeholder-slaw.png' },
+]
+
+/**
+ * The two entries put in their place, each keeping the position, the markup and
+ * the placeholder artwork of the entry it replaces — the file is the same 480×480
+ * silhouette every other box carries, renamed to the person standing in it, which
+ * is the naming convention the rest of the grid holds to.
+ */
+export const TEAM_ADDITIONS = [
+  { position: 8, name: 'Paula S', role: 'Agile Delivery Lead', image: 'team/placeholder-paula-s.png' },
+  { position: 9, name: 'Nino A', role: 'Power BI and Data Analyst', image: 'team/placeholder-nino-a.png' },
 ]
 
 /**

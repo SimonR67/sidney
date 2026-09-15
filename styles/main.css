@@ -662,6 +662,19 @@ a {
   border-color: var(--black);
 }
 
+/* A caption is a name and a role, and either can be longer than the box is wide
+   — "Marcin B — Mobile iOS and Android Lead Engineer" wraps to three lines on a
+   320px screen already. The spaces in today's copy do that on their own; this is
+   for the title that has none, so it breaks inside the box rather than running
+   out of it and pushing the page sideways. `anywhere` rather than `break-word`
+   because the boxes sit in `1fr` grid tracks, whose floor is the widest thing
+   inside them: only `anywhere` lowers that floor, so the column can still narrow
+   to the screen. Nothing about the widths the captions are drawn at changes. See
+   specs/f5053a8e-0d91-4eab-b266-a0cd26076190/notes.md. */
+.team .card__title {
+  overflow-wrap: anywhere;
+}
+
 /* Footer --------------------------------------------------------------- */
 
 .footer {
