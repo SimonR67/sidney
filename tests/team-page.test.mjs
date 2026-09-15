@@ -488,11 +488,19 @@ describe('Team task 7: ten placeholder avatars, one file per person', () => {
     }
   })
 
-  it('gives the single-name entry a single-name file, not a guessed surname', async () => {
-    const slaw = TEAM_MEMBERS.find((member) => member.name === 'Slaw')
+  // This stood as "gives the single-name entry a single-name file, not a guessed
+  // surname", on the "Slaw" entry job f5053a8e replaced with Nino A. What it was
+  // guarding — that two members whose names run together are not collapsed onto
+  // one file — is asserted of the ten as they stand now.
+  it('gives every member a file of their own, never two members one file', async () => {
+    const files = TEAM_MEMBERS.map((member) => member.image)
 
-    assert.equal(slaw.image, 'team/placeholder-slaw.png')
-    assert.notEqual(slaw.image, TEAM_MEMBERS.find((member) => member.name === 'Slawek Panic').image)
+    assert.equal(new Set(files).size, TEAM_MEMBERS.length, 'two members share a placeholder file')
+    assert.equal(
+      files.filter((file) => file.startsWith('team/placeholder-slaw')).length,
+      1,
+      '"Slawek Panic" no longer has a file of their own',
+    )
   })
 
   it('writes each one as a PNG the size the page reserves for it', async () => {
