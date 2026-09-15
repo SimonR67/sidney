@@ -16,6 +16,7 @@ import {
   TEAM_MEMBERS,
   TEAM_PAGE,
   TEAM_REPLACED,
+  TEAM_RESTORED,
   TEAM_UPDATE_NOTES,
   declaredValue,
   parseHex,
@@ -134,7 +135,11 @@ describe('Team update task 1: the two entries to replace, settled before the edi
 
   it('names exactly two, and says why those two rather than any of the other eight', async () => {
     const chosen = await notesSection('The two entries chosen')
-    const kept = TEAM_MEMBERS.filter((member) => !TEAM_ADDITIONS.some((added) => added.name === member.name))
+    // The roster is twelve since job 282a4e1c put the two replaced entries back;
+    // the eight this job left standing are what is left of it once its own two
+    // and those two are taken out.
+    const touched = [...TEAM_ADDITIONS, ...TEAM_RESTORED]
+    const kept = TEAM_MEMBERS.filter((member) => !touched.some((entry) => entry.name === member.name))
 
     assert.equal(kept.length, 8, `${kept.length} entries are left standing, not eight`)
     for (const member of kept) {
@@ -169,10 +174,19 @@ const replacement = (index) => {
 
     assert.equal(cards.length, TEAM_MEMBERS.length, `the grid holds ${cards.length} boxes`)
     assert.equal(cards[added.position - 1].caption, teamCaption(added))
+    // "Oskar S" and "Slaw" are back on the page — job 282a4e1c put them in slots
+    // 8 and 9, where the twelve-person roster has them. What this guarded, that
+    // the replacement took this box over rather than being added beside the
+    // entry it replaced, is asserted of the box itself.
+    assert.notEqual(
+      cards[added.position - 1].caption,
+      teamCaption(was),
+      `"${teamCaption(was)}" is still the caption of box ${added.position}`,
+    )
     assert.equal(
-      cards.filter((card) => card.caption === teamCaption(was)).length,
-      0,
-      `"${teamCaption(was)}" is still on the page`,
+      cards[TEAM_RESTORED.find((member) => member.name === was.name).position - 1].caption,
+      teamCaption(was),
+      `"${teamCaption(was)}" is not in the slot it was restored to`,
     )
   })
 
@@ -188,11 +202,11 @@ const replacement = (index) => {
     assert.deepEqual(mine, theirs, `${added.image} is not the placeholder the rest of the grid carries`)
     assert.equal(card.img.width, String(TEAM_AVATAR_SIZE.width))
     assert.equal(card.img.height, String(TEAM_AVATAR_SIZE.height))
-    assert.equal(
-      (await siteFiles()).includes(was.image),
-      false,
-      `${was.image} still ships alongside ${added.image}`,
-    )
+    // `was.image` ships again: job 282a4e1c put both entries back, each under
+    // the filename it had. What this guarded — that the box carries a file named
+    // for the person standing in it, not the one it took over — still holds.
+    assert.notEqual(added.image, was.image, `${added.name}'s box is still named for ${was.name}`)
+    assert.notEqual(card.img.src, was.image, `box ${added.position} still carries ${was.image}`)
   })
 
   it('names the person the box now stands in for, and still says the portrait is a placeholder', async () => {
@@ -234,7 +248,7 @@ describe('Team update task 4: the eight entries this job did not touch', () => {
     }
   })
 
-  it('adds and removes nothing: ten boxes, each built the same way, in the same order', async () => {
+  it('adds and removes nothing: every box built the same way, in the same order', async () => {
     const blocks = await cardBlocks()
     const normalised = new Set(blocks.map((block, index) => structureOf(block, TEAM_MEMBERS[index])))
     const stacked = await site.page.evaluate(`
@@ -252,12 +266,20 @@ describe('Team update task 4: the eight entries this job did not touch', () => {
     ], 'the band no longer stacks the two photographs, the grid and the banner')
   })
 
-  it('ships one placeholder per member and no leftover of the two it replaced', async () => {
+  it('ships one placeholder per member and nothing that stands for nobody', async () => {
     const shipped = (await siteFiles()).filter((file) => file.startsWith('team/placeholder-'))
 
     assert.deepEqual(shipped, TEAM_MEMBERS.map((member) => member.image).sort())
-    for (const { image } of TEAM_REPLACED) {
-      assert.equal(shipped.includes(image), false, `${image} is still in the repository`)
+    // The two files this job renamed away came back with job 282a4e1c, which put
+    // the people they stand for back on the page. What this guarded — that no
+    // file is left in the repository without a member to go with it — is the
+    // manifest check above.
+    for (const { image, name } of TEAM_REPLACED) {
+      assert.equal(
+        shipped.includes(image),
+        TEAM_MEMBERS.some((member) => member.name === name),
+        `${image} ships without a member to stand for`,
+      )
     }
   })
 })

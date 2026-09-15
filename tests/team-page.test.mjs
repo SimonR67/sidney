@@ -489,18 +489,17 @@ describe('Team task 7: ten placeholder avatars, one file per person', () => {
   })
 
   // This stood as "gives the single-name entry a single-name file, not a guessed
-  // surname", on the "Slaw" entry job f5053a8e replaced with Nino A. What it was
+  // surname", on the "Slaw" entry job f5053a8e replaced with Nino A, and was
+  // then written as the one file whose name starts "placeholder-slaw". Job
+  // 282a4e1c put "Slaw" back, so there are two of those again; what it was
   // guarding — that two members whose names run together are not collapsed onto
-  // one file — is asserted of the ten as they stand now.
+  // one file — is asserted of the two by name.
   it('gives every member a file of their own, never two members one file', async () => {
     const files = TEAM_MEMBERS.map((member) => member.image)
 
     assert.equal(new Set(files).size, TEAM_MEMBERS.length, 'two members share a placeholder file')
-    assert.equal(
-      files.filter((file) => file.startsWith('team/placeholder-slaw')).length,
-      1,
-      '"Slawek Panic" no longer has a file of their own',
-    )
+    assert.ok(files.includes('team/placeholder-slawek-panic.png'), '"Slawek Panic" no longer has a file of their own')
+    assert.ok(files.includes('team/placeholder-slaw.png'), 'the single-name "Slaw" no longer has a file of their own')
   })
 
   it('writes each one as a PNG the size the page reserves for it', async () => {
@@ -555,7 +554,10 @@ describe('Team task 8: the ten avatar boxes, in order and in their own shades', 
     const { cards } = await site.page.evaluate(BANDS)
 
     assert.deepEqual(TEAM_BORDERS.slice(0, 4), ['papaya', 'lime', 'black', 'papaya'])
-    assert.equal(TEAM_BORDERS.at(-1), 'papaya', 'ten boxes on a three-step rotation end on papaya')
+    // Twelve boxes since job 282a4e1c put two back, not the ten the page shipped
+    // with: 12 mod 3 = 0, so the rotation now ends where it started rather than
+    // one step into the next turn.
+    assert.equal(TEAM_BORDERS.at(-1), 'black', 'twelve boxes on a three-step rotation end on black')
     for (const [index, card] of cards.entries()) {
       assert.equal(card.radius, '10px', `box ${index + 1} is not rounded`)
       assert.deepEqual(card.widths, Array(4).fill('1px'), `box ${index + 1} is not outlined`)
@@ -733,9 +735,13 @@ describe('Team task 12: the page at every width the site supports', () => {
   it('keeps every caption inside its box rather than letting the longest overflow', async () => {
     await freshLoad(site, 375)
     const { cards } = await site.page.evaluate(BANDS)
-    const longest = cards[TEAM_MEMBERS.findIndex((member) => member.name === 'Marcin B')]
+    // Marcin B's caption is the longest on the page, and was the last box on it
+    // until job 282a4e1c put two entries back above them; it is found by index
+    // now rather than off the end of the grid.
+    const index = TEAM_MEMBERS.findIndex((member) => member.name === 'Marcin B')
+    const longest = cards[index]
     const wrapped = await site.page.evaluate(`
-      const caption = [...document.querySelectorAll('.team .card__title')].at(-1)
+      const caption = [...document.querySelectorAll('.team .card__title')][${index}]
       const range = document.createRange()
       range.selectNodeContents(caption)
       return {
