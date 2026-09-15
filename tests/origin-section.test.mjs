@@ -14,6 +14,7 @@ import {
   ORIGIN_NOTES,
   ORIGIN_PARAGRAPHS,
   SERVICES_STYLESHEET,
+  TEAM_PAGE,
   read,
   repoRoot,
 } from './site.mjs'
@@ -479,7 +480,11 @@ describe('Origin task 7: "Services", "WHAT WE OFFER" and everything else, untouc
       { label: 'About', href: `#${ORIGIN_ANCHOR}` },
       { label: 'Services', href: '#services' },
       { label: 'Values', href: '#values' },
-      { label: 'Team', href: '#' },
+      // Repointed at the Team page by
+      // specs/755b1c19-a364-4f06-bf29-a35998f8da76/plan.md, the same
+      // one-attribute change "About" itself took; the tab's wording and position
+      // are unchanged, and tests/team-page.test.mjs holds it to that.
+      { label: 'Team', href: TEAM_PAGE },
       // Repointed at the Case Studies page by
       // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md, the same
       // one-attribute change "About" itself took; the tab's wording and position

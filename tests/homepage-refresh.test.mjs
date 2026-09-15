@@ -18,6 +18,7 @@ import {
   OLD_BOXES,
   REFRESH_PLAN,
   SERVICES_STYLESHEET,
+  beforeTeamStyles,
   declaredValue,
   read,
   repoRoot,
@@ -310,7 +311,15 @@ describe('Refresh task 5: eight boxes out, six of the existing cards in', () => 
       assert.ok(!html.includes(phrase), `${HOMEPAGE} still holds copy from the old box "${title}"`)
       assert.ok(!section.includes(`>${tag}<`), `the section still holds "${tag}", a tag of the old boxes`)
     }
-    assert.doesNotMatch(css, /3n\s*\+?\s*\d*\s*\)/, `${SERVICES_STYLESHEET} still cycles the borders in threes`)
+    // The Team page's own avatar grid does cycle in threes — the spec asks it
+    // to — so its block is taken back out before this reads the sheet. That
+    // rotation is scoped to `.team` and holds no services card;
+    // tests/team-page.test.mjs checks both sequences, one against the other.
+    assert.doesNotMatch(
+      beforeTeamStyles(css),
+      /3n\s*\+?\s*\d*\s*\)/,
+      `${SERVICES_STYLESHEET} still cycles the borders in threes`,
+    )
   })
 })
 

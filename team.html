@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Team — Softpapaya</title>
+    <!-- Inline icon: keeps the browser from requesting (and 404-ing on) /favicon.ico. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ffffff'/%3E%3Ccircle cx='8' cy='8' r='4' fill='%230a66ff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="container masthead__inner">
+        <a class="masthead__logo" href="index.html">
+          <!-- Intrinsic size given so the header reserves the space before the
+               image arrives and nothing below it shifts on load. -->
+          <img class="masthead__mark" src="SoftPapaya-logo.png" alt="SoftPapaya" width="655" height="198" />
+        </a>
+        <!-- The home page's nav, with each in-page anchor qualified by the page
+             it lives on so the tabs still work from here. -->
+        <nav class="masthead__nav" aria-label="Primary">
+          <ul class="masthead__links">
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="index.html#values">Values</a></li>
+            <li><a href="team.html">Team</a></li>
+            <li><a href="case-studies.html">Case Studies</a></li>
+            <li><a href="#">Careers</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="contact-us.html">Contact</a></li>
+          </ul>
+        </nav>
+        <a class="button button--accent masthead__cta" href="contact-us.html">TALK TO US</a>
+      </div>
+    </header>
+    <main>
+      <!-- Two bands, both the home page's own. The headline and the subtext are
+           its `.hero` band class for class, with "THE TEAM" in the span it
+           paints "REALLY WELL" with. The photographs are the origin band's
+           `.origin__photo`, and the ten avatars are the "WHAT WE OFFER"
+           component — `.services__grid` and `.card` — with the three-step
+           border rotation the spec asks for scoped to this band. See
+           specs/755b1c19-a364-4f06-bf29-a35998f8da76/notes.md. -->
+      <section class="hero">
+        <div class="container">
+          <h1 class="hero__heading">
+            MEET<br />
+            <span class="hero__papaya">THE TEAM</span>
+          </h1>
+          <p class="hero__lede">
+            Engineers who know the context, talk to the client, and make decisions. No middlemen.
+          </p>
+        </div>
+      </section>
+      <section class="team">
+        <div class="container team__stack">
+          <!-- Intrinsic sizes given throughout, so the band reserves the space
+               before each file arrives and nothing below it shifts on load, as
+               the masthead's mark and the origin band's photograph do. -->
+          <img
+            class="origin__photo"
+            src="team/team1.jpg"
+            alt="The team together at an axe-throwing evening, axes raised"
+            width="2048"
+            height="1365"
+          />
+          <ul class="services__grid">
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-simon-raitt.png"
+                alt="Placeholder portrait of Simon Raitt"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Simon Raitt — CEO</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-jason-hill.png"
+                alt="Placeholder portrait of Jason Hill"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Jason Hill — COO</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-pete-callaghan.png"
+                alt="Placeholder portrait of Pete Callaghan"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Pete Callaghan — CTO</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-ania-balicka.png"
+                alt="Placeholder portrait of Ania Balicka"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Ania Balicka — Director</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-slawek-panic.png"
+                alt="Placeholder portrait of Slawek Panic"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Slawek Panic — Principle Engineer</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-grygorii-l.png"
+                alt="Placeholder portrait of Grygorii L"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Grygorii L — Front End Lead</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-marcin-s.png"
+                alt="Placeholder portrait of Marcin S"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Marcin S — Back End Lead</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-oskar-s.png"
+                alt="Placeholder portrait of Oskar S"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Oskar S — Lead Engineer</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-slaw.png"
+                alt="Placeholder portrait of Slaw"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Slaw — Lead Engineer and AI Lead</h3>
+            </li>
+            <li class="card">
+              <img
+                class="team__avatar"
+                src="team/placeholder-marcin-b.png"
+                alt="Placeholder portrait of Marcin B"
+                width="480"
+                height="480"
+              />
+              <h3 class="card__title">Marcin B — Mobile iOS and Android Lead Engineer</h3>
+            </li>
+          </ul>
+          <img
+            class="origin__photo"
+            src="team/team2.png"
+            alt="The team gathered in an office lounge"
+            width="512"
+            height="288"
+          />
+          <!-- The banner is artwork, and the "SEE OPEN ROLES" button is part of
+               it rather than a link — there is no Careers page to point one at
+               yet, which `TEAM_NOTES` flags. Its wording is carried in the alt
+               text so it reaches a reader who cannot see the image. -->
+          <img
+            class="team__banner"
+            src="team/banner.png"
+            alt="Want in? We are always looking for people who think for themselves and do their best work when given space — see open roles."
+            width="1384"
+            height="418"
+          />
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="footer__brand">
+          <p class="footer__logo">SoftPapaya</p>
+          <p class="footer__blurb">
+            SoftPapaya is a software studio working with teams who would rather have a small group of senior people
+            finish the thing than a large one start it.
+          </p>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Services</h2>
+          <ul class="footer__links">
+            <li><a href="#">Custom Software</a></li>
+            <li><a href="#">Cloud &amp; Infrastructure</a></li>
+            <li><a href="#">Data Engineering</a></li>
+            <li><a href="#">UI/UX Design</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Work</h2>
+          <ul class="footer__links">
+            <li><a href="#">Case Studies</a></li>
+            <li><a href="#">Industries</a></li>
+            <li><a href="#">Partners</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">About</h2>
+          <ul class="footer__links">
+            <li><a href="#">Our Story</a></li>
+            <li><a href="#">Values</a></li>
+            <li><a href="#">Team</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Careers</h2>
+          <ul class="footer__links">
+            <li><a href="#">Open Roles</a></li>
+            <li><a href="#">Life at SoftPapaya</a></li>
+            <li><a href="#">Internships</a></li>
+          </ul>
+        </div>
+        <div class="footer__contact">
+          <h2 class="footer__heading">Contact</h2>
+          <p><a href="mailto:hello@softpapaya.com">hello@softpapaya.com</a></p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <div class="container footer__bottom-inner">
+          <p class="footer__copyright">© 2026 SoftPapaya. All rights reserved.</p>
+          <ul class="footer__legal">
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>
