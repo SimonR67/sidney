@@ -937,3 +937,47 @@ a {
     font-size: 64px;
   }
 }
+
+/* The Wrocław watermark ------------------------------------------------- */
+
+/* One layer, behind the whole site: `Wroclaw.jpg` at 5%, cropped to whatever
+   viewport it is shown in. It is a pseudo-element rather than a div because the
+   site has no shared template — a markup hook would have to be pasted into
+   every page by hand, and this way the sheet alone carries it.
+   `isolation: isolate` is what makes the layer visible: without a stacking
+   context on `body`, a `z-index: -1` child paints *under* the body's own
+   opaque background rather than over it. It creates no containing block, so the
+   sticky masthead and the fixed layer below both still measure the viewport.
+   Scoped to the screen so print output is left exactly as it was.
+   See specs/aea7c6d4-8f64-4957-8f2d-8392a0fce7cb/notes.md. */
+@media screen {
+  body {
+    isolation: isolate;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    background-image: url('../Wroclaw.jpg');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+}
+
+/* Phones: `fixed` is the attachment mobile Safari has never repainted cheaply,
+   so below the site's first breakpoint the layer scrolls with the page instead.
+   The layer is viewport-fixed either way, so nothing about it moves. */
+@media screen and (max-width: 767px) {
+  body::before {
+    background-attachment: scroll;
+  }
+}
