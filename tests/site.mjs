@@ -742,6 +742,139 @@ export const beforeTeamPage = (markup) =>
  */
 export const beforeTeamStyles = (css) => css.replace(/\/\* Team page -+ \*\/\n[\s\S]*?\n(?=\/\* Footer)/, '')
 
+/* Careers page ---------------------------------------------------------- */
+
+/** Where the Careers page is specified, and this job's discovery written down. */
+export const CAREERS_PLAN = 'specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/plan.md'
+export const CAREERS_NOTES = 'specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/notes.md'
+
+/**
+ * The page the "Careers" nav entry — inert since the header was written — now
+ * reaches. The slug is the site's only convention: a flat `.html` at the root.
+ */
+export const CAREERS_PAGE = 'careers.html'
+
+/** Its `<title>`, the headline it shows and the one span of that headline painted papaya. */
+export const CAREERS_TITLE = 'Careers — Softpapaya'
+export const CAREERS_HEADING = 'CAREERS, GRAB A TICKET'
+export const CAREERS_ACCENT = 'CAREERS'
+
+/** The sub heading under it, and the run of it painted papaya. */
+export const CAREERS_SUBHEADING = "WHAT YOU GET. WHAT YOU DON'T"
+export const CAREERS_SUB_ACCENT = 'WHAT YOU GET.'
+
+/**
+ * Row A: four boxes, a quarter of the band each at desktop width. Titles and
+ * copy exactly as the spec supplied them, quotation marks and hyphens included
+ * — "Wrocław" carries the ł the spec wrote it with. See `CAREERS_NOTES`.
+ */
+export const CAREERS_ROW_A = [
+  {
+    title: 'OVERTIME NOT HERE',
+    copy:
+      'You stay late only when you want to. No "urgent" tasks at 6pm. No weekend emails. Your time off is ' +
+      'your time off.',
+  },
+  {
+    title: 'HYBRID',
+    copy:
+      'Office-based team with remote flexibility. Our office is in central Wrocław - come in for the energy, ' +
+      'work from home when you need focus. We are also in the UK and Sofia, Bulgaria.',
+  },
+  {
+    title: 'SALARY RANGES UPFRONT',
+    copy:
+      'We don\'t play the "we\'ll share after the first meeting" game. Ranges are in the listing. We respect ' +
+      'your time and ours.',
+  },
+  {
+    title: 'B2B AND UOP',
+    copy: 'Both options, fair rates, no tricks. You pick the form.',
+  },
+]
+
+/** Row B: two boxes, half the band each at desktop width. */
+export const CAREERS_ROW_B = [
+  {
+    title: 'MENTORING',
+    copy:
+      "Senior engineers mentor - it's not optional, it's how we work. If you're a junior or mid, you'll have " +
+      "someone to learn from. If you're a senior, we expect you'll share what you know.",
+  },
+  {
+    title: 'COLLEGIATE TEAMS',
+    copy: 'Direct client contact. Decisions are made by you and your team.',
+  },
+]
+
+/**
+ * The papaya band's heading, split the way it is painted: "How it Works" in the
+ * page colour, "HIRED IN ONE WEEK" in the black beside it. See `CAREERS_NOTES`
+ * for why the white is on the heading and nothing smaller.
+ */
+export const CAREERS_PROCESS_HEADING = 'How it Works HIRED IN ONE WEEK'
+export const CAREERS_PROCESS_WHITE = 'How it Works'
+export const CAREERS_PROCESS_ACCENT = 'HIRED IN ONE WEEK'
+
+/** The statement the band opens with, and the one it closes with. */
+export const CAREERS_PROCESS_OPENING =
+  'We respect your time. The entire process usually takes 5-7 business days.'
+export const CAREERS_PROCESS_CLOSING =
+  "We give feedback to every candidate, no matter what. If you didn't get through, you'll know why."
+
+/** The three numbered steps between them, in the order the band stacks them. */
+export const CAREERS_STEPS = [
+  {
+    title: '01 INTRO CALL (30 MIN)',
+    copy:
+      'We get to know each other. We tell you about the company, you tell us about yourself. No trick ' +
+      'questions, no whiteboard, no "where do you see yourself in 5 years."',
+  },
+  {
+    title: '02 TECHNICAL CONVERSATION (60 MIN)',
+    copy:
+      "We discuss architecture, trade-offs, your experience. It's a conversation, not an interrogation.",
+  },
+  {
+    title: '03 OFFER',
+    copy: 'Good fit? Offer within 2 business days. No "we\'ll get back to you next month."',
+  },
+]
+
+/** The last band: its heading, its sub text and the label its one link carries. */
+export const CAREERS_OPENINGS_HEADING = 'CURRENT OPENINGS'
+export const CAREERS_OPENINGS_COPY = 'Nothing catch your eye? Send us your CV anyway.'
+export const CAREERS_LINK_LABEL = 'current vacancies here on LinkedIn'
+
+/**
+ * Which shade outlines the boxes of a row of `count` of them: papaya, lime,
+ * black and round again, by position, as the Team page's avatars run. Each row
+ * is its own grid, so every row starts the rotation over — which is what keeps
+ * two adjacent boxes from sharing a shade in rows of four, two and three.
+ */
+export const careersBorders = (count) =>
+  Array.from({ length: count }, (_, index) => ['papaya', 'lime', 'black'][index % 3])
+
+/**
+ * Any page of the Softpapaya site with this job's one repointed href put back
+ * the way it was, for the same reason `beforeTeamPage` exists. The nav's
+ * "Careers" tab — inert since the header was written — is the whole of what this
+ * job changed on a page that already existed.
+ */
+export const beforeCareersPage = (markup) =>
+  markup.replace(`<li><a href="${CAREERS_PAGE}">Careers</a></li>`, '<li><a href="#">Careers</a></li>')
+
+/**
+ * The shared stylesheet with this job's work taken back out: the "Careers page"
+ * block, and the two column counts it declares at the desktop breakpoint. Same
+ * purpose as `beforeTeamStyles` — the audits earlier jobs wrote diff the sheet
+ * byte for byte, so each later job rewinds itself out of them.
+ */
+export const beforeCareersStyles = (css) =>
+  css
+    .replace(/\/\* Careers page -+ \*\/\n[\s\S]*?\n(?=\/\* Footer)/, '')
+    .replace(/ {2}\/\* Careers: [\s\S]*?\n {2}\.careers__row\.careers__row--two \{[^}]*\}\n\n/, '')
+
 /* The sticky masthead, and the mark inside it --------------------------- */
 
 /**
@@ -924,9 +1057,10 @@ export async function siteFiles() {
 /**
  * Every site file except the Softpapaya Services page, its stylesheet, the two
  * images it carries, the Contact Us page and scripts that arrived with it, the
- * Case Studies page with its sources and graphics, and the Team page with its
- * photographs and placeholder avatars — all of them landed after the audits the
- * legacy pages are held to were written, so none of them appears in those.
+ * Case Studies page with its sources and graphics, the Team page with its
+ * photographs and placeholder avatars, and the Careers page — all of them
+ * landed after the audits the legacy pages are held to were written, so none of
+ * them appears in those.
  */
 export async function legacySiteFiles() {
   const replaced = new Set([
@@ -941,6 +1075,7 @@ export async function legacySiteFiles() {
     ...CASE_STUDIES.map((study) => study.graphic),
     TEAM_PAGE,
     ...TEAM_ASSETS,
+    CAREERS_PAGE,
   ])
   return (await siteFiles()).filter((name) => !replaced.has(name))
 }

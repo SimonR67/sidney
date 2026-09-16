@@ -8,6 +8,7 @@ import { spawnSync } from 'node:child_process'
 import { openPage, parseColor, serveStatic } from './browser.mjs'
 import {
   CARD_FRAME,
+  CAREERS_PAGE,
   FRAME_SOURCE,
   HOMEPAGE,
   ORIGIN_ANCHOR,
@@ -17,6 +18,7 @@ import {
   ORIGIN_IMAGE_SIZE,
   ORIGIN_PARAGRAPHS,
   SERVICES_STYLESHEET,
+  beforeCareersPage,
   beforeCaseStudies,
   beforeContactPage,
   beforeTeamPage,
@@ -611,7 +613,7 @@ describe('Image task 9: the copy and the "WHAT WE OFFER" band untouched', () => 
     // specs/755b1c19-a364-4f06-bf29-a35998f8da76/plan.md gave that one a page
     // to reach and tests/team-page.test.mjs holds it to that.
     const without = (markup) =>
-      beforeTeamPage(beforeCaseStudies(beforeContactPage(markup)))
+      beforeCareersPage(beforeTeamPage(beforeCaseStudies(beforeContactPage(markup))))
         .replace(/<section class="origin"[\s\S]*?\n {6}<\/section>/, '<!-- origin -->')
         .replace(/\n {6}<!-- The "Values" nav entry's target\.[\s\S]*?\n {6}<\/section>/, '')
         .replace('<li><a href="#values">Values</a></li>', '<li><a href="#">Values</a></li>')

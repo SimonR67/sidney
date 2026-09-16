@@ -37,6 +37,7 @@ import {
   LOGO_ASSET,
   OLD_COLOURS,
   OLD_COLOUR_WORDS,
+  CAREERS_PAGE,
   ORIGIN_IMAGE,
   PAGES,
   NAV_LINKS,
@@ -332,10 +333,14 @@ describe('Task 7: nothing left of the superseded site', () => {
   // tests/case-studies.test.mjs covers all seven. The sixth is the Team page
   // specs/755b1c19-a364-4f06-bf29-a35998f8da76/plan.md added, with the ten
   // placeholder avatars it ships beside the three photographs that were already
-  // in `team/`; tests/team-page.test.mjs covers the page and all thirteen.
+  // in `team/`; tests/team-page.test.mjs covers the page and all thirteen. The
+  // seventh is the Careers page
+  // specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/plan.md added, which ships no
+  // asset of its own; tests/careers-page.test.mjs covers it.
   it('serves exactly the pages of the new site', async () => {
     assert.deepEqual(await htmlFiles(), [
       'about.html',
+      CAREERS_PAGE,
       CASE_STUDIES_PAGE,
       CONTACT_PAGE,
       'contact.html',
@@ -350,6 +355,7 @@ describe('Task 7: nothing left of the superseded site', () => {
       LOGO_ASSET,
       'about.html',
       ...CASE_STUDIES.map((study) => study.graphic),
+      CAREERS_PAGE,
       CASE_STUDIES_PAGE,
       ...CASE_SOURCES,
       CONTACT_PAGE,
@@ -371,6 +377,7 @@ describe('Task 7: nothing left of the superseded site', () => {
       LOGO_ASSET,
       'about.html',
       'assets',
+      CAREERS_PAGE,
       CASE_STUDIES_PAGE,
       'cases',
       CONTACT_PAGE,

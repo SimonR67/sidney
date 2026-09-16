@@ -23,6 +23,7 @@ import {
   TEAM_NOTES,
   TEAM_PAGE,
   TEAM_TITLE,
+  beforeCareersPage,
   beforeTeamPage,
   declaredValue,
   linksIn,
@@ -240,7 +241,7 @@ describe('Team task 2: the "Team" tab on the home page', () => {
   })
 
   it('leaves every other tab, and the tab order, exactly as it was', async () => {
-    const was = beforeTeamPage(await read(HOMEPAGE))
+    const was = beforeCareersPage(beforeTeamPage(await read(HOMEPAGE)))
 
     assert.deepEqual(linksIn(navBlock(was)), [
       { href: '#about', label: 'About' },
@@ -248,6 +249,10 @@ describe('Team task 2: the "Team" tab on the home page', () => {
       { href: '#values', label: 'Values' },
       { href: '#', label: 'Team' },
       { href: CASE_STUDIES_PAGE, label: 'Case Studies' },
+      // Still inert here: the tab was repointed at the Careers page by
+      // specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/plan.md, after this job ran,
+      // so `beforeCareersPage` above rewinds it the way this job's own tab is
+      // rewound. tests/careers-page.test.mjs holds that change to its own check.
       { href: '#', label: 'Careers' },
       { href: '#', label: 'Blog' },
       { href: CONTACT_PAGE, label: 'Contact' },
