@@ -13,6 +13,7 @@ import {
   STYLESHEET,
   WATERMARK_IMAGE,
   WATERMARK_IMAGE_FILE,
+  WATERMARK_IMAGE_WAS,
   WATERMARK_LAYER,
   WATERMARK_NOTES,
   WATERMARK_OPACITY,
@@ -233,7 +234,9 @@ describe('Watermark task 1: the pages, and the stylesheets that reach all of the
     const discovery = await section('Discovery')
 
     assert.ok(discovery, `${WATERMARK_NOTES} has no "Discovery" section`)
-    for (const file of [...(await htmlFiles()), SERVICES_STYLESHEET, STYLESHEET, WATERMARK_IMAGE]) {
+    // The photograph this job traced, under the name it had then: the swap to
+    // `Wroclaw1.jpg` came later, and is written up in its own notes.
+    for (const file of [...(await htmlFiles()), SERVICES_STYLESHEET, STYLESHEET, WATERMARK_IMAGE_WAS]) {
       assert.ok(discovery.includes(file), `the discovery notes do not name ${file}`)
     }
   })
