@@ -541,6 +541,34 @@ export const CASE_STUDIES = [
   },
 ]
 
+/* Case Studies page: the one word of the title painted papaya ------------ */
+
+/** Where this job — "STUDIES" in the hero's own accent span — is written down. */
+export const CASE_STUDIES_ACCENT_PLAN = 'specs/a8e4733b-d0b3-4d8b-961f-615f5797d5a5/plan.md'
+export const CASE_STUDIES_ACCENT_NOTES = 'specs/a8e4733b-d0b3-4d8b-961f-615f5797d5a5/notes.md'
+
+/** The word of `CASE_STUDIES_HEADING` painted papaya, and the word left in the ink. */
+export const CASE_STUDIES_ACCENT = 'STUDIES'
+export const CASE_STUDIES_PLAIN = 'CASE'
+
+/**
+ * The class the home page paints `HERO_ACCENT` with — the mechanism this job
+ * reuses rather than re-implements. The tests read it back off the home page
+ * itself; this is here so the "before" helper below can rewind the markup.
+ */
+export const HERO_ACCENT_CLASS = 'hero__papaya'
+
+/**
+ * The Case Studies title as it stood before this job: one text node, no span.
+ * Same purpose as `beforeCaseStudies` — it is what the layout of the title is
+ * measured back against.
+ */
+export const beforeCaseStudiesAccent = (markup) =>
+  markup.replace(
+    `${CASE_STUDIES_PLAIN} <span class="${HERO_ACCENT_CLASS}">${CASE_STUDIES_ACCENT}</span>`,
+    CASE_STUDIES_HEADING,
+  )
+
 /* Team page ------------------------------------------------------------- */
 
 /** Where the Team page is specified, and this job's discovery written down. */
