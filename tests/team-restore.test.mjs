@@ -10,14 +10,19 @@ import { join } from 'node:path'
 import { openPage, serveStatic } from './browser.mjs'
 import {
   BREAKPOINTS,
+  CAREERS_PAGE,
+  CASE_STUDIES_PAGE,
+  CONTACT_PAGE,
+  HOMEPAGE,
   SERVICES_STYLESHEET,
   TEAM_AVATAR_SIZE,
   TEAM_MEMBERS,
   TEAM_PAGE,
+  TEAM_RESTORED,
   TEAM_RESTORE_NOTES,
   TEAM_RESTORE_PLAN,
-  TEAM_RESTORED,
   TEAM_ROSTER_BEFORE,
+  beforeCareersStyles,
   read,
   repoRoot,
   siteFiles,
@@ -31,6 +36,15 @@ const notesSection = async (heading) => {
 }
 
 const git = (...args) => spawnSync('git', args, { cwd: repoRoot, encoding: 'utf8' })
+
+/**
+ * The files specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/plan.md touched after
+ * this job ran: the Careers page it added, the three other pages whose "Careers"
+ * tab it repointed — the Team page is already named beside them — and the
+ * stylesheet block it wrote. Held to their own checks in
+ * tests/careers-page.test.mjs.
+ */
+const CAREERS_TOUCHED = [CAREERS_PAGE, HOMEPAGE, CASE_STUDIES_PAGE, CONTACT_PAGE, SERVICES_STYLESHEET]
 
 /** The commit that added this job's plan — the page as it stood before any of this. */
 const baselineCommit = () => {
@@ -328,8 +342,12 @@ describe('Team restore task 5: twelve entries, in the order the spec lists them'
     assert.deepEqual(
       changed.sort(),
       // `package.json` runs this job's test file alongside the rest; it is the
-      // test runner's list, not a page of the site.
-      ['package.json', TEAM_PAGE, ...TEAM_RESTORED.map((member) => member.image)].sort(),
+      // test runner's list, not a page of the site. `CAREERS_TOUCHED` is the
+      // work of specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/plan.md, which landed
+      // after this job: a new page, the four pages whose "Careers" tab it
+      // repointed and the stylesheet block it added. tests/careers-page.test.mjs
+      // holds every one of those to its own checks.
+      ['package.json', TEAM_PAGE, ...TEAM_RESTORED.map((member) => member.image), ...CAREERS_TOUCHED].sort(),
       'this job changed a file outside the Team page and its two avatars',
     )
     assert.deepEqual(gone, [], 'a file the site shipped before this job is no longer there')
@@ -379,6 +397,10 @@ describe('Team restore task 6: the page at every width the site supports', () =>
     const was = baseline(SERVICES_STYLESHEET)
 
     if (was === null) return
-    assert.equal(await read(SERVICES_STYLESHEET), was, 'this job changed the shared stylesheet')
+    // The Careers page's block and its two column counts are taken back out
+    // first: they arrived after this job, with
+    // specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/plan.md, and
+    // tests/careers-page.test.mjs is where they are checked.
+    assert.equal(beforeCareersStyles(await read(SERVICES_STYLESHEET)), was, 'this job changed the shared stylesheet')
   })
 })

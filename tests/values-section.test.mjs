@@ -7,14 +7,10 @@ import { spawnSync } from 'node:child_process'
 import { openPage, serveStatic } from './browser.mjs'
 import {
   BOXES,
+  BOX_BORDERS,
+  CAREERS_PAGE,
   CASE_STUDIES_PAGE,
   CONTACT_PAGE,
-  beforeCaseStudies,
-  beforeCaseStudiesStyles,
-  beforeContactPage,
-  beforeTeamPage,
-  beforeTeamStyles,
-  BOX_BORDERS,
   HOMEPAGE,
   ORIGIN_ANCHOR,
   SERVICES_STYLESHEET,
@@ -24,6 +20,13 @@ import {
   VALUES_HEADING,
   VALUES_NOTES,
   VALUES_PLAN,
+  beforeCareersPage,
+  beforeCareersStyles,
+  beforeCaseStudies,
+  beforeCaseStudiesStyles,
+  beforeContactPage,
+  beforeTeamPage,
+  beforeTeamStyles,
   declaredValue,
   parseHex,
   read,
@@ -536,7 +539,7 @@ describe('Values task 5: the two bands above it, untouched', () => {
     // "Case Studies" tab is rewound on the same footing — it belongs to
     // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md — and so is the "Team"
     // tab, which belongs to specs/755b1c19-a364-4f06-bf29-a35998f8da76/plan.md.
-    const withoutValues = beforeTeamPage(beforeCaseStudies(beforeContactPage(now)))
+    const withoutValues = beforeCareersPage(beforeTeamPage(beforeCaseStudies(beforeContactPage(now))))
       .replace(/\n {6}<!-- The "Values" nav entry's target\.[\s\S]*?\n {6}<\/section>/, '')
       .replace('<li><a href="#values">Values</a></li>', '<li><a href="#">Values</a></li>')
     assert.equal(withoutValues, was, `${HOMEPAGE} carries a change beyond the new band and the "Values" href`)
@@ -552,7 +555,9 @@ describe('Values task 5: the two bands above it, untouched', () => {
     // they all arrived after this band did, with
     // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md and
     // specs/755b1c19-a364-4f06-bf29-a35998f8da76/plan.md.
-    const withoutValues = beforeTeamStyles(beforeCaseStudiesStyles(withoutContactStyles(now))).replace(
+    const withoutValues = beforeTeamStyles(
+      beforeCareersStyles(beforeCaseStudiesStyles(withoutContactStyles(now))),
+    ).replace(
       /\/\* Values -+ \*\/\n[\s\S]*?\.values \{\n {2}padding: [^;]+;\n\}\n\n/,
       '',
     )
@@ -598,7 +603,11 @@ describe('Values task 5: the two bands above it, untouched', () => {
       // specs/4bc05d6f-e783-43e8-a21e-807feef4dbc6/plan.md; the tab's wording and
       // position are unchanged, and tests/case-studies.test.mjs holds it to that.
       { label: 'Case Studies', href: CASE_STUDIES_PAGE },
-      { label: 'Careers', href: '#' },
+      // Repointed at the Careers page by
+      // specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/plan.md; the tab's wording
+      // and position are unchanged, and tests/careers-page.test.mjs holds it to
+      // that.
+      { label: 'Careers', href: CAREERS_PAGE },
       { label: 'Blog', href: '#' },
       // Repointed at the Contact Us page by
       // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md; the tab's wording

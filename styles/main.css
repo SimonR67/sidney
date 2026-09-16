@@ -675,6 +675,116 @@ a {
   overflow-wrap: anywhere;
 }
 
+/* Careers page --------------------------------------------------------- */
+
+/* The band the two rows of boxes sit in. Its rhythm is the `.values` band's —
+   the same 24px in, 72px out — and its boxes are `.services__grid` and `.card`,
+   reused class for class the way that band reuses them, so the radius, the
+   padding, the background, the shadow and the breakpoints come with them.
+   See specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/notes.md. */
+.careers {
+  padding: 24px 0 72px;
+}
+
+/* The sub heading is a plain `h2` — the 26px and the ink every other heading on
+   the site takes — with "WHAT YOU GET." in the span the hero paints its own
+   accent with. The one thing declared is the space below it, which is the
+   shared `.section__heading`'s. */
+.careers__subheading {
+  margin-bottom: 24px;
+}
+
+/* Each row is a grid of its own, so its border rotation and its column count
+   both start again at its first box. This is the space between two of them, and
+   it is the gap `.services__grid` already sets inside one. */
+.careers__row + .careers__row {
+  margin-top: 18px;
+}
+
+/* Papaya, lime, black and round again, set by position rather than per box —
+   the rotation the Team page's avatars run, declared the same way and scoped to
+   this page's rows, so the six-step sequence the services and values boxes keep
+   is untouched. Four boxes come out papaya, lime, black, papaya; two come out
+   papaya, lime; the three numbered steps papaya, lime, black. No two boxes
+   beside each other in a row share a shade. */
+.careers__row > .card:nth-child(3n + 1) {
+  border-color: var(--papaya);
+}
+
+.careers__row > .card:nth-child(3n + 2) {
+  border-color: var(--lime);
+}
+
+.careers__row > .card:nth-child(3n) {
+  border-color: var(--black);
+}
+
+/* The numbered steps are one box to a row at every width, the way the Case
+   Studies boxes are. Their row is named twice so this holds past the two
+   breakpoints that open the shared grid out, without either being edited. */
+.careers__row.careers__row--steps {
+  grid-template-columns: 1fr;
+}
+
+/* "How it Works": the one band on the site painted rather than outlined. A
+   `section` is as wide as the page, so the papaya is full-bleed, and the
+   content inside it still sits on the shared container's measure. The rhythm is
+   the invitation band's. */
+.careers-process {
+  background-color: var(--papaya);
+  padding: 64px 0;
+}
+
+/* The band's four parts — heading, opening statement, the three steps, closing
+   statement — on one gap, so none of them needs a margin of its own. */
+.careers-process__inner {
+  display: grid;
+  gap: 22px;
+}
+
+/* White on the papaya is 3.34:1 — WCAG AA for large text, which this heading is
+   at 26px and weight 700, and not for anything smaller. So the heading is the
+   one thing on the band set in the page colour, and "HIRED IN ONE WEEK" is the
+   black beside it. See the notes. */
+.careers-process__heading {
+  color: var(--page);
+}
+
+.careers-process__accent {
+  color: var(--black);
+}
+
+/* The two statements, at the hero lede's own size and measure. Black on the
+   papaya is 6.29:1, so they read as body copy does everywhere else. */
+.careers-process__statement {
+  max-width: 62ch;
+  color: var(--black);
+  font-size: 17px;
+}
+
+/* "CURRENT OPENINGS". Its heading is the shared `.section__heading` untouched,
+   and its rhythm and its copy are the origin band's. */
+.careers-openings {
+  padding: 24px 0 72px;
+}
+
+.careers-openings__copy {
+  max-width: 62ch;
+  color: var(--muted);
+  font-size: 17px;
+}
+
+.careers-openings__copy + .careers-openings__copy {
+  margin-top: 18px;
+}
+
+/* The link out to LinkedIn, painted and underlined the way the Contact Us
+   page's own LinkedIn link is. */
+.careers-openings__copy a {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
 /* Footer --------------------------------------------------------------- */
 
 .footer {
@@ -790,6 +900,19 @@ a {
 
   .services__grid {
     grid-template-columns: repeat(3, 1fr);
+  }
+
+  /* Careers: a quarter of the band each for the four-box row, half of it each
+     for the two-box row — the only two counts the shared grid above does not
+     already hand them. Each selector names its row twice so it outranks that
+     grid's own rule wherever the two meet.
+     See specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/notes.md. */
+  .careers__row.careers__row--four {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .careers__row.careers__row--two {
+    grid-template-columns: repeat(2, 1fr);
   }
 
   /* The copy takes half again as much room as the panel beside it. */

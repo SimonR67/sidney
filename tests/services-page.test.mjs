@@ -6,11 +6,13 @@ import assert from 'node:assert/strict'
 import { contrastRatio, openPage, parseColor, serveStatic } from './browser.mjs'
 import {
   BOXES,
-  CONTACT_EMAIL,
+  CAREERS_PAGE,
   CASE_STUDIES_PAGE,
+  CONTACT_EMAIL,
   CONTACT_PAGE,
   HOMEPAGE,
   HOME_PARAGRAPH,
+  LOGO_ASSET,
   MIN_CONTRAST,
   MIN_CONTRAST_LARGE,
   SERVICES_NOTES,
@@ -23,7 +25,6 @@ import {
   hexColours,
   htmlFiles,
   isLargeText,
-  LOGO_ASSET,
   read,
   repoRoot,
   siteFiles,
@@ -778,11 +779,11 @@ describe('Services task 11: one home page, and nothing orphaned behind it', () =
 
       assert.ok(!html.includes(SERVICES_TITLE), `${file} also carries the Softpapaya Services title`)
       assert.ok(!html.includes('WHAT WE DO.'), `${file} also carries the hero statement`)
-      // The Contact Us, Case Studies and Team pages share the stylesheet
-      // deliberately — it is the same site, in the same chrome. What they may
-      // not share is the home page itself, which the two checks above hold them
-      // to.
-      if (file === CONTACT_PAGE || file === CASE_STUDIES_PAGE || file === TEAM_PAGE) continue
+      // The Contact Us, Case Studies, Team and Careers pages share the
+      // stylesheet deliberately — it is the same site, in the same chrome. What
+      // they may not share is the home page itself, which the two checks above
+      // hold them to.
+      if (file === CONTACT_PAGE || file === CASE_STUDIES_PAGE || file === TEAM_PAGE || file === CAREERS_PAGE) continue
       assert.ok(!html.includes(SERVICES_STYLESHEET), `${file} also links the home page stylesheet`)
     }
   })

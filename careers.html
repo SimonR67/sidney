@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Careers — Softpapaya</title>
+    <!-- Inline icon: keeps the browser from requesting (and 404-ing on) /favicon.ico. -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23ffffff'/%3E%3Ccircle cx='8' cy='8' r='4' fill='%230a66ff'/%3E%3C/svg%3E"
+    />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <header class="masthead">
+      <div class="container masthead__inner">
+        <a class="masthead__logo" href="index.html">
+          <!-- Intrinsic size given so the header reserves the space before the
+               image arrives and nothing below it shifts on load. -->
+          <img class="masthead__mark" src="SoftPapaya-logo.png" alt="SoftPapaya" width="655" height="198" />
+        </a>
+        <!-- The home page's nav, with each in-page anchor qualified by the page
+             it lives on so the tabs still work from here. -->
+        <nav class="masthead__nav" aria-label="Primary">
+          <ul class="masthead__links">
+            <li><a href="index.html#about">About</a></li>
+            <li><a href="index.html#services">Services</a></li>
+            <li><a href="index.html#values">Values</a></li>
+            <li><a href="team.html">Team</a></li>
+            <li><a href="case-studies.html">Case Studies</a></li>
+            <li><a href="careers.html">Careers</a></li>
+            <li><a href="#">Blog</a></li>
+            <li><a href="contact-us.html">Contact</a></li>
+          </ul>
+        </nav>
+        <a class="button button--accent masthead__cta" href="contact-us.html">TALK TO US</a>
+      </div>
+    </header>
+    <main>
+      <!-- The headline is the home page's `.hero` band, reused class for class,
+           with "CAREERS" in the span it paints "REALLY WELL" with. Every box on
+           the page is the "WHAT WE OFFER" component — `.services__grid` and
+           `.card` — with the three-step border rotation scoped to this page's
+           rows, so no two boxes beside each other share a shade. See
+           specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/notes.md. -->
+      <section class="hero">
+        <div class="container">
+          <h1 class="hero__heading"><span class="hero__papaya">CAREERS</span>, GRAB A TICKET</h1>
+        </div>
+      </section>
+      <section class="careers" aria-labelledby="careers-heading">
+        <div class="container">
+          <h2 class="careers__subheading" id="careers-heading">
+            <span class="hero__papaya">WHAT YOU GET.</span> WHAT YOU DON'T
+          </h2>
+          <ul class="services__grid careers__row careers__row--four">
+            <li class="card">
+              <h3 class="card__title">OVERTIME NOT HERE</h3>
+              <p class="card__copy">
+                You stay late only when you want to. No "urgent" tasks at 6pm. No weekend emails. Your time off is
+                your time off.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">HYBRID</h3>
+              <p class="card__copy">
+                Office-based team with remote flexibility. Our office is in central Wrocław - come in for the energy,
+                work from home when you need focus. We are also in the UK and Sofia, Bulgaria.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">SALARY RANGES UPFRONT</h3>
+              <p class="card__copy">
+                We don't play the "we'll share after the first meeting" game. Ranges are in the listing. We respect
+                your time and ours.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">B2B AND UOP</h3>
+              <p class="card__copy">Both options, fair rates, no tricks. You pick the form.</p>
+            </li>
+          </ul>
+          <ul class="services__grid careers__row careers__row--two">
+            <li class="card">
+              <h3 class="card__title">MENTORING</h3>
+              <p class="card__copy">
+                Senior engineers mentor - it's not optional, it's how we work. If you're a junior or mid, you'll have
+                someone to learn from. If you're a senior, we expect you'll share what you know.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">COLLEGIATE TEAMS</h3>
+              <p class="card__copy">Direct client contact. Decisions are made by you and your team.</p>
+            </li>
+          </ul>
+        </div>
+      </section>
+      <!-- The one band on the site painted rather than outlined. A `section` is
+           as wide as the page, so the papaya is full-bleed while its content
+           stays on the shared `.container` measure; the heading is the white on
+           it and the two statements are the black, which is what keeps both
+           legible. See the notes. -->
+      <section class="careers-process" aria-labelledby="careers-process-heading">
+        <div class="container careers-process__inner">
+          <h2 class="careers-process__heading" id="careers-process-heading">
+            How it Works <span class="careers-process__accent">HIRED IN ONE WEEK</span>
+          </h2>
+          <p class="careers-process__statement">
+            We respect your time. The entire process usually takes 5-7 business days.
+          </p>
+          <ul class="services__grid careers__row careers__row--steps">
+            <li class="card">
+              <h3 class="card__title">01 INTRO CALL (30 MIN)</h3>
+              <p class="card__copy">
+                We get to know each other. We tell you about the company, you tell us about yourself. No trick
+                questions, no whiteboard, no "where do you see yourself in 5 years."
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">02 TECHNICAL CONVERSATION (60 MIN)</h3>
+              <p class="card__copy">
+                We discuss architecture, trade-offs, your experience. It's a conversation, not an interrogation.
+              </p>
+            </li>
+            <li class="card">
+              <h3 class="card__title">03 OFFER</h3>
+              <p class="card__copy">
+                Good fit? Offer within 2 business days. No "we'll get back to you next month."
+              </p>
+            </li>
+          </ul>
+          <p class="careers-process__statement">
+            We give feedback to every candidate, no matter what. If you didn't get through, you'll know why.
+          </p>
+        </div>
+      </section>
+      <section class="careers-openings" aria-labelledby="careers-openings-heading">
+        <div class="container">
+          <h2 class="section__heading" id="careers-openings-heading">CURRENT OPENINGS</h2>
+          <p class="careers-openings__copy">Nothing catch your eye? Send us your CV anyway.</p>
+          <!-- A placeholder, as the spec asks: the company page rather than a
+               vacancies listing, and the same URL the Contact Us page links. -->
+          <p class="careers-openings__copy">
+            <a href="https://www.linkedin.com/company/softpapaya/" target="_blank" rel="noopener noreferrer"
+              >current vacancies here on LinkedIn</a
+            >
+          </p>
+        </div>
+      </section>
+    </main>
+    <footer class="footer">
+      <div class="container footer__inner">
+        <div class="footer__brand">
+          <p class="footer__logo">SoftPapaya</p>
+          <p class="footer__blurb">
+            SoftPapaya is a software studio working with teams who would rather have a small group of senior people
+            finish the thing than a large one start it.
+          </p>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Services</h2>
+          <ul class="footer__links">
+            <li><a href="#">Custom Software</a></li>
+            <li><a href="#">Cloud &amp; Infrastructure</a></li>
+            <li><a href="#">Data Engineering</a></li>
+            <li><a href="#">UI/UX Design</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Work</h2>
+          <ul class="footer__links">
+            <li><a href="#">Case Studies</a></li>
+            <li><a href="#">Industries</a></li>
+            <li><a href="#">Partners</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">About</h2>
+          <ul class="footer__links">
+            <li><a href="#">Our Story</a></li>
+            <li><a href="#">Values</a></li>
+            <li><a href="#">Team</a></li>
+          </ul>
+        </div>
+        <div class="footer__column">
+          <h2 class="footer__heading">Careers</h2>
+          <ul class="footer__links">
+            <li><a href="#">Open Roles</a></li>
+            <li><a href="#">Life at SoftPapaya</a></li>
+            <li><a href="#">Internships</a></li>
+          </ul>
+        </div>
+        <div class="footer__contact">
+          <h2 class="footer__heading">Contact</h2>
+          <p><a href="mailto:hello@softpapaya.com">hello@softpapaya.com</a></p>
+        </div>
+      </div>
+      <div class="footer__bottom">
+        <div class="container footer__bottom-inner">
+          <p class="footer__copyright">© 2026 SoftPapaya. All rights reserved.</p>
+          <ul class="footer__legal">
+            <li><a href="#">Privacy</a></li>
+            <li><a href="#">Terms of Service</a></li>
+          </ul>
+        </div>
+      </div>
+    </footer>
+  </body>
+</html>

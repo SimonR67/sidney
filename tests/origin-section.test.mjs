@@ -6,6 +6,7 @@ import { after, before, describe, it } from 'node:test'
 import assert from 'node:assert/strict'
 import { openPage, serveStatic } from './browser.mjs'
 import {
+  CAREERS_PAGE,
   CASE_STUDIES_PAGE,
   CONTACT_PAGE,
   HOMEPAGE,
@@ -490,7 +491,11 @@ describe('Origin task 7: "Services", "WHAT WE OFFER" and everything else, untouc
       // one-attribute change "About" itself took; the tab's wording and position
       // are unchanged, and tests/case-studies.test.mjs holds it to that.
       { label: 'Case Studies', href: CASE_STUDIES_PAGE },
-      { label: 'Careers', href: '#' },
+      // Repointed at the Careers page by
+      // specs/4f3c50ca-cd61-46ec-8aab-969cc72d95db/plan.md, the same
+      // one-attribute change "About" itself took; the tab's wording and position
+      // are unchanged, and tests/careers-page.test.mjs holds it to that.
+      { label: 'Careers', href: CAREERS_PAGE },
       { label: 'Blog', href: '#' },
       // Repointed at the Contact Us page by
       // specs/39dd4128-7a8a-4564-8c49-613c9f754d8b/plan.md; the tab's wording
