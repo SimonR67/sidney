@@ -1,6 +1,6 @@
 # Plan: Swap background watermark image from Wroclaw.jpg to Wroclaw1.jpg
 
-Status: draft
+Status: implemented
 Job: 03066e16-c33c-41b7-a8d1-80b1659ad7d3
 Spec: https://github.com/SimonR67/sidney/blob/main/specs/03066e16-c33c-41b7-a8d1-80b1659ad7d3/spec.md
 
@@ -30,12 +30,12 @@ A visitor loads any page of the site on desktop or mobile. Previously, they woul
 
 ## 4. Tasks
 
-- [ ] 1. Search the codebase for every reference to `Wroclaw.jpg` (CSS, inline styles, templates, config) and document each location and the exact mechanism used (CSS `background-image` vs `<img>` tag, opacity/overlay technique, any media queries) — files: none changed yet, produces a findings note — test: a checklist/grep output listing all matches exists and each has been manually confirmed as watermark-related (not incidentally named similarly)
-- [ ] 2. Confirm `Wroclaw1.jpg` exists in the repo at an accessible path with correct filename casing, and record its dimensions/aspect ratio — files: none (verification only) — test: asset resolves via direct path check (e.g. build/dev server serves it with 200 status, no 404/broken image)
-- [ ] 3. Replace the primary CSS/template reference(s) to `Wroclaw.jpg` with `Wroclaw1.jpg` in the main watermark rule, without touching any other property — files: identified CSS/template file(s) from Task 1 — test: rendering a page locally shows the new image as the background watermark with the previous opacity/faintness value still present in the computed CSS (e.g. `opacity` or overlay rule unchanged in diff)
-- [ ] 4. Replace any remaining/duplicate references to `Wroclaw.jpg` found in Task 1 (e.g. mobile-specific rule, secondary template, alternate stylesheet) so no instance is missed — files: remaining CSS/template file(s) from Task 1 — test: repo-wide search for `Wroclaw.jpg` returns zero matches in watermark-related contexts (only remains, if at all, as the unused source file itself, not referenced anywhere)
-- [ ] 5. Adjust `background-size`/`background-position`/`background-repeat` on the watermark rule(s) only if `Wroclaw1.jpg`'s aspect ratio causes stretching or bad cropping compared to `Wroclaw.jpg` — files: same CSS file(s) as Task 3/4 — test: visual check at a representative desktop width (e.g. 1440px) and mobile width (e.g. 375px) shows the image filling/positioned appropriately with no visible stretching, distortion, or tiling
-- [ ] 6. Diff the full changeset against the pre-change state to confirm no unrelated CSS/layout/markup lines were touched — files: all files changed in Tasks 3–5 — test: manual diff review shows only filename references and (if applicable) the specific sizing/positioning properties from Task 5 were modified; no other selectors/rules changed
+- [x] 1. Search the codebase for every reference to `Wroclaw.jpg` (CSS, inline styles, templates, config) and document each location and the exact mechanism used (CSS `background-image` vs `<img>` tag, opacity/overlay technique, any media queries) — files: none changed yet, produces a findings note — test: a checklist/grep output listing all matches exists and each has been manually confirmed as watermark-related (not incidentally named similarly)
+- [x] 2. Confirm `Wroclaw1.jpg` exists in the repo at an accessible path with correct filename casing, and record its dimensions/aspect ratio — files: none (verification only) — test: asset resolves via direct path check (e.g. build/dev server serves it with 200 status, no 404/broken image)
+- [x] 3. Replace the primary CSS/template reference(s) to `Wroclaw.jpg` with `Wroclaw1.jpg` in the main watermark rule, without touching any other property — files: identified CSS/template file(s) from Task 1 — test: rendering a page locally shows the new image as the background watermark with the previous opacity/faintness value still present in the computed CSS (e.g. `opacity` or overlay rule unchanged in diff)
+- [x] 4. Replace any remaining/duplicate references to `Wroclaw.jpg` found in Task 1 (e.g. mobile-specific rule, secondary template, alternate stylesheet) so no instance is missed — files: remaining CSS/template file(s) from Task 1 — test: repo-wide search for `Wroclaw.jpg` returns zero matches in watermark-related contexts (only remains, if at all, as the unused source file itself, not referenced anywhere)
+- [x] 5. Adjust `background-size`/`background-position`/`background-repeat` on the watermark rule(s) only if `Wroclaw1.jpg`'s aspect ratio causes stretching or bad cropping compared to `Wroclaw.jpg` — files: same CSS file(s) as Task 3/4 — test: visual check at a representative desktop width (e.g. 1440px) and mobile width (e.g. 375px) shows the image filling/positioned appropriately with no visible stretching, distortion, or tiling
+- [x] 6. Diff the full changeset against the pre-change state to confirm no unrelated CSS/layout/markup lines were touched — files: all files changed in Tasks 3–5 — test: manual diff review shows only filename references and (if applicable) the specific sizing/positioning properties from Task 5 were modified; no other selectors/rules changed
 
 ## 5. Test plan
 

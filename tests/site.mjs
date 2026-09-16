@@ -961,15 +961,29 @@ export const beforeCaseStudiesStyles = (css) =>
 export const WATERMARK_PLAN = 'specs/aea7c6d4-8f64-4957-8f2d-8392a0fce7cb/plan.md'
 export const WATERMARK_NOTES = 'specs/aea7c6d4-8f64-4957-8f2d-8392a0fce7cb/notes.md'
 
+/** Where the swap to the second photograph is specified, and its discovery written down. */
+export const WATERMARK_SWAP_PLAN = 'specs/03066e16-c33c-41b7-a8d1-80b1659ad7d3/plan.md'
+export const WATERMARK_SWAP_NOTES = 'specs/03066e16-c33c-41b7-a8d1-80b1659ad7d3/notes.md'
+
 /** The photograph the watermark is drawn from, at the path it already sits on. */
-export const WATERMARK_IMAGE = 'Wroclaw.jpg'
+export const WATERMARK_IMAGE = 'Wroclaw1.jpg'
 
 /**
  * The file as it was committed — its length and the size it was saved at. The
  * watermark is a use of the image and nothing more, so both have to survive the
  * job untouched.
  */
-export const WATERMARK_IMAGE_FILE = { bytes: 272057, width: 1488, height: 1188 }
+export const WATERMARK_IMAGE_FILE = { bytes: 602887, width: 2900, height: 2263 }
+
+/**
+ * The photograph the layer was pointed at before the swap, and the size the
+ * earlier job's notes recorded it at. The file is in no commit of this
+ * repository — see `WATERMARK_SWAP_NOTES` — so this is the name the site must
+ * no longer reference, and the shape the crop is compared against, nothing
+ * that can be read off disk.
+ */
+export const WATERMARK_IMAGE_WAS = 'Wroclaw.jpg'
+export const WATERMARK_IMAGE_WAS_FILE = { bytes: 272057, width: 1488, height: 1188 }
 
 /**
  * The layer it is painted on. A pseudo-element rather than a div: the site has

@@ -182,7 +182,7 @@ button:active {
 
 /* The same layer the Softpapaya sheet paints, written here too because these
    two legacy pages link this sheet instead and the watermark is site-wide.
-   `Wroclaw.jpg` at 5%, cropped to the viewport, behind everything: the
+   `Wroclaw1.jpg` at 5%, cropped to the viewport, behind everything: the
    pseudo-element keeps it out of the markup, and `isolation: isolate` gives
    `body` the stacking context a `z-index: -1` layer needs to paint over the
    body's own background rather than under it. Scoped to the screen, so print
@@ -201,7 +201,7 @@ button:active {
     bottom: 0;
     left: 0;
     z-index: -1;
-    background-image: url('Wroclaw.jpg');
+    background-image: url('Wroclaw1.jpg');
     background-position: center center;
     background-repeat: no-repeat;
     background-size: cover;

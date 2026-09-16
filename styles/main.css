@@ -940,7 +940,7 @@ a {
 
 /* The Wrocław watermark ------------------------------------------------- */
 
-/* One layer, behind the whole site: `Wroclaw.jpg` at 5%, cropped to whatever
+/* One layer, behind the whole site: `Wroclaw1.jpg` at 5%, cropped to whatever
    viewport it is shown in. It is a pseudo-element rather than a div because the
    site has no shared template — a markup hook would have to be pasted into
    every page by hand, and this way the sheet alone carries it.
@@ -963,7 +963,7 @@ a {
     bottom: 0;
     left: 0;
     z-index: -1;
-    background-image: url('../Wroclaw.jpg');
+    background-image: url('../Wroclaw1.jpg');
     background-position: center center;
     background-repeat: no-repeat;
     background-size: cover;
