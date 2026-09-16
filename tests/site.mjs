@@ -955,6 +955,39 @@ export const beforeCaseStudiesStyles = (css) =>
     .replace(/ {2}\/\* The nav rejoins the logo's row[\s\S]*?--masthead-clearance: 84px;\n {2}\}\n\n/, '')
     .replace(/ {2}\/\* The copy takes half again[\s\S]*?\n {2}\}\n\n(?= {2}\.masthead__nav)/, '')
 
+/* The site-wide watermark ------------------------------------------------ */
+
+/** Where the watermark is specified, and this job's discovery written down. */
+export const WATERMARK_PLAN = 'specs/aea7c6d4-8f64-4957-8f2d-8392a0fce7cb/plan.md'
+export const WATERMARK_NOTES = 'specs/aea7c6d4-8f64-4957-8f2d-8392a0fce7cb/notes.md'
+
+/** The photograph the watermark is drawn from, at the path it already sits on. */
+export const WATERMARK_IMAGE = 'Wroclaw.jpg'
+
+/**
+ * The file as it was committed — its length and the size it was saved at. The
+ * watermark is a use of the image and nothing more, so both have to survive the
+ * job untouched.
+ */
+export const WATERMARK_IMAGE_FILE = { bytes: 272057, width: 1488, height: 1188 }
+
+/**
+ * The layer it is painted on. A pseudo-element rather than a div: the site has
+ * no shared template, so a markup hook would have to be pasted into all seven
+ * pages. See `WATERMARK_NOTES`.
+ */
+export const WATERMARK_LAYER = 'body::before'
+
+/** How faint the layer is allowed to be, either side — the spec's own range. */
+export const WATERMARK_OPACITY = { min: 0.05, max: 0.1 }
+
+/**
+ * The width the layer drops from a fixed attachment back to a scrolling one:
+ * the site's own first breakpoint, so the fallback covers exactly the widths
+ * the stylesheet already calls the phone layout.
+ */
+export const WATERMARK_SCROLL_BELOW = 768
+
 /**
  * The colour scheme: two dark greys for the surfaces, gold for the body text
  * and lettering, and three oranges — the accent plus the shades its hover and

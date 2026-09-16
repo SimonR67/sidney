@@ -7,6 +7,7 @@ import { existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { setTimeout as sleep } from 'node:timers/promises'
+import { inflateSync } from 'node:zlib'
 
 /** Serves `root` over http so tests can exercise the page as a static site. */
 export async function serveStatic(root) {
@@ -216,6 +217,19 @@ export async function openPage(url, { width = 1280, height = 800 } = {}) {
       await page.evaluate(`document.querySelector(${JSON.stringify(selector)}).focus()`)
       await session.send('Input.insertText', { text })
     },
+    /**
+     * Renders the viewport and hands back the pixels, so a test can read what
+     * the page actually paints rather than what it declares. `pixelAt(x, y)`
+     * returns `{ r, g, b }` in the same shape `parseColor` produces.
+     */
+    async screenshot() {
+      const { data } = await session.send('Page.captureScreenshot', { format: 'png', captureBeyondViewport: false })
+      return decodePng(Buffer.from(data, 'base64'))
+    },
+    /** Renders the page as the given media type ('screen', 'print'), or as it comes with ''. */
+    async emulateMedia(media) {
+      await session.send('Emulation.setEmulatedMedia', { media })
+    },
     /** Turns page script execution off/on, mirroring the browser's "disable JavaScript" setting. */
     async setScriptExecution(enabled) {
       await session.send('Emulation.setScriptExecutionDisabled', { value: !enabled })
@@ -258,6 +272,74 @@ export async function openPage(url, { width = 1280, height = 800 } = {}) {
   await page.setViewport(width, height)
   await page.goto(url)
   return page
+}
+
+/**
+ * Decodes the 8-bit, non-interlaced PNG `Page.captureScreenshot` hands back —
+ * the only shape Chrome emits — into `{ width, height, pixelAt }`. Kept here
+ * rather than taken from a package: the test suite has no dependencies.
+ */
+export function decodePng(buffer) {
+  let header = null
+  const parts = []
+  for (let at = 8; at + 8 <= buffer.length; ) {
+    const length = buffer.readUInt32BE(at)
+    const type = buffer.toString('ascii', at + 4, at + 8)
+    const body = buffer.subarray(at + 8, at + 8 + length)
+    if (type === 'IHDR') {
+      header = {
+        width: body.readUInt32BE(0),
+        height: body.readUInt32BE(4),
+        depth: body[8],
+        colourType: body[9],
+        interlace: body[12],
+      }
+    }
+    if (type === 'IDAT') parts.push(body)
+    if (type === 'IEND') break
+    at += 12 + length
+  }
+  if (!header) throw new Error('not a PNG')
+  if (header.depth !== 8 || header.interlace !== 0) {
+    throw new Error(`unsupported PNG: depth ${header.depth}, interlace ${header.interlace}`)
+  }
+  const channels = { 0: 1, 2: 3, 4: 2, 6: 4 }[header.colourType]
+  if (!channels) throw new Error(`unsupported PNG colour type ${header.colourType}`)
+
+  const raw = inflateSync(Buffer.concat(parts))
+  const stride = header.width * channels
+  const pixels = Buffer.alloc(stride * header.height)
+  // Undo the per-scanline filter (PNG spec §9.2), each row read against the one above it.
+  for (let row = 0; row < header.height; row++) {
+    const filter = raw[row * (stride + 1)]
+    const source = raw.subarray(row * (stride + 1) + 1, (row + 1) * (stride + 1))
+    for (let i = 0; i < stride; i++) {
+      const left = i >= channels ? pixels[row * stride + i - channels] : 0
+      const up = row > 0 ? pixels[(row - 1) * stride + i] : 0
+      const upLeft = row > 0 && i >= channels ? pixels[(row - 1) * stride + i - channels] : 0
+      let value = source[i]
+      if (filter === 1) value += left
+      else if (filter === 2) value += up
+      else if (filter === 3) value += (left + up) >> 1
+      else if (filter === 4) {
+        const p = left + up - upLeft
+        const [dl, du, dul] = [Math.abs(p - left), Math.abs(p - up), Math.abs(p - upLeft)]
+        value += dl <= du && dl <= dul ? left : du <= dul ? up : upLeft
+      }
+      pixels[row * stride + i] = value & 0xff
+    }
+  }
+
+  return {
+    width: header.width,
+    height: header.height,
+    pixels,
+    pixelAt(x, y) {
+      const at = Math.round(y) * stride + Math.round(x) * channels
+      if (channels <= 2) return { r: pixels[at], g: pixels[at], b: pixels[at], a: 1 }
+      return { r: pixels[at], g: pixels[at + 1], b: pixels[at + 2], a: 1 }
+    },
+  }
 }
 
 /** Parses any CSS colour Chrome reports (`rgb(a)`) into `{r,g,b,a}`. */
