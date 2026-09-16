@@ -177,3 +177,43 @@ button:active {
   color: var(--orange);
   font-size: 0.875rem;
 }
+
+/* The Wrocław watermark ------------------------------------------------- */
+
+/* The same layer the Softpapaya sheet paints, written here too because these
+   two legacy pages link this sheet instead and the watermark is site-wide.
+   `Wroclaw.jpg` at 5%, cropped to the viewport, behind everything: the
+   pseudo-element keeps it out of the markup, and `isolation: isolate` gives
+   `body` the stacking context a `z-index: -1` layer needs to paint over the
+   body's own background rather than under it. Scoped to the screen, so print
+   output is left exactly as it was.
+   See specs/aea7c6d4-8f64-4957-8f2d-8392a0fce7cb/notes.md. */
+@media screen {
+  body {
+    isolation: isolate;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    background-image: url('Wroclaw.jpg');
+    background-position: center center;
+    background-repeat: no-repeat;
+    background-size: cover;
+    background-attachment: fixed;
+    opacity: 0.05;
+    pointer-events: none;
+  }
+}
+
+/* Phones: the scrolling attachment, for the reason the other sheet gives. */
+@media screen and (max-width: 767px) {
+  body::before {
+    background-attachment: scroll;
+  }
+}
